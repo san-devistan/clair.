@@ -25,31 +25,32 @@ export function CategoryTable({ items }: { items: CategoryBreakdown[] }) {
 
   return (
     <div className="rounded-md border">
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-8" />
             <TableHead>Catégorie</TableHead>
-            <TableHead className="text-right">Montant</TableHead>
             <TableHead className="w-20 text-right">Part</TableHead>
+            <TableHead className="w-28 text-right">Montant</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {displayedItems.map((item) => (
             <TableRow key={item.key}>
-              <TableCell>
-                <span
-                  aria-hidden
-                  className="block size-2.5 shrink-0 rounded-full"
-                  style={{ background: item.fill }}
-                />
-              </TableCell>
-              <TableCell className="font-medium">{item.label}</TableCell>
-              <TableCell className="text-right font-mono tabular-nums">
-                <FormattedCurrency value={item.amount} />
+              <TableCell className="font-medium">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="block size-2.5 shrink-0 rounded-full"
+                    style={{ background: item.fill }}
+                  />
+                  <span className="min-w-0 truncate">{item.label}</span>
+                </div>
               </TableCell>
               <TableCell className="text-right text-muted-foreground tabular-nums">
                 {item.share.toFixed(1)}%
+              </TableCell>
+              <TableCell className="text-right font-mono tabular-nums">
+                <FormattedCurrency value={item.amount} />
               </TableCell>
             </TableRow>
           ))}
