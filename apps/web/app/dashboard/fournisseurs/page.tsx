@@ -1,17 +1,12 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { CalendarClock, ChartLine, HandCoins, Truck } from "lucide-react"
 
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { CounterpartyTable } from "@/components/fec/counterparty-table"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import {
   FormattedCurrency,
   FormattedNumber,
@@ -41,15 +36,11 @@ export default function FournisseursPage() {
       : 0
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
+      <header>
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Fournisseurs
         </h1>
-        <p className="text-sm text-muted-foreground md:text-base">
-          Avec qui vous travaillez — et où sont vos meilleurs leviers de
-          négociation
-        </p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -57,18 +48,21 @@ export default function FournisseursPage() {
           label="Fournisseurs identifiés"
           value={<FormattedNumber value={topSuppliers.length} />}
           icon={Truck}
+          description="Nombre de comptes fournisseurs auxiliaires avec du volume sur la période. Sert à voir la diversité de vos partenaires."
           hint="Comptes auxiliaires actifs"
         />
         <KpiCard
           label="Top fournisseur"
           value={formatPercent(top1Share)}
           icon={ChartLine}
+          description="Part du volume fournisseur portée par le plus gros fournisseur. Utile pour repérer un partenaire critique ou un levier de négociation."
           hint={topSuppliers[0]?.label ?? "—"}
         />
         <KpiCard
           label="Dettes fournisseurs"
           value={<FormattedCurrency value={kpi.supplierPayables} />}
           icon={HandCoins}
+          description="Montant restant dû aux fournisseurs à la fin de la période, calculé à partir des comptes 40."
           hint="Solde à payer"
         />
         <KpiCard
@@ -79,6 +73,7 @@ export default function FournisseursPage() {
             </>
           }
           icon={CalendarClock}
+          description="Estimation du délai moyen de paiement : dettes fournisseurs rapportées aux charges annualisées. Indique combien de temps vous conservez le cash avant paiement."
           hint={
             dpo < 30
               ? "Vous payez vite"
@@ -91,12 +86,22 @@ export default function FournisseursPage() {
 
       <AgedBalanceCard type="fournisseurs" data={agedPayables} />
 
+      <Card>
+        <CardHeader>
+          <ExplainedCardTitle description="Tableau d'action cash trié par retard puis par montant à payer, à partir des comptes auxiliaires fournisseurs (401xxx). Les comptes soldés sont masqués.">
+            Tableau de bord fournisseurs
+          </ExplainedCardTitle>
+        </CardHeader>
+        <CardContent>
+          <CounterpartyTable aging={agedPayables} variant="suppliers" />
+        </CardContent>
+      </Card>
+
       <Card className="bg-gradient-to-br from-primary/[0.04] to-transparent">
         <CardHeader>
-          <CardTitle>Vos leviers de négociation</CardTitle>
-          <CardDescription>
-            Plus un fournisseur pèse, plus vous avez d'arguments pour négocier
-          </CardDescription>
+          <ExplainedCardTitle description="Plus un fournisseur pèse dans vos achats, plus vous avez d'arguments pour négocier tarifs, délais ou conditions.">
+            Vos leviers de négociation
+          </ExplainedCardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
@@ -128,22 +133,6 @@ export default function FournisseursPage() {
               négociation.
             </p>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Tableau de bord fournisseurs</CardTitle>
-          <CardDescription>
-            Trié par montant total facturé — les comptes auxiliaires (401xxx)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CounterpartyTable
-            items={topSuppliers}
-            total={totalSupplierVolume}
-            amountLabel="Facturé"
-          />
         </CardContent>
       </Card>
     </div>

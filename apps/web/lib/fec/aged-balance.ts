@@ -7,8 +7,10 @@
 import { isCustomerAccount, isSupplierAccount } from "./accounts"
 import type { FecEntry } from "./types"
 
+export type AgedBalanceBucketKey = "notDue" | "0_30" | "31_60" | "60plus"
+
 export interface AgedBalanceBucket {
-  key: "notDue" | "0_30" | "31_60" | "60plus"
+  key: AgedBalanceBucketKey
   label: string
   count: number
   amount: number
@@ -20,7 +22,11 @@ export interface AgedBalanceCounterparty {
   totalAmount: number
   overdueAmount: number
   oldestDaysOverdue: number
+  oldestOpenDays: number
   invoiceCount: number
+  worstBucketKey: AgedBalanceBucketKey
+  worstBucketLabel: string
+  worstBucketAmount: number
 }
 
 export interface AgedBalance {
@@ -36,6 +42,7 @@ export interface AgedBalance {
   notDueInvoiceCount: number
   notDuePartyCount: number
   buckets: AgedBalanceBucket[]
+  counterparties: AgedBalanceCounterparty[]
   topOverdueParties: AgedBalanceCounterparty[]
 }
 
@@ -43,6 +50,12 @@ const PAYMENT_DAYS_DEFAULT = 30
 const TOP_N_DEFAULT = 5
 const AMOUNT_TOLERANCE = 0.01
 const DAY_MS = 86_400_000
+const BUCKET_PRIORITY: Record<AgedBalanceBucketKey, number> = {
+  notDue: 0,
+  "0_30": 1,
+  "31_60": 2,
+  "60plus": 3,
+}
 
 interface OpenInvoice {
   partyKey: string
@@ -136,7 +149,7 @@ function netOpenInvoicesByParty(
   return open
 }
 
-function makeBuckets(): Record<AgedBalanceBucket["key"], AgedBalanceBucket> {
+function makeBuckets(): Record<AgedBalanceBucketKey, AgedBalanceBucket> {
   return {
     notDue: { key: "notDue", label: "Non échu", count: 0, amount: 0 },
     "0_30": { key: "0_30", label: "0 à 30 j", count: 0, amount: 0 },
@@ -146,7 +159,7 @@ function makeBuckets(): Record<AgedBalanceBucket["key"], AgedBalanceBucket> {
 }
 
 function bucketForDays(
-  buckets: Record<AgedBalanceBucket["key"], AgedBalanceBucket>,
+  buckets: Record<AgedBalanceBucketKey, AgedBalanceBucket>,
   daysOverdue: number
 ): AgedBalanceBucket {
   if (daysOverdue < 0) return buckets.notDue
@@ -166,12 +179,8 @@ interface AccountSelector {
   signMultiplier: 1 | -1
 }
 
-function aggregateOpenInvoices(
-  open: OpenInvoice[],
-  asOfMs: number,
-  paymentDays: number
-): {
-  buckets: Record<AgedBalanceBucket["key"], AgedBalanceBucket>
+interface AgedBalanceAggregate {
+  buckets: Record<AgedBalanceBucketKey, AgedBalanceBucket>
   partyAgg: Map<string, AgedBalanceCounterparty>
   partySet: Set<string>
   overduePartySet: Set<string>
@@ -184,75 +193,123 @@ function aggregateOpenInvoices(
     notDueAmount: number
     notDueInvoiceCount: number
   }
-} {
-  const buckets = makeBuckets()
-  const partyAgg = new Map<string, AgedBalanceCounterparty>()
-  const partySet = new Set<string>()
-  const overduePartySet = new Set<string>()
-  const notDuePartySet = new Set<string>()
+}
 
-  let totalAmount = 0
-  let invoiceCount = 0
-  let overdueAmount = 0
-  let overdueInvoiceCount = 0
-  let notDueAmount = 0
-  let notDueInvoiceCount = 0
+interface InvoiceAge {
+  daysOverdue: number
+  daysOpen: number
+}
 
-  for (const inv of open) {
-    const dueMs = inv.date.getTime() + paymentDays * DAY_MS
-    const daysOverdue = Math.floor((asOfMs - dueMs) / DAY_MS)
-
-    totalAmount += inv.amount
-    invoiceCount += 1
-    partySet.add(inv.partyKey)
-
-    let agg = partyAgg.get(inv.partyKey)
-    if (!agg) {
-      agg = {
-        accountNum: inv.partyKey,
-        label: inv.partyLabel,
-        totalAmount: 0,
-        overdueAmount: 0,
-        oldestDaysOverdue: daysOverdue,
-        invoiceCount: 0,
-      }
-      partyAgg.set(inv.partyKey, agg)
-    }
-    agg.totalAmount += inv.amount
-    agg.invoiceCount += 1
-    if (daysOverdue > agg.oldestDaysOverdue) agg.oldestDaysOverdue = daysOverdue
-
-    const bucket = bucketForDays(buckets, daysOverdue)
-    bucket.count += 1
-    bucket.amount += inv.amount
-
-    if (daysOverdue < 0) {
-      notDueAmount += inv.amount
-      notDueInvoiceCount += 1
-      notDuePartySet.add(inv.partyKey)
-    } else {
-      overdueAmount += inv.amount
-      overdueInvoiceCount += 1
-      overduePartySet.add(inv.partyKey)
-      agg.overdueAmount += inv.amount
-    }
-  }
-
+function createAgedBalanceAggregate(): AgedBalanceAggregate {
   return {
-    buckets,
-    partyAgg,
-    partySet,
-    overduePartySet,
-    notDuePartySet,
+    buckets: makeBuckets(),
+    partyAgg: new Map(),
+    partySet: new Set(),
+    overduePartySet: new Set(),
+    notDuePartySet: new Set(),
     totals: {
-      totalAmount,
-      invoiceCount,
-      overdueAmount,
-      overdueInvoiceCount,
-      notDueAmount,
-      notDueInvoiceCount,
+      totalAmount: 0,
+      invoiceCount: 0,
+      overdueAmount: 0,
+      overdueInvoiceCount: 0,
+      notDueAmount: 0,
+      notDueInvoiceCount: 0,
     },
   }
+}
+
+function getOrCreateCounterpartyAgg(
+  aggregate: AgedBalanceAggregate,
+  inv: OpenInvoice,
+  bucket: AgedBalanceBucket,
+  age: InvoiceAge
+): AgedBalanceCounterparty {
+  let agg = aggregate.partyAgg.get(inv.partyKey)
+  if (!agg) {
+    agg = {
+      accountNum: inv.partyKey,
+      label: inv.partyLabel,
+      totalAmount: 0,
+      overdueAmount: 0,
+      oldestDaysOverdue: age.daysOverdue,
+      oldestOpenDays: age.daysOpen,
+      invoiceCount: 0,
+      worstBucketKey: bucket.key,
+      worstBucketLabel: bucket.label,
+      worstBucketAmount: 0,
+    }
+    aggregate.partyAgg.set(inv.partyKey, agg)
+  }
+  return agg
+}
+
+function updateWorstBucket(
+  agg: AgedBalanceCounterparty,
+  bucket: AgedBalanceBucket,
+  amount: number
+) {
+  const bucketPriority = BUCKET_PRIORITY[bucket.key]
+  const worstPriority = BUCKET_PRIORITY[agg.worstBucketKey]
+  if (bucketPriority > worstPriority) {
+    agg.worstBucketKey = bucket.key
+    agg.worstBucketLabel = bucket.label
+    agg.worstBucketAmount = amount
+  } else if (bucketPriority === worstPriority) {
+    agg.worstBucketAmount += amount
+  }
+}
+
+function addOpenInvoiceToAggregate(
+  aggregate: AgedBalanceAggregate,
+  inv: OpenInvoice,
+  asOfMs: number,
+  paymentDays: number
+) {
+  const dueMs = inv.date.getTime() + paymentDays * DAY_MS
+  const daysOverdue = Math.floor((asOfMs - dueMs) / DAY_MS)
+  const daysOpen = Math.max(
+    0,
+    Math.floor((asOfMs - inv.date.getTime()) / DAY_MS)
+  )
+  const bucket = bucketForDays(aggregate.buckets, daysOverdue)
+  const agg = getOrCreateCounterpartyAgg(aggregate, inv, bucket, {
+    daysOpen,
+    daysOverdue,
+  })
+
+  aggregate.totals.totalAmount += inv.amount
+  aggregate.totals.invoiceCount += 1
+  aggregate.partySet.add(inv.partyKey)
+  agg.totalAmount += inv.amount
+  agg.invoiceCount += 1
+  if (daysOverdue > agg.oldestDaysOverdue) agg.oldestDaysOverdue = daysOverdue
+  if (daysOpen > agg.oldestOpenDays) agg.oldestOpenDays = daysOpen
+  updateWorstBucket(agg, bucket, inv.amount)
+
+  bucket.count += 1
+  bucket.amount += inv.amount
+
+  if (daysOverdue < 0) {
+    aggregate.totals.notDueAmount += inv.amount
+    aggregate.totals.notDueInvoiceCount += 1
+    aggregate.notDuePartySet.add(inv.partyKey)
+  } else {
+    aggregate.totals.overdueAmount += inv.amount
+    aggregate.totals.overdueInvoiceCount += 1
+    aggregate.overduePartySet.add(inv.partyKey)
+    agg.overdueAmount += inv.amount
+  }
+}
+
+function aggregateOpenInvoices(
+  open: OpenInvoice[],
+  asOfMs: number,
+  paymentDays: number
+): AgedBalanceAggregate {
+  const aggregate = createAgedBalanceAggregate()
+  for (const inv of open)
+    addOpenInvoiceToAggregate(aggregate, inv, asOfMs, paymentDays)
+  return aggregate
 }
 
 export function computeAgedBalance(
@@ -276,7 +333,11 @@ export function computeAgedBalance(
     totals,
   } = aggregateOpenInvoices(open, options.asOf.getTime(), paymentDays)
 
-  const topOverdueParties = Array.from(partyAgg.values())
+  const counterparties = Array.from(partyAgg.values()).sort(
+    (a, b) => b.totalAmount - a.totalAmount
+  )
+
+  const topOverdueParties = counterparties
     .filter((p) => p.overdueAmount > 0)
     .sort((a, b) => b.overdueAmount - a.overdueAmount)
     .slice(0, topN)
@@ -294,6 +355,7 @@ export function computeAgedBalance(
     notDueInvoiceCount: totals.notDueInvoiceCount,
     notDuePartyCount: notDuePartySet.size,
     buckets: Object.values(buckets),
+    counterparties,
     topOverdueParties,
   }
 }

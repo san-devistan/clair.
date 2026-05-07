@@ -18,6 +18,18 @@ import {
 } from "./analytics"
 import { parseFecFile } from "./parser"
 
+// v13 (2026-05) : les tableaux clients/fournisseurs deviennent des vues
+// d'encours cash et gardent tous les tiers actifs pour joindre le volume facture.
+// v12 (2026-05) : ajoute firstDate aux tiers pour afficher l'anciennete des
+// clients/fournisseurs dans les tableaux.
+// v11 (2026-05) : ajoute le statut de balance agee par tiers pour afficher les
+// categories Non echu / 0-30 / 31-60 / +60 dans les tableaux clients.
+// v10 (2026-05) : ajoute la categorie metier clair aux lignes de detail
+// revenus/charges pour relier detail et composition.
+// v9 (2026-05) : les details revenus/charges heritent du compte auxiliaire
+// client/fournisseur porte par la meme ecriture comptable.
+// v8 (2026-05) : remplace les top comptes revenus/charges par des details
+// compte general + auxiliaire, avec lignes positives et negatives.
 // v7 (2026-05) : rattachement des comptes au plan de comptes officiel 2026 et
 // separation des categories metier clair.
 // v6 (2026-05) : ajout de cashProjection (projection de tresorerie a court
@@ -32,9 +44,9 @@ import { parseFecFile } from "./parser"
 // v2 (2026-05) : refonte de la categorisation des comptes
 // (Couts fixes/RH/Variables/... au lieu des classes PCG 60-69).
 // Les utilisateurs avec un snapshot anterieur devront re-importer leur FEC.
-const STORAGE_KEY = "clair.fec.dashboard.v7"
+const STORAGE_KEY = "clair.fec.dashboard.v13"
 // Slot secondaire pour la comparaison entre deux FEC (meme schema, meme version).
-const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v7"
+const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v13"
 
 interface SerializedSnapshot {
   meta: DashboardData["meta"]
@@ -49,27 +61,30 @@ interface SerializedSnapshot {
   expenseCategories: DashboardData["expenseCategories"]
   revenueCategories: DashboardData["revenueCategories"]
   topCustomers: Array<
-    Omit<DashboardData["topCustomers"][number], "lastDate"> & {
+    Omit<DashboardData["topCustomers"][number], "firstDate" | "lastDate"> & {
+      firstDate: string
       lastDate: string
     }
   >
   topSuppliers: Array<
-    Omit<DashboardData["topSuppliers"][number], "lastDate"> & {
+    Omit<DashboardData["topSuppliers"][number], "firstDate" | "lastDate"> & {
+      firstDate: string
       lastDate: string
     }
   >
-  topExpenseAccounts: Array<
-    Omit<DashboardData["topExpenseAccounts"][number], "lastDate"> & {
+  expenseDetails: Array<
+    Omit<DashboardData["expenseDetails"][number], "lastDate"> & {
       lastDate: string
     }
   >
-  topRevenueAccounts: Array<
-    Omit<DashboardData["topRevenueAccounts"][number], "lastDate"> & {
+  revenueDetails: Array<
+    Omit<DashboardData["revenueDetails"][number], "lastDate"> & {
       lastDate: string
     }
   >
   cashByAccount: Array<
-    Omit<DashboardData["cashByAccount"][number], "lastDate"> & {
+    Omit<DashboardData["cashByAccount"][number], "firstDate" | "lastDate"> & {
+      firstDate: string
       lastDate: string
     }
   >
@@ -112,22 +127,25 @@ function serialize(data: DashboardData): SerializedSnapshot {
     revenueCategories: stripFill(data.revenueCategories),
     topCustomers: data.topCustomers.map((c) => ({
       ...c,
+      firstDate: c.firstDate.toISOString(),
       lastDate: c.lastDate.toISOString(),
     })),
     topSuppliers: data.topSuppliers.map((c) => ({
       ...c,
+      firstDate: c.firstDate.toISOString(),
       lastDate: c.lastDate.toISOString(),
     })),
-    topExpenseAccounts: data.topExpenseAccounts.map((c) => ({
+    expenseDetails: data.expenseDetails.map((c) => ({
       ...c,
       lastDate: c.lastDate.toISOString(),
     })),
-    topRevenueAccounts: data.topRevenueAccounts.map((c) => ({
+    revenueDetails: data.revenueDetails.map((c) => ({
       ...c,
       lastDate: c.lastDate.toISOString(),
     })),
     cashByAccount: data.cashByAccount.map((c) => ({
       ...c,
+      firstDate: c.firstDate.toISOString(),
       lastDate: c.lastDate.toISOString(),
     })),
     insights: data.insights,
@@ -173,22 +191,25 @@ function deserialize(snap: SerializedSnapshot): DashboardData {
     revenueCategories: assignRevenueFills(snap.revenueCategories),
     topCustomers: snap.topCustomers.map((c) => ({
       ...c,
+      firstDate: new Date(c.firstDate),
       lastDate: new Date(c.lastDate),
     })),
     topSuppliers: snap.topSuppliers.map((c) => ({
       ...c,
+      firstDate: new Date(c.firstDate),
       lastDate: new Date(c.lastDate),
     })),
-    topExpenseAccounts: snap.topExpenseAccounts.map((c) => ({
+    expenseDetails: snap.expenseDetails.map((c) => ({
       ...c,
       lastDate: new Date(c.lastDate),
     })),
-    topRevenueAccounts: snap.topRevenueAccounts.map((c) => ({
+    revenueDetails: snap.revenueDetails.map((c) => ({
       ...c,
       lastDate: new Date(c.lastDate),
     })),
     cashByAccount: snap.cashByAccount.map((c) => ({
       ...c,
+      firstDate: new Date(c.firstDate),
       lastDate: new Date(c.lastDate),
     })),
     insights: snap.insights,

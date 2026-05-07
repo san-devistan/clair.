@@ -4,23 +4,20 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card"
 import { Briefcase, Building2, Receipt, ReceiptText } from "lucide-react"
 import { useState } from "react"
 
-import { CategoryBarList } from "@/components/fec/category-bar-list"
-import { CategoryDonutChart } from "@/components/fec/category-donut-chart"
+import { AccountDetailSection } from "@/components/fec/account-detail-section"
 import { CategoryTable } from "@/components/fec/category-table"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
 import { ResultBreakdown } from "@/components/fec/result-breakdown"
-import { TopList } from "@/components/fec/top-list"
 import { formatPercent } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"
 
@@ -29,7 +26,7 @@ export default function ChargesPage() {
   const [showComparison, setShowComparison] = useState(true)
   if (!data) return <DashboardEmptyState />
 
-  const { kpi, monthly, expenseCategories, topExpenseAccounts } = data
+  const { kpi, monthly, expenseCategories, expenseDetails } = data
 
   const expenseRatio = kpi.revenue > 0 ? (kpi.expenses / kpi.revenue) * 100 : 0
   const payrollRatio = kpi.revenue > 0 ? (kpi.payroll / kpi.revenue) * 100 : 0
@@ -39,14 +36,11 @@ export default function ChargesPage() {
     monthly.length > 0 ? kpi.expenses / monthly.length : 0
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
+      <header>
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Charges
         </h1>
-        <p className="text-sm text-muted-foreground md:text-base">
-          Où part votre argent — et où vous pouvez agir
-        </p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -54,18 +48,21 @@ export default function ChargesPage() {
           label="Charges totales"
           value={<FormattedCurrency value={kpi.expenses} />}
           icon={ReceiptText}
+          description="Total des dépenses comptabilisées sur la période (comptes 6xx). À comparer au chiffre d'affaires pour surveiller le poids des coûts."
           hint={`${expenseRatio.toFixed(0)}% du CA`}
         />
         <KpiCard
           label="Charges mensuelles moy."
           value={<FormattedCurrency value={monthlyAvgExpenses} />}
           icon={Receipt}
+          description="Charges totales divisées par le nombre de mois analysés. Sert à estimer le niveau de dépenses mensuel récurrent."
           hint="Moyenne sur la période"
         />
         <KpiCard
           label="Salaires + charges sociales"
           value={<FormattedCurrency value={kpi.payroll} />}
           icon={Briefcase}
+          description="Montant des comptes de personnel et cotisations sociales. À suivre en part du CA pour mesurer le poids de l'équipe."
           hint={`${formatPercent(payrollRatio)} du CA`}
           tone={payrollRatio > 60 ? "warning" : "default"}
         />
@@ -73,16 +70,16 @@ export default function ChargesPage() {
           label="Services extérieurs"
           value={<FormattedCurrency value={kpi.externalCharges} />}
           icon={Building2}
+          description="Prestations, loyers, sous-traitance, énergie, télécoms et autres charges externes. Ce sont souvent des contrats renégociables."
           hint={`${formatPercent(externalRatio)} du CA`}
         />
       </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Composition des charges</CardTitle>
-          <CardDescription>
-            La part de chaque catégorie comptable dans vos dépenses
-          </CardDescription>
+          <ExplainedCardTitle description="Montre la part de chaque catégorie comptable dans vos dépenses pour identifier les coûts qui pèsent vraiment sur la marge.">
+            Composition des charges
+          </ExplainedCardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <ResultBreakdown
@@ -96,10 +93,9 @@ export default function ChargesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Évolution mensuelle des charges</CardTitle>
-          <CardDescription>
-            Identifiez les pics et les postes saisonniers à anticiper
-          </CardDescription>
+          <ExplainedCardTitle description="Compare les charges mois par mois pour détecter les pics, les postes saisonniers et les dépenses qui deviennent récurrentes.">
+            Évolution mensuelle des charges
+          </ExplainedCardTitle>
           {comparisonData ? (
             <CardAction>
               <ComparisonToggle
@@ -123,51 +119,16 @@ export default function ChargesPage() {
         </CardContent>
       </Card>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Répartition des charges</CardTitle>
-            <CardDescription>Par grande catégorie comptable</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {expenseCategories.length > 0 ? (
-              <CategoryDonutChart
-                data={expenseCategories}
-                total={kpi.expenses}
-                centerLabel="charges"
-                className="h-[280px] w-full"
-              />
-            ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Aucune charge à afficher
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Détail par catégorie</CardTitle>
-            <CardDescription>Trié du plus lourd au plus léger</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CategoryBarList items={expenseCategories} />
-          </CardContent>
-        </Card>
-      </section>
-
       <Card>
         <CardHeader>
-          <CardTitle>Top postes de charges</CardTitle>
-          <CardDescription>
-            Les comptes spécifiques où vous dépensez le plus — vos leviers
-            d'optimisation
-          </CardDescription>
+          <ExplainedCardTitle description="Classe les charges par compte général et compte auxiliaire lorsqu'il existe, pour repérer les dépenses principales et les lignes à vérifier.">
+            Détail des charges
+          </ExplainedCardTitle>
         </CardHeader>
         <CardContent>
-          <TopList
-            items={topExpenseAccounts}
-            showCount={10}
+          <AccountDetailSection
+            items={expenseDetails}
+            variant="expenses"
             emptyLabel="Aucune charge identifiée"
           />
         </CardContent>
@@ -176,10 +137,9 @@ export default function ChargesPage() {
       {expenseCategories.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Pistes d'optimisation</CardTitle>
-            <CardDescription>
-              Suggestions concrètes basées sur votre structure de charges
-            </CardDescription>
+            <ExplainedCardTitle description="Suggestions concrètes calculées à partir de votre structure de charges, pour repérer les économies ou négociations prioritaires.">
+              Pistes d'optimisation
+            </ExplainedCardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {payrollRatio > 60 ? (

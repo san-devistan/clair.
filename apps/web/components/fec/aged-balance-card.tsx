@@ -1,13 +1,7 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import {
   Tooltip,
   TooltipContent,
@@ -18,13 +12,10 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ArrowRight, ReceiptText, Users } from "lucide-react"
 import Link from "next/link"
 
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { AgedBalance, AgedBalanceBucket } from "@/lib/fec/analytics"
-import {
-  formatEuro,
-  formatEuroCompact,
-  formatShortDate,
-} from "@/lib/fec/format"
+import { formatEuroCompact, formatShortDate } from "@/lib/fec/format"
 
 type PartyType = "clients" | "fournisseurs"
 
@@ -47,12 +38,6 @@ function pluralize(n: number, singular: string, plural?: string): string {
   return n > 1 ? (plural ?? `${singular}s`) : singular
 }
 
-function formatDaysOverdue(days: number): string {
-  if (days < 0) return `Échéance dans ${String(-days)} j`
-  if (days === 0) return "Échéance aujourd'hui"
-  return `${String(days)} j de retard`
-}
-
 export function AgedBalanceCard({
   type,
   data,
@@ -62,10 +47,6 @@ export function AgedBalanceCard({
   const partyWord = isClients ? "client" : "fournisseur"
   const Icon = isClients ? Users : ReceiptText
   const title = isClients ? "Balance âgée clients" : "Balance âgée fournisseurs"
-  const overdueLabel = isClients ? "À relancer" : "À payer en priorité"
-  const emptyLabel = isClients
-    ? "Aucun retard de paiement client."
-    : "Aucune facture fournisseur en retard."
   const detailHref = isClients
     ? "/dashboard/clients"
     : "/dashboard/fournisseurs"
@@ -75,12 +56,18 @@ export function AgedBalanceCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>
-              Au {formatShortDate(data.asOf)} · échéance {data.paymentDays} j ·{" "}
-              {data.partyCount} {pluralize(data.partyCount, partyWord)} avec
-              encours
-            </CardDescription>
+            <ExplainedCardTitle
+              description={
+                <>
+                  Au {formatShortDate(data.asOf)} · échéance {data.paymentDays}{" "}
+                  j · {data.partyCount} {pluralize(data.partyCount, partyWord)}{" "}
+                  avec encours. La barre sépare les montants non échus et les
+                  retards par ancienneté.
+                </>
+              }
+            >
+              {title}
+            </ExplainedCardTitle>
           </div>
           {compact ? (
             <Button
@@ -132,60 +119,8 @@ export function AgedBalanceCard({
 
         {/* Barre stackee par tranche d'aging */}
         <AgingBar buckets={data.buckets} totalAmount={data.totalAmount} />
-
-        {/* Top a relancer / payer — masque en mode compact (page /dashboard) */}
-        {!compact && (
-          <OverdueList
-            parties={data.topOverdueParties}
-            label={overdueLabel}
-            emptyLabel={emptyLabel}
-          />
-        )}
       </CardContent>
     </Card>
-  )
-}
-
-function OverdueList({
-  parties,
-  label,
-  emptyLabel,
-}: {
-  parties: AgedBalance["topOverdueParties"]
-  label: string
-  emptyLabel: string
-}) {
-  return (
-    <div className="flex-1 space-y-2">
-      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      {parties.length > 0 ? (
-        <ul className="space-y-1.5">
-          {parties.map((p) => (
-            <li
-              key={p.accountNum}
-              className="flex items-baseline justify-between gap-3 text-sm"
-            >
-              <span className="min-w-0 flex-1 truncate" title={p.label}>
-                {p.label}
-              </span>
-              <span
-                className="font-mono font-medium tabular-nums"
-                title={formatEuro(p.overdueAmount)}
-              >
-                {formatEuroCompact(p.overdueAmount)}
-              </span>
-              <span className="w-24 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
-                {formatDaysOverdue(p.oldestDaysOverdue)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
-      )}
-    </div>
   )
 }
 

@@ -1,17 +1,12 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { CalendarClock, ChartLine, CircleAlert, Users } from "lucide-react"
 
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { CounterpartyTable } from "@/components/fec/counterparty-table"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import {
   FormattedCurrency,
   FormattedNumber,
@@ -48,14 +43,11 @@ export default function ClientsPage() {
       : 0
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
+      <header>
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Clients
         </h1>
-        <p className="text-sm text-muted-foreground md:text-base">
-          Qui paie votre entreprise — et à quelle hauteur êtes-vous dépendant
-        </p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -63,12 +55,14 @@ export default function ClientsPage() {
           label="Clients identifiés"
           value={<FormattedNumber value={topCustomers.length} />}
           icon={Users}
+          description="Nombre de comptes clients auxiliaires avec du volume sur la période. Sert à mesurer la largeur du portefeuille."
           hint="Comptes auxiliaires actifs"
         />
         <KpiCard
           label="Top client"
           value={formatPercent(top1Share)}
           icon={ChartLine}
+          description="Part du volume client portée par le plus gros client. Une part élevée signale une dépendance à surveiller."
           tone={top1Share > 35 ? "warning" : "default"}
           hint={topCustomers[0]?.label ?? "—"}
         />
@@ -76,6 +70,7 @@ export default function ClientsPage() {
           label="Top 3 clients"
           value={formatPercent(top3Share)}
           icon={ChartLine}
+          description="Part du volume client portée par vos trois plus gros clients. Plus elle est élevée, plus la dépendance commerciale augmente."
           tone={top3Share > 60 ? "warning" : "default"}
           hint={top3Share > 60 ? "Forte concentration" : "Concentration saine"}
         />
@@ -88,6 +83,7 @@ export default function ClientsPage() {
           }
           icon={CalendarClock}
           tone={dso > 60 ? "warning" : "default"}
+          description="Estimation du délai moyen d'encaissement : créances clients rapportées au CA annualisé. Plus il est haut, plus le cash reste dehors."
           hint={
             <>
               Créances : <FormattedCurrency value={kpi.customerReceivables} />
@@ -137,27 +133,20 @@ export default function ClientsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tableau de bord clients</CardTitle>
-          <CardDescription>
-            Trié par volume facturé sur la période — les comptes auxiliaires
-            (411xxx)
-          </CardDescription>
+          <ExplainedCardTitle description="Tableau d'action cash trié par retard puis par montant à relancer, à partir des comptes auxiliaires clients (411xxx). Les comptes soldés sont masqués.">
+            Tableau de bord clients
+          </ExplainedCardTitle>
         </CardHeader>
         <CardContent>
-          <CounterpartyTable
-            items={topCustomers}
-            total={totalCustomerVolume}
-            amountLabel="Facturé"
-          />
+          <CounterpartyTable aging={agedReceivables} variant="clients" />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pour aller plus loin</CardTitle>
-          <CardDescription>
-            3 questions à se poser sur son portefeuille client
-          </CardDescription>
+          <ExplainedCardTitle description="Trois questions de pilotage pour analyser la dépendance, les retards et les opportunités de réactivation du portefeuille client.">
+            Pour aller plus loin
+          </ExplainedCardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border-l-2 border-primary/60 bg-primary/[0.04] p-4">

@@ -4,9 +4,7 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import {
@@ -22,6 +20,7 @@ import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
 import { CashProjectionCard } from "@/components/fec/cash-projection-card"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import {
   FormattedCurrency,
   FormattedNumber,
@@ -64,15 +63,11 @@ export default function TresoreriePage() {
         : "success"
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
+      <header>
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Trésorerie
         </h1>
-        <p className="text-sm text-muted-foreground md:text-base">
-          Solde, flux et délais de paiement — votre marge de manœuvre au
-          quotidien
-        </p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -80,6 +75,7 @@ export default function TresoreriePage() {
           label="Solde actuel"
           value={<FormattedCurrency value={kpi.cashBalance} />}
           icon={Banknote}
+          description="Solde cumulé des comptes de banque et de caisse à la fin de la période importée."
           tone={
             kpi.cashBalance < 0
               ? "danger"
@@ -104,12 +100,14 @@ export default function TresoreriePage() {
             </span>
           }
           icon={isImproving ? TrendingUp : TrendingDown}
+          description="Encaissements clients échus moins paiements fournisseurs échus. Montre l'effet court terme des engagements déjà dus sur la trésorerie."
           hint="Encaissements échus − décaissements échus"
         />
         <KpiCard
           label="Solde prévisionnel"
           value={<FormattedCurrency value={cashProjection.projectedCash} />}
           icon={Wallet}
+          description="Solde actuel après encaissement des créances échues et paiement des dettes échues identifiées dans le FEC."
           tone={projectedTone}
           hint="Après règlement des engagements échus"
         />
@@ -117,10 +115,9 @@ export default function TresoreriePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Évolution de la trésorerie</CardTitle>
-          <CardDescription>
-            Solde cumulé fin de mois (aire) et flux net mensuel (barres)
-          </CardDescription>
+          <ExplainedCardTitle description="L'aire montre le solde cumulé fin de mois et les barres montrent le flux net mensuel. La projection ajoute l'effet des engagements échus.">
+            Évolution de la trésorerie
+          </ExplainedCardTitle>
           {comparisonData ? (
             <CardAction>
               <ComparisonToggle
@@ -153,10 +150,9 @@ export default function TresoreriePage() {
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Délais de paiement</CardTitle>
-            <CardDescription>
-              Combien de jours avant que l'argent arrive (ou parte)
-            </CardDescription>
+            <ExplainedCardTitle description="Compare le délai moyen d'encaissement client (DSO) et le délai moyen de paiement fournisseur (DPO) pour lire la pression sur la trésorerie.">
+              Délais de paiement
+            </ExplainedCardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1">
@@ -203,10 +199,9 @@ export default function TresoreriePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Comptes bancaires</CardTitle>
-            <CardDescription>
-              Soldes par compte (banques + caisses)
-            </CardDescription>
+            <ExplainedCardTitle description="Liste les soldes par compte de banque et de caisse pour voir où se trouve la trésorerie disponible.">
+              Comptes bancaires
+            </ExplainedCardTitle>
           </CardHeader>
           <CardContent>
             {cashByAccount.length > 0 ? (

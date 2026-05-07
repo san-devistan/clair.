@@ -1,15 +1,10 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import { Wallet } from "lucide-react"
 
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { CashProjection } from "@/lib/fec/analytics"
 import { formatShortDate } from "@/lib/fec/format"
@@ -32,11 +27,16 @@ export function CashProjectionCard({ data }: CashProjectionCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle>Détail des engagements à court terme</CardTitle>
-            <CardDescription>
-              Au {formatShortDate(data.asOf)} · composition du solde
-              prévisionnel affiché dans le chart Trésorerie
-            </CardDescription>
+            <ExplainedCardTitle
+              description={
+                <>
+                  Au {formatShortDate(data.asOf)} · composition du solde
+                  prévisionnel affiché dans le graphique Trésorerie.
+                </>
+              }
+            >
+              Détail des engagements à court terme
+            </ExplainedCardTitle>
           </div>
           <Wallet className="size-4 shrink-0 text-muted-foreground" />
         </div>

@@ -9,11 +9,14 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 
+import { groupSmallCategoryBreakdowns } from "@/components/fec/category-breakdown-display"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { CategoryBreakdown } from "@/lib/fec/analytics"
 
 export function CategoryTable({ items }: { items: CategoryBreakdown[] }) {
-  if (items.length === 0)
+  const displayedItems = groupSmallCategoryBreakdowns(items)
+
+  if (displayedItems.length === 0)
     return (
       <p className="py-8 text-center text-sm text-muted-foreground">
         Aucune catégorie à afficher
@@ -32,7 +35,7 @@ export function CategoryTable({ items }: { items: CategoryBreakdown[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item) => (
+          {displayedItems.map((item) => (
             <TableRow key={item.key}>
               <TableCell>
                 <span

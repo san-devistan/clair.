@@ -9,6 +9,8 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import { useMemo } from "react"
 
+import { STACKED_BAR_CONTAINER_CLASS } from "@/components/fec/bar-chart-style"
+import { groupSmallCategoryBreakdowns } from "@/components/fec/category-breakdown-display"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { CategoryBreakdown } from "@/lib/fec/analytics"
 
@@ -51,7 +53,8 @@ function buildRevenueSegments({
   withLossCap: boolean
 }): BarSegment[] {
   if (baseTotal <= 0) return []
-  const segments: BarSegment[] = categories.map((c) => ({
+  const displayCategories = groupSmallCategoryBreakdowns(categories)
+  const segments: BarSegment[] = displayCategories.map((c) => ({
     key: `rev-${c.key}`,
     label: c.label,
     amount: c.amount,
@@ -89,7 +92,8 @@ function buildExpenseSegments({
   withResultCap: boolean
 }): BarSegment[] {
   if (baseTotal <= 0) return []
-  const segments: BarSegment[] = categories.map((c) => ({
+  const displayCategories = groupSmallCategoryBreakdowns(categories)
+  const segments: BarSegment[] = displayCategories.map((c) => ({
     key: `exp-${c.key}`,
     label: c.label,
     amount: c.amount,
@@ -244,7 +248,7 @@ function BarRow({
 function Bar({ segments }: { segments: BarSegment[] }) {
   return (
     <div
-      className="flex h-20 w-full overflow-hidden rounded-2xl border border-border/40 bg-muted/30"
+      className={STACKED_BAR_CONTAINER_CLASS}
       role="img"
       aria-label="Composition"
     >

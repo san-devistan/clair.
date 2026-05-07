@@ -1,14 +1,9 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 
 import { BreakevenChart } from "@/components/fec/breakeven-chart"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { KpiSummary } from "@/lib/fec/analytics"
 import { formatEuro, formatPercent } from "@/lib/fec/format"
@@ -21,11 +16,9 @@ export function BreakevenSection({ kpi }: BreakevenSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Seuil de rentabilité</CardTitle>
-        <CardDescription>
-          Le chiffre d'affaires minimum pour couvrir vos charges fixes —
-          au-delà, chaque euro vendu contribue au résultat.
-        </CardDescription>
+        <ExplainedCardTitle description="Le chiffre d'affaires minimum pour couvrir vos charges fixes. Au-delà, chaque euro vendu contribue au résultat.">
+          Seuil de rentabilité
+        </ExplainedCardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {kpi.breakevenPoint > 0 ? (

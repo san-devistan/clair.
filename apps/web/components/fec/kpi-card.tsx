@@ -1,6 +1,16 @@
 "use client"
 
-import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import { ArrowDown, ArrowRight, ArrowUp, type LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
@@ -9,6 +19,7 @@ export interface KpiCardProps {
   label: string
   value: ReactNode
   icon?: LucideIcon
+  description?: ReactNode
   hint?: ReactNode
   trend?: {
     direction: "up" | "down" | "neutral"
@@ -38,10 +49,52 @@ const TREND_STYLES: Record<
   neutral: "text-muted-foreground",
 }
 
+const VALUE_CLASS =
+  "font-heading text-3xl font-bold tracking-tight tabular-nums"
+
+function KpiValue({
+  label,
+  value,
+  description,
+  tone,
+}: {
+  label: string
+  value: ReactNode
+  description?: ReactNode
+  tone: NonNullable<KpiCardProps["tone"]>
+}) {
+  const className = cn(
+    VALUE_CLASS,
+    VALUE_TONE_STYLES[tone],
+    description && "cursor-help [&_*]:pointer-events-none"
+  )
+
+  if (!description) return <p className={className}>{value}</p>
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <p
+            aria-label={`Comprendre la statistique : ${label}`}
+            className={className}
+          >
+            {value}
+          </p>
+        }
+      />
+      <TooltipContent align="start" className="max-w-64" side="top">
+        <div className="leading-relaxed">{description}</div>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 export function KpiCard({
   label,
   value,
   icon: Icon,
+  description,
   hint,
   trend,
   tone = "default",
@@ -50,23 +103,25 @@ export function KpiCard({
 }: KpiCardProps) {
   return (
     <Card className={cn("gap-3", className)}>
-      <CardContent className="space-y-2.5">
+      <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {label}
-          </p>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <CardTitle className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {label}
+            </CardTitle>
+          </div>
           {Icon ? (
             <Icon className="size-4 shrink-0 text-muted-foreground" />
           ) : null}
         </div>
-        <p
-          className={cn(
-            "font-heading text-3xl font-bold tracking-tight tabular-nums",
-            VALUE_TONE_STYLES[tone]
-          )}
-        >
-          {value}
-        </p>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2.5">
+        <KpiValue
+          label={label}
+          value={value}
+          description={description}
+          tone={tone}
+        />
         {trend ? (
           <div className="flex items-center gap-1.5 text-xs">
             <span

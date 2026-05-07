@@ -1,13 +1,7 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import {
   ArrowRight,
   CircleDollarSign,
@@ -23,10 +17,8 @@ import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { BreakevenSection } from "@/components/fec/breakeven-section"
 import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
-import {
-  FormattedCurrency,
-  FormattedNumber,
-} from "@/components/fec/formatted-number"
+import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
+import { FormattedCurrency } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyTrendChart } from "@/components/fec/monthly-trend-chart"
 import { ResultBreakdown } from "@/components/fec/result-breakdown"
@@ -65,16 +57,11 @@ function DashboardOverview() {
     kpi.margin < 0 ? "danger" : kpi.margin < 5 ? "warning" : "success"
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 md:px-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-4 pb-8 md:px-6">
+      <header>
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Vue d'ensemble
         </h1>
-        <p className="text-sm text-muted-foreground md:text-base">
-          La santé de votre entreprise sur la période ·{" "}
-          <FormattedNumber value={data.period.monthsCovered} /> mois analysés ·{" "}
-          <FormattedNumber value={data.meta.rowCount} /> écritures
-        </p>
       </header>
 
       {/* === KPI principaux === */}
@@ -84,6 +71,7 @@ function DashboardOverview() {
             label="Chiffre d'affaires"
             value={<FormattedCurrency value={kpi.revenue} />}
             icon={CircleDollarSign}
+            description="Total des produits de vente comptabilisés sur la période (comptes 7xx). C'est le volume d'activité avant déduction des charges."
             trend={
               monthly.length >= 6
                 ? {
@@ -109,12 +97,14 @@ function DashboardOverview() {
             label="Charges totales"
             value={<FormattedCurrency value={kpi.expenses} />}
             icon={ReceiptText}
+            description="Total des dépenses comptabilisées sur la période (comptes 6xx). À comparer au chiffre d'affaires pour surveiller le poids des coûts."
             hint={`${(kpi.revenue > 0 ? (kpi.expenses / kpi.revenue) * 100 : 0).toFixed(0)}% du CA`}
           />
           <KpiCard
             label="Résultat net"
             value={<FormattedCurrency value={kpi.netResult} />}
             icon={TrendingUp}
+            description="Chiffre d'affaires moins charges comptabilisées. Positif, l'activité dégage un bénéfice ; négatif, elle consomme de la marge."
             tone={marginTone}
             hint={`Marge ${formatPercent(kpi.margin)}`}
           />
@@ -122,6 +112,7 @@ function DashboardOverview() {
             label="Trésorerie"
             value={<FormattedCurrency value={kpi.cashBalance} />}
             icon={Wallet}
+            description="Solde cumulé des comptes de banque et de caisse à la fin de la période analysée."
             tone={cashTone}
             hint={lastMonth ? `Solde fin ${lastMonth.monthLabel}` : undefined}
           />
@@ -132,12 +123,14 @@ function DashboardOverview() {
           <KpiCard
             label="Marge brute"
             value={<FormattedCurrency value={kpi.grossMargin} />}
+            description="Chiffre d'affaires moins achats consommés. Elle indique ce qui reste avant charges externes, salaires et impôts."
             hint={`${formatPercent(kpi.grossMarginRate)} du CA`}
             icon={PiggyBank}
           />
           <KpiCard
             label="Excédent brut d'exploitation"
             value={<FormattedCurrency value={kpi.ebe} />}
+            description="Approximation de l'exploitation courante : CA - achats - charges externes - personnel - impôts, hors amortissements et charges financières."
             hint="CA - achats - charges externes - personnel - impôts"
           />
           <KpiCard
@@ -147,6 +140,7 @@ function DashboardOverview() {
                 value={kpi.customerReceivables - kpi.supplierPayables}
               />
             }
+            description="Créances clients moins dettes fournisseurs. Positif, les clients vous doivent plus que ce que vous devez aux fournisseurs."
             hint={
               <>
                 Clients <FormattedCurrency value={kpi.customerReceivables} /> ·
@@ -161,11 +155,9 @@ function DashboardOverview() {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle>Composition du résultat</CardTitle>
-            <CardDescription>
-              Comparez d'où vient l'argent et où il part. Le bloc vert au sommet
-              des charges représente ce qu'il reste — votre résultat net.
-            </CardDescription>
+            <ExplainedCardTitle description="Comparez d'où vient l'argent et où il part. Le bloc vert au sommet des charges représente ce qu'il reste — votre résultat net.">
+              Composition du résultat
+            </ExplainedCardTitle>
           </CardHeader>
           <CardContent>
             <ResultBreakdown
@@ -183,10 +175,9 @@ function DashboardOverview() {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle>Revenus vs charges</CardTitle>
-            <CardDescription>
-              Évolution mensuelle sur la période
-            </CardDescription>
+            <ExplainedCardTitle description="Compare mois par mois les revenus et les charges pour repérer si la croissance est rentable ou absorbée par les coûts.">
+              Revenus vs charges
+            </ExplainedCardTitle>
           </CardHeader>
           <CardContent>
             <MonthlyTrendChart monthly={monthly} className="h-[280px] w-full" />
@@ -211,11 +202,9 @@ function DashboardOverview() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle>Évolution de la trésorerie</CardTitle>
-                <CardDescription>
-                  Solde cumulé fin de mois (aire) et flux net mensuel (barres) ·
-                  point pointillé = projeté après engagements échus
-                </CardDescription>
+                <ExplainedCardTitle description="L'aire montre le solde cumulé fin de mois, les barres montrent le flux net mensuel, et le point pointillé projette le solde après engagements échus.">
+                  Évolution de la trésorerie
+                </ExplainedCardTitle>
               </div>
               <Button
                 variant="ghost"
