@@ -40,6 +40,12 @@ A customer identified through client auxiliary accounts, not through revenue
 accounts.
 _Avoid_: poste de revenus, compte de revenus
 
+**Action à mener**:
+A data-triggered recommendation raised from the FEC analysis because a financial
+threshold, concentration, delay, anomaly, trend, or significant amount requires
+attention.
+_Avoid_: conseil général, astuce, piste statique, question de pilotage
+
 ## Relationships
 
 - A **Poste de revenus** is derived from exactly one **Compte général FEC**.
@@ -58,6 +64,15 @@ _Avoid_: poste de revenus, compte de revenus
 - Detail tables still list all non-zero detail rows.
 - Negative detail rows are excluded from composition bars but shown in detail
   tables as anomalies to review.
+- An **Action à mener** belongs to exactly one dashboard category and is shown
+  in the central actions view, not as generic guidance inside category pages.
+- Category pages may signal that **Actions à mener** exist for their domain, but
+  the recommendation content remains centralized in the actions view.
+- **Actions à mener** map to dashboard pages by category: charges to Charges,
+  clients to Clients, fournisseurs to Fournisseurs, tresorerie to Trésorerie,
+  ventes to Revenus, and marge to Vue d'ensemble.
+- Positive **Actions à mener** remain visible in the central actions view but do
+  not trigger category-page action indicators.
 
 ## Example Dialogue
 
@@ -74,3 +89,6 @@ _Avoid_: poste de revenus, compte de revenus
 - "poste" was too narrow for the requested detail view. Resolved: revenue and
   charge detail sections may include **Compte auxiliaire** data without becoming
   client or supplier dashboards.
+- "conseil" was used for both generic education and data-triggered
+  recommendations. Resolved: only **Actions à mener** should be surfaced as
+  recommendations in the dashboard experience.

@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
+import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
 import { CashProjectionCard } from "@/components/fec/cash-projection-card"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
@@ -64,10 +65,14 @@ export default function TresoreriePage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Trésorerie
         </h1>
+        <ActionSummaryLink
+          insights={data.insights}
+          categories={["tresorerie"]}
+        />
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -84,6 +89,14 @@ export default function TresoreriePage() {
                 : "success"
           }
           hint="Cumul fin de période"
+        />
+        <KpiCard
+          label="Solde prévisionnel"
+          value={<FormattedCurrency value={cashProjection.projectedCash} />}
+          icon={Wallet}
+          description="Solde actuel après encaissement des créances échues et paiement des dettes échues identifiées dans le FEC."
+          tone={projectedTone}
+          hint="Après règlement des engagements échus"
         />
         <KpiCard
           label="Net engagé"
@@ -103,14 +116,6 @@ export default function TresoreriePage() {
           description="Encaissements clients échus moins paiements fournisseurs échus. Montre l'effet court terme des engagements déjà dus sur la trésorerie."
           hint="Encaissements échus − décaissements échus"
         />
-        <KpiCard
-          label="Solde prévisionnel"
-          value={<FormattedCurrency value={cashProjection.projectedCash} />}
-          icon={Wallet}
-          description="Solde actuel après encaissement des créances échues et paiement des dettes échues identifiées dans le FEC."
-          tone={projectedTone}
-          hint="Après règlement des engagements échus"
-        />
       </section>
 
       <Card>
@@ -127,7 +132,7 @@ export default function TresoreriePage() {
             </CardAction>
           ) : null}
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           <CashCombinedChart
             monthly={monthly}
             comparison={
@@ -142,10 +147,10 @@ export default function TresoreriePage() {
             }}
             className="h-[360px] w-full"
           />
+          <Separator />
+          <CashProjectionCard data={cashProjection} />
         </CardContent>
       </Card>
-
-      <CashProjectionCard data={cashProjection} />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -168,9 +173,9 @@ export default function TresoreriePage() {
               <Separator />
               <p className="text-xs leading-relaxed text-muted-foreground">
                 {dso > 60
-                  ? `Vos clients mettent en moyenne ${dso.toFixed(0)} jours à régler. Au-dessus de 60 jours, c'est tendu : mettez en place des relances automatiques (J+15, J+30, J+45).`
+                  ? `Vos clients mettent en moyenne ${dso.toFixed(0)} jours à régler. Au-dessus de 60 jours, l'encaissement pèse fortement sur la trésorerie.`
                   : dso > 45
-                    ? `Délai correct mais améliorable. Visez 30 jours avec des relances automatiques.`
+                    ? "Délai intermédiaire : l'encaissement reste correct, mais le cash reste dehors plus longtemps."
                     : "Délai sain. Vos clients règlent rapidement."}
               </p>
             </div>
@@ -188,7 +193,7 @@ export default function TresoreriePage() {
               <Separator />
               <p className="text-xs leading-relaxed text-muted-foreground">
                 {dpo < 30
-                  ? `Vous payez vite. Vous pouvez essayer de négocier 45-60 jours pour soulager votre trésorerie.`
+                  ? "Paiement rapide : le cash sort tôt par rapport au cycle fournisseur."
                   : dpo > 60
                     ? `Vous payez tard. Attention au risque de litige et aux pénalités de retard légales (loi LME).`
                     : "Délai standard. Bon équilibre entre relation fournisseur et trésorerie."}

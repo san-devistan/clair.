@@ -13,6 +13,7 @@ import {
 import Link from "next/link"
 import { Suspense } from "react"
 
+import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { BreakevenSection } from "@/components/fec/breakeven-section"
 import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
@@ -58,10 +59,11 @@ function DashboardOverview() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-4 pb-8 md:px-6">
-      <header>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Vue d'ensemble
         </h1>
+        <ActionSummaryLink insights={data.insights} categories={["marge"]} />
       </header>
 
       {/* === KPI principaux === */}

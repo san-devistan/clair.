@@ -1,16 +1,15 @@
 "use client"
 
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
+import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
-import { Wallet } from "lucide-react"
+import { Fragment } from "react"
 
-import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import type { CashProjection } from "@/lib/fec/analytics"
-import { formatShortDate } from "@/lib/fec/format"
 
 interface CashProjectionCardProps {
   data: CashProjection
+  className?: string
 }
 
 const TONE_CLASS: Record<"default" | "positive" | "negative", string> = {
@@ -19,77 +18,63 @@ const TONE_CLASS: Record<"default" | "positive" | "negative", string> = {
   negative: "text-destructive",
 }
 
-export function CashProjectionCard({ data }: CashProjectionCardProps) {
+export function CashProjectionCard({
+  data,
+  className,
+}: CashProjectionCardProps) {
   const projectedDanger = data.projectedCash < 0
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <ExplainedCardTitle
-              description={
-                <>
-                  Au {formatShortDate(data.asOf)} · composition du solde
-                  prévisionnel affiché dans le graphique Trésorerie.
-                </>
-              }
-            >
-              Détail des engagements à court terme
-            </ExplainedCardTitle>
-          </div>
-          <Wallet className="size-4 shrink-0 text-muted-foreground" />
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        <div className="space-y-1.5 rounded-md border p-4">
-          <CascadeRow label="Solde actuel" amount={data.currentCash} bold />
-          <CascadeRow
-            label="Fournisseurs échus"
-            amount={data.overduePayables}
-            op="sub"
-            indent
-            tone="negative"
-          />
-          <CascadeRow
-            label="TVA à décaisser"
-            amount={data.vatPayable}
-            op="sub"
-            indent
-            tone="negative"
-          />
-          <CascadeRow
-            label="Salaires nets dus"
-            amount={data.salariesPayable}
-            op="sub"
-            indent
-            tone="negative"
-          />
-          <CascadeRow
-            label="Charges sociales (URSSAF, mutuelle, retraite)"
-            amount={data.socialChargesPayable}
-            op="sub"
-            indent
-            tone="negative"
-          />
-          <CascadeRow
-            label="Clients échus"
-            amount={data.overdueReceivables}
-            op="add"
-            indent
-            tone="positive"
-          />
-          <div className="my-1.5 border-t" />
-          <CascadeRow
-            label="Solde prévisionnel"
-            amount={data.projectedCash}
-            bold
-            tone={projectedDanger ? "negative" : "default"}
-          />
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className={cn(
+        "grid grid-cols-[minmax(0,1fr)_1ch_auto] items-baseline gap-x-2 gap-y-1.5 text-sm",
+        className
+      )}
+    >
+      <CascadeRow label="Solde actuel" amount={data.currentCash} bold />
+      <CascadeRow
+        label="TVA à décaisser"
+        amount={data.vatPayable}
+        op="sub"
+        indent
+        tone="negative"
+      />
+      <CascadeRow
+        label="Salaires nets dus"
+        amount={data.salariesPayable}
+        op="sub"
+        indent
+        tone="negative"
+      />
+      <CascadeRow
+        label="Charges sociales (URSSAF, mutuelle, retraite)"
+        amount={data.socialChargesPayable}
+        op="sub"
+        indent
+        tone="negative"
+      />
+      <CascadeRow
+        label="Fournisseurs échus"
+        amount={data.overduePayables}
+        op="sub"
+        indent
+        tone="negative"
+      />
+      <CascadeRow
+        label="Clients échus"
+        amount={data.overdueReceivables}
+        op="add"
+        indent
+        tone="positive"
+      />
+      <Separator className="col-span-3 my-1.5" />
+      <CascadeRow
+        label="Solde prévisionnel"
+        amount={data.projectedCash}
+        bold
+        tone={projectedDanger ? "negative" : "default"}
+      />
+    </div>
   )
 }
 
@@ -108,12 +93,13 @@ function CascadeRow({
   bold?: boolean
   tone?: "default" | "positive" | "negative"
 }) {
-  const operator = op === "add" ? "+ " : op === "sub" ? "− " : ""
+  const operator = op === "add" ? "+" : op === "sub" || amount < 0 ? "−" : ""
+  const displayAmount = Math.abs(amount)
   // A zero engagement isn't positive or negative — neutralise the colour so
   // "− 0 €" doesn't read as a danger.
   const effectiveTone = amount === 0 ? "default" : tone
   return (
-    <div className="flex items-baseline justify-between gap-3 text-sm">
+    <Fragment>
       <span
         className={cn(
           "min-w-0 flex-1 truncate",
@@ -124,14 +110,22 @@ function CascadeRow({
       </span>
       <span
         className={cn(
-          "font-mono tabular-nums",
+          "text-center font-mono tabular-nums",
           bold ? "font-semibold" : "font-medium",
           TONE_CLASS[effectiveTone]
         )}
       >
         {operator}
-        <FormattedCurrency value={amount} />
       </span>
-    </div>
+      <span
+        className={cn(
+          "justify-self-end text-right font-mono tabular-nums",
+          bold ? "font-semibold" : "font-medium",
+          TONE_CLASS[effectiveTone]
+        )}
+      >
+        <FormattedCurrency value={displayAmount} />
+      </span>
+    </Fragment>
   )
 }

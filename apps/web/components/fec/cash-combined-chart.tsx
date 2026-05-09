@@ -188,6 +188,8 @@ function buildCombinedChartData(
       revenue: 0,
       expenses: 0,
       result: 0,
+      revenueByCategory: {},
+      expensesByCategory: {},
       cashBalance: null,
       cashFlow: null,
       cashBalanceComparison: null,

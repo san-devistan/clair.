@@ -16,8 +16,13 @@ import {
   buildDashboardData,
   type DashboardData,
 } from "./analytics"
+import { computeInsights } from "./insights"
 import { parseFecFile } from "./parser"
 
+// v15 (2026-05) : ajoute les factures ouvertes detaillees dans la balance agee
+// pour ouvrir les tranches en tableau interactif.
+// v14 (2026-05) : ajoute la repartition mensuelle par categorie aux points
+// revenus/charges.
 // v13 (2026-05) : les tableaux clients/fournisseurs deviennent des vues
 // d'encours cash et gardent tous les tiers actifs pour joindre le volume facture.
 // v12 (2026-05) : ajoute firstDate aux tiers pour afficher l'anciennete des
@@ -44,9 +49,26 @@ import { parseFecFile } from "./parser"
 // v2 (2026-05) : refonte de la categorisation des comptes
 // (Couts fixes/RH/Variables/... au lieu des classes PCG 60-69).
 // Les utilisateurs avec un snapshot anterieur devront re-importer leur FEC.
-const STORAGE_KEY = "clair.fec.dashboard.v13"
+const STORAGE_KEY = "clair.fec.dashboard.v15"
 // Slot secondaire pour la comparaison entre deux FEC (meme schema, meme version).
-const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v13"
+const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v15"
+
+type SerializedAgedBalance = Omit<
+  DashboardData["agedReceivables"],
+  "asOf" | "invoices"
+> & {
+  asOf: string
+  invoices: Array<
+    Omit<
+      DashboardData["agedReceivables"]["invoices"][number],
+      "pieceDate" | "invoiceDate" | "dueDate"
+    > & {
+      pieceDate: string | null
+      invoiceDate: string
+      dueDate: string
+    }
+  >
+}
 
 interface SerializedSnapshot {
   meta: DashboardData["meta"]
@@ -89,12 +111,8 @@ interface SerializedSnapshot {
     }
   >
   insights: DashboardData["insights"]
-  agedReceivables: Omit<DashboardData["agedReceivables"], "asOf"> & {
-    asOf: string
-  }
-  agedPayables: Omit<DashboardData["agedPayables"], "asOf"> & {
-    asOf: string
-  }
+  agedReceivables: SerializedAgedBalance
+  agedPayables: SerializedAgedBalance
   cashProjection: Omit<DashboardData["cashProjection"], "asOf"> & {
     asOf: string
   }
@@ -108,6 +126,36 @@ function stripFill(items: DashboardData["expenseCategories"]) {
     amount,
     share,
   }))
+}
+
+function serializeAgedBalance(
+  data: DashboardData["agedReceivables"]
+): SerializedAgedBalance {
+  return {
+    ...data,
+    asOf: data.asOf.toISOString(),
+    invoices: data.invoices.map((invoice) => ({
+      ...invoice,
+      pieceDate: invoice.pieceDate?.toISOString() ?? null,
+      invoiceDate: invoice.invoiceDate.toISOString(),
+      dueDate: invoice.dueDate.toISOString(),
+    })),
+  }
+}
+
+function deserializeAgedBalance(
+  snap: SerializedAgedBalance
+): DashboardData["agedReceivables"] {
+  return {
+    ...snap,
+    asOf: new Date(snap.asOf),
+    invoices: snap.invoices.map((invoice) => ({
+      ...invoice,
+      pieceDate: invoice.pieceDate ? new Date(invoice.pieceDate) : null,
+      invoiceDate: new Date(invoice.invoiceDate),
+      dueDate: new Date(invoice.dueDate),
+    })),
+  }
 }
 
 function serialize(data: DashboardData): SerializedSnapshot {
@@ -149,14 +197,8 @@ function serialize(data: DashboardData): SerializedSnapshot {
       lastDate: c.lastDate.toISOString(),
     })),
     insights: data.insights,
-    agedReceivables: {
-      ...data.agedReceivables,
-      asOf: data.agedReceivables.asOf.toISOString(),
-    },
-    agedPayables: {
-      ...data.agedPayables,
-      asOf: data.agedPayables.asOf.toISOString(),
-    },
+    agedReceivables: serializeAgedBalance(data.agedReceivables),
+    agedPayables: serializeAgedBalance(data.agedPayables),
     cashProjection: {
       ...data.cashProjection,
       asOf: data.cashProjection.asOf.toISOString(),
@@ -166,7 +208,7 @@ function serialize(data: DashboardData): SerializedSnapshot {
 }
 
 function deserialize(snap: SerializedSnapshot): DashboardData {
-  return {
+  const data: DashboardData = {
     meta: {
       ...snap.meta,
       minDate: snap.meta.minDate
@@ -213,19 +255,28 @@ function deserialize(snap: SerializedSnapshot): DashboardData {
       lastDate: new Date(c.lastDate),
     })),
     insights: snap.insights,
-    agedReceivables: {
-      ...snap.agedReceivables,
-      asOf: new Date(snap.agedReceivables.asOf),
-    },
-    agedPayables: {
-      ...snap.agedPayables,
-      asOf: new Date(snap.agedPayables.asOf),
-    },
+    agedReceivables: deserializeAgedBalance(snap.agedReceivables),
+    agedPayables: deserializeAgedBalance(snap.agedPayables),
     cashProjection: {
       ...snap.cashProjection,
       asOf: new Date(snap.cashProjection.asOf),
     },
     warnings: snap.warnings,
+  }
+
+  return refreshInsights(data)
+}
+
+function refreshInsights(data: DashboardData): DashboardData {
+  return {
+    ...data,
+    insights: computeInsights({
+      kpi: data.kpi,
+      expenseCategories: data.expenseCategories,
+      topCustomers: data.topCustomers,
+      topSuppliers: data.topSuppliers,
+      monthly: data.monthly,
+    }),
   }
 }
 

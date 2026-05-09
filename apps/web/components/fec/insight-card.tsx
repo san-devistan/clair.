@@ -18,20 +18,20 @@ const SEVERITY_STYLES: Record<
   { card: string; icon: string }
 > = {
   critical: {
-    card: "border-destructive/40 bg-destructive/[0.04]",
-    icon: "text-destructive bg-destructive/10",
+    card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
+    icon: "text-destructive bg-destructive/15 dark:bg-destructive/20",
   },
   warning: {
-    card: "border-amber-500/40 bg-amber-500/[0.05]",
-    icon: "text-amber-700 dark:text-amber-500 bg-amber-500/10",
+    card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
+    icon: "bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-500",
   },
   info: {
-    card: "border-blue-500/30 bg-blue-500/[0.04]",
-    icon: "text-blue-700 dark:text-blue-400 bg-blue-500/10",
+    card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
+    icon: "bg-blue-500/15 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
   },
   positive: {
-    card: "border-emerald-500/30 bg-emerald-500/[0.04]",
-    icon: "text-emerald-700 dark:text-emerald-500 bg-emerald-500/10",
+    card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
+    icon: "bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-500",
   },
 }
 

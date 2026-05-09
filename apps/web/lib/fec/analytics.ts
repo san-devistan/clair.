@@ -80,6 +80,8 @@ export interface MonthlyPoint {
   result: number
   cashFlow: number
   cashBalance: number
+  revenueByCategory: Record<string, number>
+  expensesByCategory: Record<string, number>
 }
 
 export interface CategoryBreakdown {
@@ -89,6 +91,9 @@ export interface CategoryBreakdown {
   share: number
   fill?: string
 }
+
+export const UNCATEGORIZED_CATEGORY_KEY = "uncategorized"
+export const UNCATEGORIZED_CATEGORY_LABEL = "Non catégorisé"
 
 export interface TopCounterparty {
   accountNum: string
@@ -104,6 +109,7 @@ export type {
   AgedBalanceBucket,
   AgedBalanceBucketKey,
   AgedBalanceCounterparty,
+  AgedBalanceInvoice,
 } from "./aged-balance"
 export type { CashProjection } from "./cash-projection"
 
@@ -374,14 +380,30 @@ function computeMonthly(entries: FecEntry[]): MonthlyPoint[] {
         result: 0,
         cashFlow: 0,
         cashBalance: 0,
+        revenueByCategory: {},
+        expensesByCategory: {},
       }
       map.set(key, bucket)
     }
     if (isRevenueAccount(e.compteNum)) {
-      bucket.revenue += e.credit - e.debit
+      const amount = e.credit - e.debit
+      const category = getRevenueCategory(e.compteNum)
+      bucket.revenue += amount
+      addMonthlyCategoryAmount(
+        bucket.revenueByCategory,
+        category?.key ?? UNCATEGORIZED_CATEGORY_KEY,
+        amount
+      )
     }
     if (isExpenseAccount(e.compteNum)) {
-      bucket.expenses += e.debit - e.credit
+      const amount = e.debit - e.credit
+      const category = getExpenseCategory(e.compteNum)
+      bucket.expenses += amount
+      addMonthlyCategoryAmount(
+        bucket.expensesByCategory,
+        category?.key ?? UNCATEGORIZED_CATEGORY_KEY,
+        amount
+      )
     }
     if (isCashAccount(e.compteNum)) {
       const delta = e.debit - e.credit
@@ -405,6 +427,15 @@ function computeMonthly(entries: FecEntry[]): MonthlyPoint[] {
   }
 
   return sortedKeys.map((k) => map.get(k)!)
+}
+
+function addMonthlyCategoryAmount(
+  amounts: Record<string, number>,
+  categoryKey: string,
+  amount: number
+) {
+  if (amount === 0) return
+  amounts[categoryKey] = (amounts[categoryKey] ?? 0) + amount
 }
 
 interface CategoryAccumulator {

@@ -5,7 +5,7 @@ import type {
   MonthlyPoint,
   TopCounterparty,
 } from "./analytics"
-import { formatEuro } from "./format"
+import { formatEuroCompact, formatPercent } from "./format"
 
 interface InsightInputs {
   kpi: KpiSummary
@@ -24,6 +24,7 @@ export function computeInsights({
 }: InsightInputs): ActionableInsight[] {
   return [
     ...computeMarginInsights(kpi),
+    ...computeChargeStructureInsights(kpi),
     ...computeExpenseCategoryInsights(expenseCategories),
     ...compactInsights([
       computeClientConcentrationInsight(topCustomers),
@@ -47,7 +48,7 @@ function computeMarginInsights(kpi: KpiSummary): ActionableInsight[] {
             : "Marge nette tres faible",
         description:
           kpi.margin < 0
-            ? `Vous depensez plus que vous ne gagnez. Resultat net : ${formatEuro(kpi.netResult)}.`
+            ? `Vous depensez plus que vous ne gagnez. Resultat net : ${formatEuroCompact(kpi.netResult)}.`
             : `Votre marge nette est de ${kpi.margin.toFixed(1)}% du chiffre d'affaires.`,
         metric: `${kpi.margin.toFixed(1)}%`,
         action:
@@ -71,6 +72,62 @@ function computeMarginInsights(kpi: KpiSummary): ActionableInsight[] {
   return []
 }
 
+function computeChargeStructureInsights(kpi: KpiSummary): ActionableInsight[] {
+  if (kpi.revenue <= 0) return []
+
+  const payrollRatio = (kpi.payroll / kpi.revenue) * 100
+  const externalChargesRatio = (kpi.externalCharges / kpi.revenue) * 100
+  const financialChargesRatio = (kpi.financialCharges / kpi.revenue) * 100
+
+  return compactInsights([
+    buildPayrollInsight(payrollRatio),
+    buildExternalChargesInsight(externalChargesRatio),
+    buildFinancialChargesInsight(financialChargesRatio),
+  ])
+}
+
+function buildPayrollInsight(ratio: number): ActionableInsight | null {
+  if (ratio <= 60) return null
+
+  return {
+    id: "high-payroll-ratio",
+    severity: "warning",
+    title: "Charges de personnel elevees",
+    description: `Les salaires et charges sociales representent ${formatPercent(ratio)} du chiffre d'affaires.`,
+    action:
+      "Identifiez les postes, missions ou processus qui concentrent le plus de temps avant de toucher a l'organisation.",
+    category: "charges",
+  }
+}
+
+function buildExternalChargesInsight(ratio: number): ActionableInsight | null {
+  if (ratio <= 30) return null
+
+  return {
+    id: "high-external-charges-ratio",
+    severity: "warning",
+    title: "Services exterieurs importants",
+    description: `Les services exterieurs representent ${formatPercent(ratio)} du chiffre d'affaires.`,
+    action:
+      "Passez en revue les principaux contrats externes et priorisez ceux dont le montant est recurrent.",
+    category: "charges",
+  }
+}
+
+function buildFinancialChargesInsight(ratio: number): ActionableInsight | null {
+  if (ratio <= 2) return null
+
+  return {
+    id: "high-financial-charges-ratio",
+    severity: "warning",
+    title: "Charges financieres non negligeables",
+    description: `Les interets et frais bancaires representent ${formatPercent(ratio)} du chiffre d'affaires.`,
+    action:
+      "Comparez le poids des frais financiers avec les autres charges avant de prioriser une renegociation bancaire.",
+    category: "charges",
+  }
+}
+
 function computeExpenseCategoryInsights(
   expenseCategories: CategoryBreakdown[]
 ): ActionableInsight[] {
@@ -82,7 +139,7 @@ function computeExpenseCategoryInsights(
       id: `top-expense-${top.key}`,
       severity: "warning",
       title: `${top.label} represente ${top.share.toFixed(0)}% de vos charges`,
-      description: `${formatEuro(top.amount)} sur la periode. Une reduction de 10% degagerait ${formatEuro(top.amount * 0.1)} de marge.`,
+      description: `${formatEuroCompact(top.amount)} sur la periode. Une reduction de 10% degagerait ${formatEuroCompact(top.amount * 0.1)} de marge.`,
       action: actionForExpenseCategory(top.key),
       category: "charges",
     },
@@ -140,7 +197,7 @@ function computeSupplierLeverageInsight(
     id: "supplier-leverage",
     severity: "info",
     title: "Levier de negociation fournisseur",
-    description: `${top1.label} represente une part importante de vos achats (${formatEuro(top1.amount)}). Vous avez du poids.`,
+    description: `${top1.label} represente une part importante de vos achats (${formatEuroCompact(top1.amount)}). Vous avez du poids.`,
     action:
       "Demandez 3 devis concurrents et negociez 5 a 10% de remise sur volume.",
     category: "fournisseurs",
@@ -153,7 +210,7 @@ function computeCashInsight(kpi: KpiSummary): ActionableInsight | null {
       id: "negative-cash",
       severity: "critical",
       title: "Tresorerie negative",
-      description: `Votre solde bancaire cumule sur la periode est de ${formatEuro(kpi.cashBalance)}.`,
+      description: `Votre solde bancaire cumule sur la periode est de ${formatEuroCompact(kpi.cashBalance)}.`,
       action:
         "Accelerez le recouvrement clients (relances), ou negociez un decouvert / un PGE avec votre banque.",
       category: "tresorerie",
@@ -221,7 +278,7 @@ function computeReceivablesInsight(kpi: KpiSummary): ActionableInsight | null {
     id: "high-dso",
     severity: "warning",
     title: "Delai de paiement clients eleve",
-    description: `Vos clients vous doivent ${formatEuro(kpi.customerReceivables)}, soit environ ${dso.toFixed(0)} jours de chiffre d'affaires.`,
+    description: `Vos clients vous doivent ${formatEuroCompact(kpi.customerReceivables)}, soit environ ${dso.toFixed(0)} jours de chiffre d'affaires.`,
     action:
       "Mettez en place des relances automatiques a J+15, J+30, J+45. Considerez l'affacturage si necessaire.",
     category: "clients",

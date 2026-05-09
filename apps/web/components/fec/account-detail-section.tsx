@@ -267,17 +267,14 @@ function AccountDetailTable({
 }) {
   return (
     <div className="rounded-md border">
-      <Table className="min-w-[960px] table-fixed">
+      <Table className="min-w-[720px] table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[220px] text-left">Libellé</TableHead>
+            <TableHead className="w-[300px] text-left">Libellé</TableHead>
             <TableHead className="w-[180px] text-left">Catégorie</TableHead>
-            <TableHead className="w-[120px] text-center">Compte</TableHead>
-            <TableHead className="w-[96px] text-center">Auxiliaire</TableHead>
-            <TableHead className="w-24 text-center">Écritures</TableHead>
             <TableHead aria-hidden="true" className="w-auto p-0" />
             <TableHead className="w-24 text-right">Part</TableHead>
-            <TableHead className="w-24 text-right">Montant</TableHead>
+            <TableHead className="w-28 text-right">Montant</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -307,7 +304,7 @@ function AccountDetailRow({
   return (
     <TableRow className={cn(isNegative && "bg-destructive/5")}>
       <TableCell className="text-left">
-        <div className="flex max-w-[196px] flex-col gap-0.5">
+        <div className="flex max-w-[276px] flex-col gap-0.5">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <OverflowTooltip
               text={item.label}
@@ -329,19 +326,6 @@ function AccountDetailRow({
       </TableCell>
       <TableCell className="text-left">
         {item.categoryLabel ? <CategoryBadge item={item} /> : null}
-      </TableCell>
-      <TableCell className="text-center font-mono text-xs text-muted-foreground">
-        {item.accountNum}
-      </TableCell>
-      <TableCell className="text-center font-mono text-xs text-muted-foreground">
-        <OverflowTooltip
-          text={item.auxNum || "Aucun"}
-          className="font-mono"
-          wrapperClassName="mx-auto max-w-20"
-        />
-      </TableCell>
-      <TableCell className="text-center text-muted-foreground tabular-nums">
-        <FormattedNumber value={item.entryCount} />
       </TableCell>
       <TableCell aria-hidden="true" className="p-0" />
       <TableCell

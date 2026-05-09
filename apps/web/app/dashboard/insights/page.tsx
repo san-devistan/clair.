@@ -124,19 +124,19 @@ function SeverityStat({
 }) {
   const styles: Record<typeof tone, { card: string; text: string }> = {
     danger: {
-      card: "border-destructive/30 bg-destructive/[0.04]",
+      card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
       text: "text-destructive",
     },
     warning: {
-      card: "border-amber-500/30 bg-amber-500/[0.05]",
+      card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
       text: "text-amber-700 dark:text-amber-500",
     },
     info: {
-      card: "border-blue-500/30 bg-blue-500/[0.04]",
+      card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
       text: "text-blue-700 dark:text-blue-400",
     },
     success: {
-      card: "border-emerald-500/30 bg-emerald-500/[0.04]",
+      card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
       text: "text-emerald-700 dark:text-emerald-500",
     },
   }

@@ -9,8 +9,7 @@ import {
 import { CircleDollarSign, TrendingUp, Users } from "lucide-react"
 import { useState } from "react"
 
-import { AccountDetailSection } from "@/components/fec/account-detail-section"
-import { CategoryTable } from "@/components/fec/category-table"
+import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
@@ -20,7 +19,7 @@ import {
 } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
-import { ResultBreakdown } from "@/components/fec/result-breakdown"
+import { RepartitionSection } from "@/components/fec/repartition-section"
 import { formatPercent } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"
 
@@ -47,10 +46,11 @@ export default function RevenusPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
           Revenus
         </h1>
+        <ActionSummaryLink insights={data.insights} categories={["ventes"]} />
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -92,21 +92,14 @@ export default function RevenusPage() {
         />
       </section>
 
-      <Card>
-        <CardHeader>
-          <ExplainedCardTitle description="Montre la part de chaque catégorie comptable dans votre chiffre d'affaires pour comprendre d'où vient l'activité.">
-            Composition des revenus
-          </ExplainedCardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <ResultBreakdown
-            variant="revenue"
-            revenueCategories={revenueCategories}
-            revenue={kpi.revenue}
-          />
-          <CategoryTable items={revenueCategories} />
-        </CardContent>
-      </Card>
+      <RepartitionSection
+        title="Répartition des revenus"
+        description="Montre la part de chaque catégorie comptable dans votre chiffre d'affaires, avec un mode détail pour voir les comptes et auxiliaires qui composent chaque catégorie."
+        categories={revenueCategories}
+        details={revenueDetails}
+        variant="revenue"
+        emptyLabel="Aucun revenu identifié"
+      />
 
       <Card>
         <CardHeader>
@@ -126,27 +119,18 @@ export default function RevenusPage() {
           <MonthlyBarChart
             monthly={monthly}
             metric="revenue"
+            categories={revenueCategories}
             comparison={
               showComparison && comparisonData
                 ? comparisonData.monthly
                 : undefined
             }
+            comparisonCategories={
+              showComparison && comparisonData
+                ? comparisonData.revenueCategories
+                : undefined
+            }
             className="h-[320px] w-full"
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <ExplainedCardTitle description="Classe les revenus par compte général et compte auxiliaire lorsqu'il existe, pour repérer les sources de chiffre d'affaires et les lignes à vérifier.">
-            Détail des revenus
-          </ExplainedCardTitle>
-        </CardHeader>
-        <CardContent>
-          <AccountDetailSection
-            items={revenueDetails}
-            variant="revenue"
-            emptyLabel="Aucun revenu identifié"
           />
         </CardContent>
       </Card>

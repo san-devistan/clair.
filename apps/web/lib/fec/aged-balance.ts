@@ -29,6 +29,23 @@ export interface AgedBalanceCounterparty {
   worstBucketAmount: number
 }
 
+export interface AgedBalanceInvoice {
+  id: string
+  accountNum: string
+  label: string
+  ecritureNum: string
+  ecritureLib: string
+  pieceRef: string
+  pieceDate: Date | null
+  invoiceDate: Date
+  dueDate: Date
+  amount: number
+  daysOverdue: number
+  daysOpen: number
+  bucketKey: AgedBalanceBucketKey
+  bucketLabel: string
+}
+
 export interface AgedBalance {
   asOf: Date
   paymentDays: number
@@ -42,6 +59,7 @@ export interface AgedBalance {
   notDueInvoiceCount: number
   notDuePartyCount: number
   buckets: AgedBalanceBucket[]
+  invoices: AgedBalanceInvoice[]
   counterparties: AgedBalanceCounterparty[]
   topOverdueParties: AgedBalanceCounterparty[]
 }
@@ -58,13 +76,23 @@ const BUCKET_PRIORITY: Record<AgedBalanceBucketKey, number> = {
 }
 
 interface OpenInvoice {
+  id: string
   partyKey: string
   partyLabel: string
+  ecritureNum: string
+  ecritureLib: string
+  pieceRef: string
+  pieceDate: Date | null
   date: Date
   amount: number
 }
 
 interface QueuedInvoice {
+  id: string
+  ecritureNum: string
+  ecritureLib: string
+  pieceRef: string
+  pieceDate: Date | null
   date: Date
   amount: number
 }
@@ -97,14 +125,22 @@ function netOneParty(
   // Avoirs / paiements anticipes pas encore imputes a une facture
   let creditPool = 0
 
-  for (const e of partyEntries) {
+  for (const [index, e] of partyEntries.entries()) {
     const value = signMultiplier === 1 ? e.debit - e.credit : e.credit - e.debit
     if (value > AMOUNT_TOLERANCE) {
       const applied = Math.min(value, creditPool)
       creditPool -= applied
       const remaining = value - applied
       if (remaining > AMOUNT_TOLERANCE)
-        queue.push({ date: e.ecritureDate, amount: remaining })
+        queue.push({
+          id: invoiceId(e, index),
+          ecritureNum: e.ecritureNum,
+          ecritureLib: e.ecritureLib,
+          pieceRef: e.pieceRef,
+          pieceDate: e.pieceDate,
+          date: e.ecritureDate,
+          amount: remaining,
+        })
     } else if (value < -AMOUNT_TOLERANCE) {
       const residue = applyPaymentFIFO(queue, -value)
       if (residue > AMOUNT_TOLERANCE) creditPool += residue
@@ -138,8 +174,13 @@ function netOpenInvoicesByParty(
     for (const inv of queue) {
       if (inv.amount > AMOUNT_TOLERANCE)
         open.push({
+          id: inv.id,
           partyKey,
           partyLabel: label,
+          ecritureNum: inv.ecritureNum,
+          ecritureLib: inv.ecritureLib,
+          pieceRef: inv.pieceRef,
+          pieceDate: inv.pieceDate,
           date: inv.date,
           amount: inv.amount,
         })
@@ -181,6 +222,7 @@ interface AccountSelector {
 
 interface AgedBalanceAggregate {
   buckets: Record<AgedBalanceBucketKey, AgedBalanceBucket>
+  invoices: AgedBalanceInvoice[]
   partyAgg: Map<string, AgedBalanceCounterparty>
   partySet: Set<string>
   overduePartySet: Set<string>
@@ -203,6 +245,7 @@ interface InvoiceAge {
 function createAgedBalanceAggregate(): AgedBalanceAggregate {
   return {
     buckets: makeBuckets(),
+    invoices: [],
     partyAgg: new Map(),
     partySet: new Set(),
     overduePartySet: new Set(),
@@ -276,10 +319,27 @@ function addOpenInvoiceToAggregate(
     daysOpen,
     daysOverdue,
   })
+  const dueDate = new Date(dueMs)
 
   aggregate.totals.totalAmount += inv.amount
   aggregate.totals.invoiceCount += 1
   aggregate.partySet.add(inv.partyKey)
+  aggregate.invoices.push({
+    id: inv.id,
+    accountNum: inv.partyKey,
+    label: inv.partyLabel,
+    ecritureNum: inv.ecritureNum,
+    ecritureLib: inv.ecritureLib,
+    pieceRef: inv.pieceRef,
+    pieceDate: inv.pieceDate,
+    invoiceDate: inv.date,
+    dueDate,
+    amount: inv.amount,
+    daysOverdue,
+    daysOpen,
+    bucketKey: bucket.key,
+    bucketLabel: bucket.label,
+  })
   agg.totalAmount += inv.amount
   agg.invoiceCount += 1
   if (daysOverdue > agg.oldestDaysOverdue) agg.oldestDaysOverdue = daysOverdue
@@ -326,6 +386,7 @@ export function computeAgedBalance(
   )
   const {
     buckets,
+    invoices,
     partyAgg,
     partySet,
     overduePartySet,
@@ -355,9 +416,40 @@ export function computeAgedBalance(
     notDueInvoiceCount: totals.notDueInvoiceCount,
     notDuePartyCount: notDuePartySet.size,
     buckets: Object.values(buckets),
+    invoices: sortAgedBalanceInvoices(invoices),
     counterparties,
     topOverdueParties,
   }
+}
+
+function invoiceId(entry: FecEntry, index: number): string {
+  return [
+    entry.compAuxNum || entry.compteNum,
+    entry.ecritureNum,
+    entry.pieceRef,
+    entry.ecritureDate.toISOString(),
+    String(index),
+  ]
+    .filter(Boolean)
+    .join(":")
+}
+
+function sortAgedBalanceInvoices(
+  invoices: AgedBalanceInvoice[]
+): AgedBalanceInvoice[] {
+  return [...invoices].sort((a, b) => {
+    const bucketDiff =
+      BUCKET_PRIORITY[b.bucketKey] - BUCKET_PRIORITY[a.bucketKey]
+    if (bucketDiff !== 0) return bucketDiff
+
+    const dueDiff = a.dueDate.getTime() - b.dueDate.getTime()
+    if (dueDiff !== 0) return dueDiff
+
+    const amountDiff = b.amount - a.amount
+    if (amountDiff !== 0) return amountDiff
+
+    return a.label.localeCompare(b.label, "fr")
+  })
 }
 
 export function computeAgedReceivables(

@@ -1,17 +1,17 @@
 "use client"
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip"
+import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
+import { useTheme } from "next-themes"
 import { useMemo } from "react"
 
-import { STACKED_BAR_CONTAINER_CLASS } from "@/components/fec/bar-chart-style"
-import { groupSmallCategoryBreakdowns } from "@/components/fec/category-breakdown-display"
+import {
+  type ChartColorMode,
+  rankedExpenseBarFill,
+  rankedRevenueBarFill,
+} from "@/components/fec/bar-chart-style"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
+import { StackedSegmentBar } from "@/components/fec/stacked-segment-bar"
 import type { CategoryBreakdown } from "@/lib/fec/analytics"
 
 type ResultBreakdownVariant = "both" | "revenue" | "expenses"
@@ -30,14 +30,12 @@ interface BarSegment {
   key: string
   label: string
   amount: number
-  shareOfTotal: number // % of bar width (= max(rev, exp))
+  share: number // % of bar width (= max(rev, exp))
   shareOfBucket: number // % of its own bucket
   fill: string
   isResultCap?: boolean
   isLossCap?: boolean
 }
-
-const MIN_INLINE_PCT = 8 // segments narrower than this hide their inline label
 
 function buildRevenueSegments({
   categories,
@@ -45,22 +43,29 @@ function buildRevenueSegments({
   expenses,
   baseTotal,
   withLossCap,
+  colorMode,
 }: {
   categories: CategoryBreakdown[]
   revenue: number
   expenses: number
   baseTotal: number
   withLossCap: boolean
+  colorMode: ChartColorMode
 }): BarSegment[] {
   if (baseTotal <= 0) return []
-  const displayCategories = groupSmallCategoryBreakdowns(categories)
-  const segments: BarSegment[] = displayCategories.map((c) => ({
+  const displayCategories = categories.filter((category) => category.amount > 0)
+  const segments: BarSegment[] = displayCategories.map((c, index) => ({
     key: `rev-${c.key}`,
     label: c.label,
     amount: c.amount,
-    shareOfTotal: (c.amount / baseTotal) * 100,
+    share: (c.amount / baseTotal) * 100,
     shareOfBucket: c.share,
-    fill: c.fill ?? "var(--revenue-3)",
+    fill: resultCategoryFill(
+      "revenue",
+      index,
+      displayCategories.length,
+      colorMode
+    ),
   }))
   if (withLossCap) {
     // Loss : on ajoute un cap rouge a droite pour egaler la longueur des charges.
@@ -69,7 +74,7 @@ function buildRevenueSegments({
       key: "rev-loss-cap",
       label: "Perte nette",
       amount: lossAmount,
-      shareOfTotal: (lossAmount / baseTotal) * 100,
+      share: (lossAmount / baseTotal) * 100,
       shareOfBucket: revenue > 0 ? (lossAmount / revenue) * 100 : 100,
       fill: "var(--result-loss)",
       isLossCap: true,
@@ -84,22 +89,29 @@ function buildExpenseSegments({
   netResult,
   baseTotal,
   withResultCap,
+  colorMode,
 }: {
   categories: CategoryBreakdown[]
   expenses: number
   netResult: number
   baseTotal: number
   withResultCap: boolean
+  colorMode: ChartColorMode
 }): BarSegment[] {
   if (baseTotal <= 0) return []
-  const displayCategories = groupSmallCategoryBreakdowns(categories)
-  const segments: BarSegment[] = displayCategories.map((c) => ({
+  const displayCategories = categories.filter((category) => category.amount > 0)
+  const segments: BarSegment[] = displayCategories.map((c, index) => ({
     key: `exp-${c.key}`,
     label: c.label,
     amount: c.amount,
-    shareOfTotal: (c.amount / baseTotal) * 100,
+    share: (c.amount / baseTotal) * 100,
     shareOfBucket: c.share,
-    fill: c.fill ?? "var(--expense-3)",
+    fill: resultCategoryFill(
+      "expenses",
+      index,
+      displayCategories.length,
+      colorMode
+    ),
   }))
   if (withResultCap) {
     // Profit : cap vert a droite, qui represente le resultat net.
@@ -107,7 +119,7 @@ function buildExpenseSegments({
       key: "exp-result-cap",
       label: "Résultat net",
       amount: netResult,
-      shareOfTotal: (netResult / baseTotal) * 100,
+      share: (netResult / baseTotal) * 100,
       shareOfBucket: expenses > 0 ? (netResult / expenses) * 100 : 100,
       fill: "var(--result)",
       isResultCap: true,
@@ -125,6 +137,8 @@ export function ResultBreakdown({
   variant = "both",
   className,
 }: ResultBreakdownProps) {
+  const colorMode = useChartColorMode()
+
   // En mode "both" les deux barres partagent la meme echelle pour etre
   // visuellement comparables. En mode mono-barre, on remplit toute la largeur
   // a partir du total propre du bucket.
@@ -147,6 +161,7 @@ export function ResultBreakdown({
             expenses,
             baseTotal,
             withLossCap: variant === "both" && !isProfit,
+            colorMode,
           })
         : [],
     [
@@ -157,6 +172,7 @@ export function ResultBreakdown({
       baseTotal,
       isProfit,
       variant,
+      colorMode,
     ]
   )
 
@@ -169,6 +185,7 @@ export function ResultBreakdown({
             netResult,
             baseTotal,
             withResultCap: variant === "both" && isProfit,
+            colorMode,
           })
         : [],
     [
@@ -179,6 +196,7 @@ export function ResultBreakdown({
       baseTotal,
       isProfit,
       variant,
+      colorMode,
     ]
   )
 
@@ -195,7 +213,7 @@ export function ResultBreakdown({
       <div className={cn("space-y-4", className)}>
         {showRevenue ? (
           <BarRow
-            label="Produits"
+            label="Revenus"
             total={revenue}
             accent="text-[var(--revenue)]"
             segments={revenueSegments}
@@ -212,6 +230,12 @@ export function ResultBreakdown({
       </div>
     </TooltipProvider>
   )
+}
+
+function useChartColorMode(): ChartColorMode {
+  const { resolvedTheme } = useTheme()
+  if (resolvedTheme === "dark") return "dark"
+  return "light"
 }
 
 function BarRow({
@@ -240,74 +264,47 @@ function BarRow({
           <FormattedCurrency value={total} />
         </span>
       </div>
-      <Bar segments={segments} />
+      <StackedSegmentBar
+        segments={segments}
+        ariaLabel={`Composition des ${label.toLowerCase()}`}
+        getForceInlineLabel={isCapSegment}
+        getLabelClassName={getSegmentLabelClassName}
+        renderTooltip={(segment) => <ResultTooltip segment={segment} />}
+      />
     </div>
   )
 }
 
-function Bar({ segments }: { segments: BarSegment[] }) {
+function ResultTooltip({ segment }: { segment: BarSegment }) {
   return (
-    <div
-      className={STACKED_BAR_CONTAINER_CLASS}
-      role="img"
-      aria-label="Composition"
-    >
-      {segments.map((seg, idx) => (
-        <Segment key={seg.key} segment={seg} isFirst={idx === 0} />
-      ))}
+    <div className="flex flex-col gap-0.5 text-xs">
+      <span className="font-semibold">{segment.label}</span>
+      <span className="font-mono tabular-nums opacity-80">
+        {segment.shareOfBucket.toFixed(1)}% ·{" "}
+        <FormattedCurrency value={segment.amount} tooltip={false} />
+      </span>
     </div>
   )
 }
 
-function Segment({
-  segment,
-  isFirst,
-}: {
-  segment: BarSegment
-  isFirst: boolean
-}) {
-  const isCap = segment.isResultCap || segment.isLossCap
-  // Les caps (Resultat / Perte) doivent toujours etre etiquetes : c'est le
-  // resume visuel du resultat, jamais reporte ailleurs dans la legende.
-  const showInline = isCap || segment.shareOfTotal >= MIN_INLINE_PCT
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <div
-            style={{
-              width: `${String(segment.shareOfTotal)}%`,
-              background: segment.fill,
-            }}
-            className={cn(
-              "flex min-w-0 cursor-default items-center justify-center px-2 text-center transition-all",
-              !isFirst && "border-l-2 border-background/60"
-            )}
-          />
-        }
-      >
-        {showInline ? (
-          <span
-            className={cn(
-              "max-w-full truncate text-xs font-semibold whitespace-nowrap sm:text-sm",
-              isCap
-                ? "font-bold text-foreground"
-                : "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
-            )}
-          >
-            {segment.label}
-          </span>
-        ) : null}
-      </TooltipTrigger>
-      <TooltipContent>
-        <div className="flex flex-col gap-0.5 text-xs">
-          <span className="font-semibold">{segment.label}</span>
-          <span className="font-mono tabular-nums opacity-80">
-            {segment.shareOfBucket.toFixed(1)}% ·{" "}
-            <FormattedCurrency value={segment.amount} tooltip={false} />
-          </span>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  )
+function isCapSegment(segment: BarSegment): boolean {
+  return Boolean(segment.isResultCap || segment.isLossCap)
+}
+
+function getSegmentLabelClassName(segment: BarSegment): string {
+  if (isCapSegment(segment))
+    return "max-w-full truncate text-xs font-bold whitespace-nowrap text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+
+  return "max-w-full truncate text-xs font-semibold whitespace-nowrap text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+}
+
+function resultCategoryFill(
+  variant: ResultBreakdownVariant,
+  index: number,
+  total: number,
+  colorMode: ChartColorMode
+): string {
+  if (variant === "expenses")
+    return rankedExpenseBarFill(index, total, colorMode)
+  return rankedRevenueBarFill(index, total, colorMode)
 }
