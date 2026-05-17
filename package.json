@@ -1,25 +1,33 @@
 {
-  "name": "clair.",
+  "name": "clair",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "turbo format",
-    "typecheck": "turbo typecheck",
-    "quality": "pnpm lint && pnpm format",
-    "fix": "bash ./fix.sh"
+    "deps:update": "pnpm up -r",
+    "deps:update:latest": "pnpm up -r --latest",
+    "fix": "bash scripts/fix.sh",
+    "sync:convex-url": "node scripts/sync-convex-url.mjs",
+    "sync:mobile-theme": "node scripts/sync-mobile-theme.mjs"
+  },
+  "dependencies": {
+    "agent-browser": "^0.27.0"
   },
   "devDependencies": {
-    "@workspace/typescript-config": "workspace:*",
-    "oxfmt": "^0.44.0",
-    "oxlint": "^1.59.0",
-    "turbo": "^2.8.17",
+    "oxc-minify": "^0.129.0",
+    "oxc-parser": "^0.129.0",
+    "oxc-resolver": "^11.19.1",
+    "oxc-transform": "^0.129.0",
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
+    "oxlint-tsgolint": "^0.22.1",
+    "turbo": "^2.9.12",
     "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.13",
+    "pnpm": ">=11.1.2"
   },
-  "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499"
+  "packageManager": "pnpm@11.1.2"
 }

@@ -1,0 +1,85 @@
+/* Generated from packages/ui/src/styles/globals.css. Do not edit by hand. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 199.993 14.105% 4.144%;
+    --card: 0 0% 100%;
+    --card-foreground: 199.993 14.105% 4.144%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 199.993 14.105% 4.144%;
+    --primary: 225.345 84.095% 48.984%;
+    --primary-foreground: 213.75 96.485% 96.791%;
+    --secondary: 239.992 3.51% 95.786%;
+    --secondary-foreground: 240.017 6.031% 9.981%;
+    --muted: 179.979 7.289% 94.963%;
+    --muted-foreground: 191.427 9.223% 44.494%;
+    --accent: 179.979 7.289% 94.963%;
+    --accent-foreground: 197.176 12.89% 10.031%;
+    --destructive: 357.206 100% 45.323%;
+    --destructive-foreground: 213.75 96.485% 96.791%;
+    --border: 191.982 10.779% 89.95%;
+    --input: 191.982 10.779% 89.95%;
+    --ring: 192.011 8.044% 64.13%;
+    --chart-1: 210.694 100% 77.83%;
+    --chart-2: 216.256 100% 58.467%;
+    --chart-3: 221.337 97.063% 53.498%;
+    --chart-4: 225.345 84.095% 48.984%;
+    --chart-5: 227.099 75.743% 41.135%;
+    --sidebar: 179.979 19.51% 98.106%;
+    --sidebar-foreground: 199.993 14.105% 4.144%;
+    --sidebar-primary: 221.337 97.063% 53.498%;
+    --sidebar-primary-foreground: 213.75 96.485% 96.791%;
+    --sidebar-accent: 179.979 7.289% 94.963%;
+    --sidebar-accent-foreground: 197.176 12.89% 10.031%;
+    --sidebar-border: 191.982 10.779% 89.95%;
+    --sidebar-ring: 192.011 8.044% 64.13%;
+    --radius: 0.625rem;
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+  }
+
+  .dark {
+    --background: 199.993 14.105% 4.144%;
+    --foreground: 179.979 19.51% 98.106%;
+    --card: 197.176 12.89% 10.031%;
+    --card-foreground: 179.979 19.51% 98.106%;
+    --popover: 197.176 12.89% 10.031%;
+    --popover-foreground: 179.979 19.51% 98.106%;
+    --primary: 227.099 75.743% 41.135%;
+    --primary-foreground: 213.75 96.485% 96.791%;
+    --secondary: 240.047 4.043% 15.933%;
+    --secondary-foreground: 0 0% 98.026%;
+    --muted: 193.352 12.188% 15.086%;
+    --muted-foreground: 192.011 8.044% 64.13%;
+    --accent: 193.352 12.188% 15.086%;
+    --accent-foreground: 179.979 19.51% 98.106%;
+    --destructive: 358.748 100% 69.558%;
+    --destructive-foreground: 213.75 96.485% 96.791%;
+    --border: 0 0% 100% / 10%;
+    --input: 0 0% 100% / 15%;
+    --ring: 191.427 9.223% 44.494%;
+    --chart-1: 210.694 100% 77.83%;
+    --chart-2: 216.256 100% 58.467%;
+    --chart-3: 221.337 97.063% 53.498%;
+    --chart-4: 225.345 84.095% 48.984%;
+    --chart-5: 227.099 75.743% 41.135%;
+    --sidebar: 197.176 12.89% 10.031%;
+    --sidebar-foreground: 179.979 19.51% 98.106%;
+    --sidebar-primary: 216.256 100% 58.467%;
+    --sidebar-primary-foreground: 213.75 96.485% 96.791%;
+    --sidebar-accent: 193.352 12.188% 15.086%;
+    --sidebar-accent-foreground: 179.979 19.51% 98.106%;
+    --sidebar-border: 0 0% 100% / 10%;
+    --sidebar-ring: 191.427 9.223% 44.494%;
+  }
+}

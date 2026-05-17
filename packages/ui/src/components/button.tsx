@@ -1,6 +1,7 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react"
 
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -41,23 +42,27 @@ const buttonVariants = cva(
 
 function Button({
   className,
-  variant = "default",
-  size = "default",
   nativeButton,
   render,
+  variant = "default",
+  size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
-  // When a custom `render` is supplied (typically a Link or anchor), default
-  // `nativeButton` to false so Base UI doesn't warn about non-button rendering.
-  const resolvedNativeButton = nativeButton ?? render === undefined
   return (
     <ButtonPrimitive
       data-slot="button"
-      nativeButton={resolvedNativeButton}
-      render={render}
       className={cn(buttonVariants({ variant, size, className }))}
+      nativeButton={nativeButton ?? rendersNativeButton(render)}
+      render={render}
       {...props}
     />
+  )
+}
+
+function rendersNativeButton(render: ButtonPrimitive.Props["render"]) {
+  return (
+    render === undefined ||
+    (React.isValidElement(render) && render.type === "button")
   )
 }
 

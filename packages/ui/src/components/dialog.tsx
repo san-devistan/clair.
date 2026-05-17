@@ -1,5 +1,3 @@
-"use client"
-
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
@@ -46,6 +44,17 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
+  const closeButton = React.useMemo(
+    () => (
+      <Button
+        variant="ghost"
+        className="absolute top-2 right-2"
+        size="icon-sm"
+      />
+    ),
+    []
+  )
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -59,16 +68,7 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-2 right-2"
-                size="icon-sm"
-              />
-            }
-          >
+          <DialogPrimitive.Close data-slot="dialog-close" render={closeButton}>
             <XIcon />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
@@ -96,6 +96,8 @@ function DialogFooter({
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean
 }) {
+  const closeButton = React.useMemo(() => <Button variant="outline" />, [])
+
   return (
     <div
       data-slot="dialog-footer"
@@ -107,7 +109,7 @@ function DialogFooter({
     >
       {children}
       {showCloseButton && (
-        <DialogPrimitive.Close render={<Button variant="outline" />}>
+        <DialogPrimitive.Close render={closeButton}>
           Close
         </DialogPrimitive.Close>
       )}

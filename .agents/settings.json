@@ -1,7 +1,0 @@
-{
-  "enabledMcpjsonServers": [
-    "convex",
-    "shadcn",
-    "vercel"
-  ]
-}

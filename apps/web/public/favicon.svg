@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Clair">
+  <rect width="512" height="512" fill="#151518" />
+  <rect width="512" height="512" rx="112" fill="#1f1f23" />
+  <text
+    x="256"
+    y="318"
+    fill="#ffffff"
+    font-family="Inter Variable, Inter, Arial, sans-serif"
+    font-size="220"
+    font-weight="800"
+    letter-spacing="-8"
+    text-anchor="middle"
+  >c.</text>
+</svg>

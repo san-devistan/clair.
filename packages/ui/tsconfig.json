@@ -1,7 +1,14 @@
 {
-  "extends": "@workspace/typescript-config/react-library.json",
   "compilerOptions": {
-    "baseUrl": ".",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "preserveSymlinks": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
     "paths": {
       "@workspace/ui/*": ["./src/*"]
     }

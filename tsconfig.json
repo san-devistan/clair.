@@ -1,4 +1,10 @@
 {
-  "extends": "@workspace/typescript-config/base.json"
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true
+  }
 }
-

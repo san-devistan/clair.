@@ -1,100 +1,83 @@
-## What this project is
+# Repository Guide
 
-**clair.** is a French accounting dashboard that ingests **FEC** files (Fichier d'Écritures Comptables, the DGFiP-mandated journal-export format) and produces a clear view of revenue, expenses, cash, and margins for SMB owners.
+This is a pnpm workspace monorepo. Prefer repo-local conventions and skills
+before introducing new patterns.
 
-- All user-facing copy is in **French**. Keep it that way.
-- The FEC parser, analytics, and persisted store live in `apps/web/lib/fec/`. Domain types are in `apps/web/lib/fec/types.ts` — read them before touching anything FEC-related.
+## Workspace Map
 
-## Stack
+| Area          | Path               | Stack                                                                                           | Notes                                                                                                      |
+| ------------- | ------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Web app       | `apps/web`         | TanStack Start, React 19, TanStack Router, TanStack Query, Tailwind CSS v4, Vite, Convex client | Uses shared web UI from `@workspace/ui`.                                                                   |
+| Mobile app    | `apps/mobile`      | Expo Router, React Native, NativeWind, React Native Reusables, Convex client                    | Owns native UI components in `components/ui`, derived from the shared web design system.                   |
+| Backend       | `packages/backend` | Convex                                                                                          | Owns Convex schema, functions, generated API exports, auth, email, billing, and backend integration logic. |
+| Web UI system | `packages/ui`      | React 19, shadcn-style components, Tailwind CSS v4, Base UI, lucide-react, `usehooks-ts`        | Source of truth for the web design system and design tokens.                                               |
+| Automation    | `scripts`          | Shell and explicit Node.js scripts                                                              | JavaScript is allowed here for repo tooling.                                                               |
 
-- **pnpm** 11.1.2 workspace + **Turborepo** 2.8 (`pnpm-workspace.yaml`, `turbo.json`)
-- pnpm workspace installs use `minimumReleaseAge: 10080`
-- **Next.js 16** with Turbopack (`apps/web`)
-- **React 19**, **TypeScript 5.9**
-- **Tailwind CSS v4** + **shadcn/ui** (style: `base-nova`, in `packages/ui`)
-- **@base-ui/react**, **recharts**, **lucide-react**, **sonner**, **next-themes**, **zod**, **date-fns**
-- Lint: **oxlint** · Format: **oxfmt** (Rust-based, **not** eslint/prettier)
-- Node **>=22.13**
+## Design System Ownership
 
-## Layout
+`packages/ui` defines the canonical web design system. Treat
+`packages/ui/src/styles/globals.css` and `packages/ui/src/components` as the
+source of truth for tokens, component anatomy, variants, naming, and interaction
+patterns.
 
+The mobile app does not directly reuse web React components. Instead,
+`apps/mobile/components/ui` implements native components with React Native
+Reusables and `@rn-primitives`, while matching the web design system's tokens,
+variants, and component behavior where native constraints allow.
+
+Mobile theme files are generated from the web token source:
+
+- Source: `packages/ui/src/styles/globals.css`
+- Generated: `apps/mobile/global.css`
+- Generated: `apps/mobile/lib/theme.ts`
+- Sync command: `pnpm sync:mobile-theme`
+
+Do not hand-edit generated mobile theme files. Change the token source in
+`packages/ui`, then sync the mobile theme.
+
+## Quality Gate
+
+Before handing off code, run:
+
+```sh
+pnpm fix
 ```
-apps/web/                    Next.js app (App Router)
-  app/                       Routes: /, /upload, /dashboard/{insights,charges,clients,...}
-  components/fec/            FEC-specific UI (charts, KPI cards, dropzone, sidebar)
-  lib/fec/                   Parser, analytics, in-browser store, types, formatters
-packages/ui/                 Shared shadcn component library (@workspace/ui)
-packages/typescript-config/  Shared tsconfig presets (@workspace/typescript-config)
-.agents/skills/              Skill definitions (Convex, Vercel, shadcn, Better Auth, …)
-.claude/  ->  .agents/       Symlink — Claude Code reads skills from here
-```
 
-## Commands
+Wait for the command to finish. If it reports errors or warnings, fix them and
+run `pnpm fix` again. Repeat until it passes, or clearly explain the remaining
+blocker.
 
-Run from the repo root unless stated otherwise.
+## Skill Selection
 
-| Task                    | Command          |
-| ----------------------- | ---------------- |
-| Install                 | `pnpm install`   |
-| Dev server (web)        | `pnpm dev`       |
-| Build                   | `pnpm build`     |
-| Lint (oxlint)           | `pnpm lint`      |
-| Format check (oxfmt)    | `pnpm format`    |
-| Typecheck               | `pnpm typecheck` |
-| Lint + format           | `pnpm quality`   |
-| **Autofix + full gate** | `pnpm fix`       |
+Read only the skill files needed for the task. Prefer repo-local skills in
+`.agents/skills`. For backend-owned features, read `packages/backend/AGENTS.md`
+first and then use the backend-local skills in `packages/backend/.agents/skills`.
 
-### `pnpm fix` is the contract
+| Work type                                | Primary skills                                                                                                                                                    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Global web UI, styling, design review    | `frontend-design`, `web-design-guidelines`, `shadcn`, `vercel-react-best-practices`                                                                               |
+| Shared React component APIs              | `vercel-composition-patterns`, `usehooks-ts`, `shadcn`                                                                                                            |
+| Web app routing, loaders, SSR, data flow | `tanstack-start-best-practices`, `tanstack-router-best-practices`, `tanstack-query-best-practices`, `tanstack-integration-best-practices`, `native-data-fetching` |
+| Mobile screens, navigation, native UI    | `building-native-ui`, `vercel-react-native-skills`, `react-native-reusables`, `expo-tailwind-setup`                                                               |
+| Mobile builds, releases, native modules  | `expo-dev-client`, `expo-deployment`, `upgrading-expo`, `expo-module`, `Expo UI SwiftUI`, `use-dom`                                                               |
+| Convex backend                           | `packages/backend/AGENTS.md`, then the needed backend-local Convex skills in `packages/backend/.agents/skills/`.                                                  |
+| Backend auth                             | `packages/backend/AGENTS.md`, `convex-dev-better-auth`, and the backend-local Better Auth skills in `packages/backend/.agents/skills/`.                           |
+| Backend email                            | `packages/backend/AGENTS.md`, `convex-dev-resend`, and the backend-local Resend/email skills in `packages/backend/.agents/skills/`.                               |
+| Backend billing                          | `packages/backend/AGENTS.md`, `convex-dev-stripe`, and the backend-local Stripe skills in `packages/backend/.agents/skills/`.                                     |
+| Tooling and architecture                 | `improve-codebase-architecture`                                                                                                                                   |
 
-After editing files, run **`pnpm fix`** (script: `./fix.sh`). It:
+## Available MCPs
 
-1. Diffs changed files against `origin/main` (and unstaged + untracked).
-2. Runs `oxlint --fix` and `oxfmt --write` on **only** those files.
-3. Runs `pnpm quality` and `pnpm typecheck` on the whole repo.
-4. Exits non-zero if anything still fails.
+| MCP         | Use for                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| Convex      | Inspect deployments, tables, function specs, logs, environment variables, and run Convex functions.        |
+| Better Auth | Inspect Better Auth docs and integration guidance for backend auth work.                                   |
+| Resend      | Inspect Resend email provider docs and resources for backend transactional email work.                     |
+| Stripe      | Inspect Stripe docs and resources for backend billing and payment work.                                    |
+| shadcn      | Search registries, inspect component examples, and get add commands for shadcn components.                 |
+| Vercel      | Inspect projects, deployments, runtime/build logs, toolbar comments, domains, and deployment access links. |
 
-Do **not** run `prettier`, `eslint`, or full-repo `oxlint .` as a substitute — `fix.sh` is the canonical gate.
+## Operating Notes
 
-## Code conventions
-
-- **No braces for single-instruction `if`/`else`.** This is a project preference enforced by review, not by the linter.
-  ```ts
-  if (cond) doThing()
-  else doOther()
-  ```
-- **No semicolons**, double quotes, 2-space indent, `printWidth: 80`, trailing commas `es5`. Set in `.oxfmtrc.json`.
-- **Imports are auto-sorted** by oxfmt (`sortImports: true`). Don't fight the order.
-- **Tailwind classes are auto-sorted** in `cn()` and `cva()` calls. Compose with `cn` from `@workspace/ui/lib/utils`.
-- **Components in `packages/ui`** are shadcn primitives — keep them generic. Domain components (FEC-aware) live in `apps/web/components/fec/`.
-- **Server vs client**: `apps/web` uses RSC by default. Add `"use client"` only when you need state, effects, or browser APIs (the FEC store under `lib/fec/store.tsx` is client-side because the file lives in localStorage).
-- Aliases: `@/…` resolves to `apps/web/*`; shared UI is `@workspace/ui/components/*`, utils `@workspace/ui/lib/utils`.
-
-## React-specific guidance
-
-When writing or refactoring React components, **invoke these skills** (they're configured in `.agents/skills/`):
-
-- `vercel-react-best-practices` — performance patterns (RSC boundaries, memoization, data fetching).
-- `vercel-composition-patterns` — compound components, render props, scalable APIs.
-
-For UI work, prefer `shadcn` skill helpers to add/inspect components rather than hand-rolling them.
-
-## MCP servers configured (`.mcp.json`)
-
-- **convex** — Convex deployments (data, logs, env, run functions). Not currently wired into the app, but available.
-- **shadcn** — Search/add components, view registry items.
-- **vercel** — Deploy, list projects, fetch runtime/build logs, manage toolbar threads.
-
-## Git & PRs
-
-- **Never** add `Co-Authored-By` trailers to commits or PR descriptions.
-- **Never** add "Generated with Claude Code" or similar attribution.
-- Match the existing terse commit style (see `git log`).
-- Don't push or open PRs without explicit user instruction.
-
-## Things to be careful about
-
-- **`FEC_2024.csv`** at the repo root is real-looking sample data. Don't commit edits to it; don't ship it to third-party services.
-- The FEC store persists to **`localStorage`** under `clair.fec.dashboard.v1`. Schema changes need a key bump or migration in `apps/web/lib/fec/store.tsx`.
-- All monetary formatting goes through `apps/web/lib/fec/format.ts` — don't reinvent `Intl.NumberFormat` calls inline.
-- **Default to `formatEuroCompact` when displaying a monetary number in the UI** (KPI cards, charts, dashboard tiles). Only fall back to `formatEuro` / `formatEuroExact` when the user needs exact precision — e.g. an invoice line, an account balance, an écriture detail.
-- Dashboard analytics in `apps/web/lib/fec/analytics.ts` is the single source of derived numbers — KPIs, charts, and tables all read from `DashboardData`. Add new metrics there, not in components.
+- Keep changes scoped to the package and behavior requested.
+- Do not revert unrelated user changes.

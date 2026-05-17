@@ -45,6 +45,17 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  const closeButton = React.useMemo(
+    () => (
+      <Button
+        variant="ghost"
+        className="absolute top-3 right-3"
+        size="icon-sm"
+      />
+    ),
+    []
+  )
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -59,16 +70,7 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close
-            data-slot="sheet-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-3 right-3"
-                size="icon-sm"
-              />
-            }
-          >
+          <SheetPrimitive.Close data-slot="sheet-close" render={closeButton}>
             <XIcon />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
