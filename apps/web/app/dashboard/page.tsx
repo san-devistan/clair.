@@ -15,6 +15,7 @@ import { Suspense } from "react"
 
 import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
+import { BalanceSheetOverviewCard } from "@/components/fec/balance-sheet-section"
 import { BreakevenSection } from "@/components/fec/breakeven-section"
 import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
@@ -35,10 +36,13 @@ function DashboardOverview() {
     kpi,
     monthly,
     expenseCategories,
+    expenseDetails,
     revenueCategories,
+    revenueDetails,
     agedReceivables,
     agedPayables,
     cashProjection,
+    balanceSheet,
   } = data
 
   // Calcul du delta CA derniers 3 mois vs 3 precedents
@@ -153,21 +157,24 @@ function DashboardOverview() {
         </div>
       </section>
 
+      <section>
+        <BalanceSheetOverviewCard balanceSheet={balanceSheet} />
+      </section>
+
       {/* === Composition du résultat === */}
       <section>
         <Card>
           <CardHeader>
-            <ExplainedCardTitle description="Comparez d'où vient l'argent et où il part. Le bloc vert au sommet des charges représente ce qu'il reste — votre résultat net.">
+            <ExplainedCardTitle description="Comparez d'où vient l'argent et où il part. Ouvrez une catégorie pour voir les comptes et auxiliaires qui la composent.">
               Composition du résultat
             </ExplainedCardTitle>
           </CardHeader>
           <CardContent>
             <ResultBreakdown
               revenueCategories={revenueCategories}
+              revenueDetails={revenueDetails}
               expenseCategories={expenseCategories}
-              revenue={kpi.revenue}
-              expenses={kpi.expenses}
-              netResult={kpi.netResult}
+              expenseDetails={expenseDetails}
             />
           </CardContent>
         </Card>

@@ -13,7 +13,13 @@ import {
 } from "@workspace/ui/components/table"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
-import { ArrowRight, ReceiptText, Users } from "lucide-react"
+import {
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  ReceiptText,
+  Users,
+} from "lucide-react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
@@ -343,6 +349,7 @@ function AgingGroupRows({
   bucketColors: AgingBucketColorMap
 }) {
   const toggleBucket = () => onToggleBucket(group.key)
+  const Chevron = selected ? ChevronUp : ChevronDown
   const ariaLabel = selected
     ? `Masquer le détail de ${group.label}`
     : `Afficher le détail de ${group.label}`
@@ -354,7 +361,7 @@ function AgingGroupRows({
           <button
             type="button"
             aria-label={ariaLabel}
-            aria-pressed={selected}
+            aria-expanded={selected}
             onClick={toggleBucket}
             className={cn(
               "grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_8rem_7rem] items-center gap-2 bg-muted/30 p-2 text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
@@ -362,6 +369,10 @@ function AgingGroupRows({
             )}
           >
             <span className="flex min-w-0 items-center gap-2 font-medium">
+              <Chevron
+                aria-hidden
+                className="size-4 shrink-0 text-muted-foreground"
+              />
               <span
                 aria-hidden
                 className="block size-2.5 shrink-0 rounded-full"

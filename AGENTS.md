@@ -7,13 +7,14 @@
 
 ## Stack
 
-- **pnpm** 9.15.9 workspace + **Turborepo** 2.8 (`pnpm-workspace.yaml`, `turbo.json`)
+- **pnpm** 11.1.2 workspace + **Turborepo** 2.8 (`pnpm-workspace.yaml`, `turbo.json`)
+- pnpm workspace installs use `minimumReleaseAge: 10080`
 - **Next.js 16** with Turbopack (`apps/web`)
 - **React 19**, **TypeScript 5.9**
 - **Tailwind CSS v4** + **shadcn/ui** (style: `base-nova`, in `packages/ui`)
 - **@base-ui/react**, **recharts**, **lucide-react**, **sonner**, **next-themes**, **zod**, **date-fns**
 - Lint: **oxlint** · Format: **oxfmt** (Rust-based, **not** eslint/prettier)
-- Node **>=20**
+- Node **>=22.13**
 
 ## Layout
 

@@ -22,6 +22,7 @@ export { EXPENSE_CATEGORIES, REVENUE_CATEGORIES }
 const CUSTOMER_ACCOUNT_CODES = ["411", "413", "416", "418"] as const
 const SUPPLIER_ACCOUNT_CODES = ["40"] as const
 const CASH_ACCOUNT_CODES = ["51", "53"] as const
+const FINANCIAL_DEBT_ACCOUNT_CODES = ["16", "17"] as const
 
 const EXPENSE_LOOKUP = buildLookup(EXPENSE_CATEGORIES)
 const REVENUE_LOOKUP = buildLookup(REVENUE_CATEGORIES)
@@ -73,6 +74,22 @@ export function isExpenseAccount(compteNum: string): boolean {
 
 export function isCashAccount(compteNum: string): boolean {
   return isPlanComptableAccountUnderAny(compteNum, CASH_ACCOUNT_CODES)
+}
+
+export function isFixedAssetAccount(compteNum: string): boolean {
+  return getAccountClass(compteNum) === 2
+}
+
+export function isInventoryAccount(compteNum: string): boolean {
+  return getAccountClass(compteNum) === 3
+}
+
+export function isFinancialDebtAccount(compteNum: string): boolean {
+  return isPlanComptableAccountUnderAny(compteNum, FINANCIAL_DEBT_ACCOUNT_CODES)
+}
+
+export function isEquityAccount(compteNum: string): boolean {
+  return getAccountClass(compteNum) === 1 && !isFinancialDebtAccount(compteNum)
 }
 
 export function isCustomerAccount(compteNum: string): boolean {

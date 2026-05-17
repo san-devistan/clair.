@@ -18,6 +18,7 @@ import { useFecStore } from "@/lib/fec/store"
 const PAGE_LABELS: Record<string, string> = {
   "/dashboard": "Vue d'ensemble",
   "/dashboard/insights": "Actions à mener",
+  "/dashboard/bilan": "Bilan",
   "/dashboard/revenus": "Revenus",
   "/dashboard/charges": "Charges",
   "/dashboard/tresorerie": "Trésorerie",

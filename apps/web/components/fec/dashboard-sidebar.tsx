@@ -31,6 +31,7 @@ import {
   type LucideIcon,
   ReceiptText,
   RotateCcw,
+  Scale,
   Truck,
   Users,
   Wallet,
@@ -61,6 +62,7 @@ const PRIMARY_NAV: NavItem[] = [
 ]
 
 const ANALYSIS_NAV: NavItem[] = [
+  { href: "/dashboard/bilan", label: "Bilan", icon: Scale },
   { href: "/dashboard/revenus", label: "Revenus", icon: CircleDollarSign },
   { href: "/dashboard/charges", label: "Charges", icon: ReceiptText },
   { href: "/dashboard/tresorerie", label: "Trésorerie", icon: Wallet },

@@ -24,6 +24,8 @@ import {
   computeAgedPayables,
   computeAgedReceivables,
 } from "./aged-balance"
+import { computeBalanceSheet } from "./balance-sheet"
+import type { BalanceSheetSummary } from "./balance-sheet-types"
 import { type CashProjection, computeCashProjection } from "./cash-projection"
 import { computeInsights } from "./insights"
 import { resolvePlanComptableEntry } from "./plan-comptable-2026"
@@ -145,6 +147,7 @@ export interface DashboardData {
   agedReceivables: AgedBalance
   agedPayables: AgedBalance
   cashProjection: CashProjection
+  balanceSheet: BalanceSheetSummary
   warnings: string[]
 }
 
@@ -583,6 +586,7 @@ export function buildDashboardData(parseResult: FecParseResult): DashboardData {
 
   const period = computePeriod(entries)
   const kpi = computeKpi(entries)
+  const balanceSheet = computeBalanceSheet(entries, period, kpi)
   const monthly = computeMonthly(entries)
   const expenseCategories = computeExpenseBreakdown(entries)
   const revenueCategories = computeRevenueBreakdown(entries)
@@ -683,6 +687,7 @@ export function buildDashboardData(parseResult: FecParseResult): DashboardData {
     agedReceivables,
     agedPayables,
     cashProjection,
+    balanceSheet,
     warnings: [...warnings, ...planWarnings],
   }
 }

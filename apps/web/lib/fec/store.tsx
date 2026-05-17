@@ -19,6 +19,7 @@ import {
 import { computeInsights } from "./insights"
 import { parseFecFile } from "./parser"
 
+// v16 (2026-05) : ajoute le bilan simplifie et les ratios financiers.
 // v15 (2026-05) : ajoute les factures ouvertes detaillees dans la balance agee
 // pour ouvrir les tranches en tableau interactif.
 // v14 (2026-05) : ajoute la repartition mensuelle par categorie aux points
@@ -49,9 +50,9 @@ import { parseFecFile } from "./parser"
 // v2 (2026-05) : refonte de la categorisation des comptes
 // (Couts fixes/RH/Variables/... au lieu des classes PCG 60-69).
 // Les utilisateurs avec un snapshot anterieur devront re-importer leur FEC.
-const STORAGE_KEY = "clair.fec.dashboard.v15"
+const STORAGE_KEY = "clair.fec.dashboard.v16"
 // Slot secondaire pour la comparaison entre deux FEC (meme schema, meme version).
-const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v15"
+const COMPARISON_STORAGE_KEY = "clair.fec.dashboard.comparison.v16"
 
 type SerializedAgedBalance = Omit<
   DashboardData["agedReceivables"],
@@ -68,6 +69,10 @@ type SerializedAgedBalance = Omit<
       dueDate: string
     }
   >
+}
+
+type SerializedBalanceSheet = Omit<DashboardData["balanceSheet"], "asOf"> & {
+  asOf: string
 }
 
 interface SerializedSnapshot {
@@ -116,6 +121,7 @@ interface SerializedSnapshot {
   cashProjection: Omit<DashboardData["cashProjection"], "asOf"> & {
     asOf: string
   }
+  balanceSheet: SerializedBalanceSheet
   warnings: string[]
 }
 
@@ -155,6 +161,24 @@ function deserializeAgedBalance(
       invoiceDate: new Date(invoice.invoiceDate),
       dueDate: new Date(invoice.dueDate),
     })),
+  }
+}
+
+function serializeBalanceSheet(
+  data: DashboardData["balanceSheet"]
+): SerializedBalanceSheet {
+  return {
+    ...data,
+    asOf: data.asOf.toISOString(),
+  }
+}
+
+function deserializeBalanceSheet(
+  snap: SerializedBalanceSheet
+): DashboardData["balanceSheet"] {
+  return {
+    ...snap,
+    asOf: new Date(snap.asOf),
   }
 }
 
@@ -203,6 +227,7 @@ function serialize(data: DashboardData): SerializedSnapshot {
       ...data.cashProjection,
       asOf: data.cashProjection.asOf.toISOString(),
     },
+    balanceSheet: serializeBalanceSheet(data.balanceSheet),
     warnings: data.warnings,
   }
 }
@@ -261,6 +286,7 @@ function deserialize(snap: SerializedSnapshot): DashboardData {
       ...snap.cashProjection,
       asOf: new Date(snap.cashProjection.asOf),
     },
+    balanceSheet: deserializeBalanceSheet(snap.balanceSheet),
     warnings: snap.warnings,
   }
 
