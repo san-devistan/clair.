@@ -11,10 +11,8 @@
     "sync:convex-url": "node scripts/sync-convex-url.mjs",
     "sync:mobile-theme": "node scripts/sync-mobile-theme.mjs"
   },
-  "dependencies": {
-    "agent-browser": "^0.27.0"
-  },
   "devDependencies": {
+    "agent-browser": "^0.27.0",
     "oxc-minify": "^0.129.0",
     "oxc-parser": "^0.129.0",
     "oxc-resolver": "^11.19.1",

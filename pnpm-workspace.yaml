@@ -3,3 +3,8 @@ packages:
   - "packages/*"
 
 minimumReleaseAge: 10080
+
+allowBuilds:
+  esbuild: true
+  agent-browser: false
+  msw: false

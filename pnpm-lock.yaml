@@ -7,11 +7,10 @@ settings:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
       agent-browser:
         specifier: ^0.27.0
         version: 0.27.0
-    devDependencies:
       oxc-minify:
         specifier: ^0.129.0
         version: 0.129.0
@@ -381,9 +380,6 @@ importers:
       recharts:
         specifier: ^3.8.1
         version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.6)(react@19.2.6)(redux@5.0.1)
-      shadcn:
-        specifier: ^4.7.0
-        version: 4.7.0(@types/node@25.6.2)(typescript@5.9.3)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -418,6 +414,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
+      shadcn:
+        specifier: ^4.7.0
+        version: 4.7.0(@types/node@25.6.2)(typescript@5.9.3)
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
