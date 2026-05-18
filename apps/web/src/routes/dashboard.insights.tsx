@@ -1,5 +1,6 @@
 "use client"
 
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedNumber } from "@/components/fec/formatted-number"
@@ -31,7 +32,7 @@ const SEVERITY_ORDER: Record<string, number> = {
   positive: 3,
 }
 
-export default function InsightsPage() {
+function InsightsPage() {
   const { data } = useFecStore()
   if (!data) return <DashboardEmptyState />
 
@@ -48,13 +49,7 @@ export default function InsightsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Actions à mener
-        </h1>
-      </header>
-
+    <DashboardPage title="Actions à mener" maxWidthClassName="max-w-4xl">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SeverityStat
           label="Critique"
@@ -110,7 +105,7 @@ export default function InsightsPage() {
           ))}
         </div>
       )}
-    </div>
+    </DashboardPage>
   )
 }
 

@@ -1,10 +1,10 @@
-/* oxlint-disable eslint/complexity, eslint/max-lines-per-function */
+/* oxlint-disable eslint/max-lines-per-function */
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { CashCombinedChart } from "@/components/fec/cash-combined-chart"
 import { CashProjectionCard } from "@/components/fec/cash-projection-card"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import {
@@ -14,6 +14,13 @@ import {
 import { KpiCard } from "@/components/fec/kpi-card"
 import { TopList } from "@/components/fec/top-list"
 import type { DashboardData } from "@/lib/fec/analytics"
+import {
+  buildTreasuryProjectionPoint,
+  computeCustomerPaymentDelay,
+  computeNetCashEngagement,
+  computeSupplierPaymentDelay,
+  getCashRiskTone,
+} from "@/lib/fec/dashboard-metrics"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
 import {
@@ -38,7 +45,7 @@ export const Route = createFileRoute("/dashboard/tresorerie")({
 
 const TREASURY_ACTION_CATEGORIES = ["tresorerie"] as const
 
-export default function TresoreriePage() {
+function TresoreriePage() {
   const { data, comparisonData } = useFecStore()
   if (!data) return <DashboardEmptyState />
 
@@ -56,31 +63,13 @@ function TresorerieContent({
 
   const { kpi, monthly, cashByAccount, cashProjection } = data
 
-  // DSO / DPO approximatifs : creances / CA * 365
-  const monthsCovered = data.period.monthsCovered
-  const annualizedRevenue =
-    monthsCovered > 0 ? (kpi.revenue / monthsCovered) * 12 : kpi.revenue
-  const annualizedExpenses =
-    monthsCovered > 0 ? (kpi.expenses / monthsCovered) * 12 : kpi.expenses
-  const dso =
-    annualizedRevenue > 0
-      ? (kpi.customerReceivables / annualizedRevenue) * 365
-      : 0
-  const dpo =
-    annualizedExpenses > 0
-      ? (kpi.supplierPayables / annualizedExpenses) * 365
-      : 0
+  const dso = computeCustomerPaymentDelay(data)
+  const dpo = computeSupplierPaymentDelay(data)
 
-  // Projection : ce qui va sortir/rentrer + ou aterrit la treso
-  const netEngagement =
-    cashProjection.totalInflows - cashProjection.totalOutflows
+  const netEngagement = computeNetCashEngagement(cashProjection)
   const isImproving = netEngagement >= 0
   const projectedTone =
-    cashProjection.projectedCash < 0
-      ? "danger"
-      : cashProjection.projectedCash < kpi.revenue * 0.05
-        ? "warning"
-        : "success"
+    getCashRiskTone(cashProjection.projectedCash, kpi.revenue) ?? "success"
   const cashBalanceValue = useMemo(
     () => <FormattedCurrency value={kpi.cashBalance} />,
     [kpi.cashBalance]
@@ -105,12 +94,8 @@ function TresorerieContent({
     [isImproving, netEngagement]
   )
   const projection = useMemo(
-    () => ({
-      label: "Prévis.",
-      balance: cashProjection.projectedCash,
-      flow: netEngagement,
-    }),
-    [cashProjection.projectedCash, netEngagement]
+    () => buildTreasuryProjectionPoint(cashProjection),
+    [cashProjection]
   )
   const toggleComparison = useCallback(
     () => setShowComparison((value) => !value),
@@ -118,30 +103,18 @@ function TresorerieContent({
   )
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Trésorerie
-        </h1>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={TREASURY_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Trésorerie"
+      insights={data.insights}
+      actionCategories={TREASURY_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-3">
         <KpiCard
           label="Solde actuel"
           value={cashBalanceValue}
           icon={Banknote}
           description="Solde cumulé des comptes de banque et de caisse à la fin de la période importée."
-          tone={
-            kpi.cashBalance < 0
-              ? "danger"
-              : kpi.cashBalance < kpi.revenue * 0.05
-                ? "warning"
-                : "success"
-          }
+          tone={getCashRiskTone(kpi.cashBalance, kpi.revenue) ?? "success"}
           hint="Cumul fin de période"
         />
         <KpiCard
@@ -222,7 +195,7 @@ function TresorerieContent({
           </CardContent>
         </Card>
       </section>
-    </div>
+    </DashboardPage>
   )
 }
 

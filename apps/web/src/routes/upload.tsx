@@ -8,7 +8,7 @@ export const Route = createFileRoute("/upload")({ component: UploadPage })
 
 const HOME_LINK = <Link href="/" />
 
-export default function UploadPage() {
+function UploadPage() {
   return (
     <div className="min-h-svh bg-background">
       <header className="border-b">

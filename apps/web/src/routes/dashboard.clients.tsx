@@ -1,14 +1,18 @@
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { CounterpartyWeightSection } from "@/components/fec/counterparty-weight-section"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import {
   FormattedCurrency,
   FormattedNumber,
 } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
+import {
+  computeCounterpartyVolume,
+  computeCustomerPaymentDelay,
+} from "@/lib/fec/dashboard-metrics"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
 import { CalendarClock, CircleDollarSign, HandCoins, Users } from "lucide-react"
@@ -20,22 +24,14 @@ export const Route = createFileRoute("/dashboard/clients")({
 
 const CLIENT_ACTION_CATEGORIES = ["clients"] as const
 
-export default function ClientsPage() {
+function ClientsPage() {
   const { data } = useFecStore()
   if (!data) return <DashboardEmptyState />
 
   const { kpi, topCustomers, agedReceivables } = data
 
-  const totalCustomerVolume = topCustomers.reduce((s, c) => s + c.amount, 0)
-
-  // DSO
-  const monthsCovered = data.period.monthsCovered
-  const annualizedRevenue =
-    monthsCovered > 0 ? (kpi.revenue / monthsCovered) * 12 : kpi.revenue
-  const dso =
-    annualizedRevenue > 0
-      ? (kpi.customerReceivables / annualizedRevenue) * 365
-      : 0
+  const totalCustomerVolume = computeCounterpartyVolume(topCustomers)
+  const dso = computeCustomerPaymentDelay(data)
   const receivablesValue = createElement(FormattedCurrency, {
     value: kpi.customerReceivables,
   })
@@ -53,17 +49,11 @@ export default function ClientsPage() {
   })
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Clients
-        </h1>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={CLIENT_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Clients"
+      insights={data.insights}
+      actionCategories={CLIENT_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Créances clients"
@@ -99,6 +89,6 @@ export default function ClientsPage() {
       <AgedBalanceCard type="clients" data={agedReceivables} />
 
       <CounterpartyWeightSection items={topCustomers} variant="clients" />
-    </div>
+    </DashboardPage>
   )
 }

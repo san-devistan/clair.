@@ -1,13 +1,14 @@
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
 import { RepartitionSection } from "@/components/fec/repartition-section"
+import { computeMonthlyAverage } from "@/lib/fec/dashboard-metrics"
 import { formatPercent } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/dashboard/charges")({
 
 const CHARGE_ACTION_CATEGORIES = ["charges"] as const
 
-export default function ChargesPage() {
+function ChargesPage() {
   const { data, comparisonData } = useFecStore()
   const [showComparison, setShowComparison] = useState(true)
   const toggleComparison = useCallback(
@@ -41,8 +42,7 @@ export default function ChargesPage() {
   const payrollRatio = kpi.revenue > 0 ? (kpi.payroll / kpi.revenue) * 100 : 0
   const externalRatio =
     kpi.revenue > 0 ? (kpi.externalCharges / kpi.revenue) * 100 : 0
-  const monthlyAvgExpenses =
-    monthly.length > 0 ? kpi.expenses / monthly.length : 0
+  const monthlyAvgExpenses = computeMonthlyAverage(kpi.expenses, monthly.length)
   const totalExpensesValue = createElement(FormattedCurrency, {
     value: kpi.expenses,
   })
@@ -55,17 +55,11 @@ export default function ChargesPage() {
   })
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Charges
-        </h1>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={CHARGE_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Charges"
+      insights={data.insights}
+      actionCategories={CHARGE_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Charges totales"
@@ -140,6 +134,6 @@ export default function ChargesPage() {
           />
         </CardContent>
       </Card>
-    </div>
+    </DashboardPage>
   )
 }

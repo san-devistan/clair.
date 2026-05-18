@@ -1,14 +1,18 @@
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
 import { CounterpartyWeightSection } from "@/components/fec/counterparty-weight-section"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import {
   FormattedCurrency,
   FormattedNumber,
 } from "@/components/fec/formatted-number"
 import { KpiCard } from "@/components/fec/kpi-card"
+import {
+  computeCounterpartyVolume,
+  computeSupplierPaymentDelay,
+} from "@/lib/fec/dashboard-metrics"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
 import { CalendarClock, CircleDollarSign, HandCoins, Truck } from "lucide-react"
@@ -20,20 +24,14 @@ export const Route = createFileRoute("/dashboard/fournisseurs")({
 
 const SUPPLIER_ACTION_CATEGORIES = ["fournisseurs"] as const
 
-export default function FournisseursPage() {
+function FournisseursPage() {
   const { data } = useFecStore()
   if (!data) return <DashboardEmptyState />
 
   const { kpi, topSuppliers, agedPayables } = data
 
-  const totalSupplierVolume = topSuppliers.reduce((s, c) => s + c.amount, 0)
-  const monthsCovered = data.period.monthsCovered
-  const annualizedExpenses =
-    monthsCovered > 0 ? (kpi.expenses / monthsCovered) * 12 : kpi.expenses
-  const dpo =
-    annualizedExpenses > 0
-      ? (kpi.supplierPayables / annualizedExpenses) * 365
-      : 0
+  const totalSupplierVolume = computeCounterpartyVolume(topSuppliers)
+  const dpo = computeSupplierPaymentDelay(data)
   const payablesValue = createElement(FormattedCurrency, {
     value: kpi.supplierPayables,
   })
@@ -51,17 +49,11 @@ export default function FournisseursPage() {
   })
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Fournisseurs
-        </h1>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={SUPPLIER_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Fournisseurs"
+      insights={data.insights}
+      actionCategories={SUPPLIER_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Dettes fournisseurs"
@@ -96,6 +88,6 @@ export default function FournisseursPage() {
       <AgedBalanceCard type="fournisseurs" data={agedPayables} />
 
       <CounterpartyWeightSection items={topSuppliers} variant="fournisseurs" />
-    </div>
+    </DashboardPage>
   )
 }

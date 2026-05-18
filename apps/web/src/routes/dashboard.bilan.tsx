@@ -1,12 +1,12 @@
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { BalanceSheetRatioGrid } from "@/components/fec/balance-sheet-ratios"
 import {
   BalanceSheetAsOf,
   BalanceSheetLineTable,
   BalanceSheetVisual,
 } from "@/components/fec/balance-sheet-section"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import { FormattedCurrency } from "@/components/fec/formatted-number"
@@ -30,7 +30,7 @@ const BALANCE_ACTION_CATEGORIES = [
   "marge",
 ] as const
 
-export default function BilanPage() {
+function BilanPage() {
   const { data } = useFecStore()
   if (!data) return <DashboardEmptyState />
 
@@ -51,22 +51,15 @@ export default function BilanPage() {
   const netCashValue = createElement(FormattedCurrency, {
     value: balanceSheet.netCash,
   })
+  const titleMeta = createElement(BalanceSheetAsOf, { balanceSheet })
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-            Bilan
-          </h1>
-          <BalanceSheetAsOf balanceSheet={balanceSheet} />
-        </div>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={BALANCE_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Bilan"
+      titleMeta={titleMeta}
+      insights={data.insights}
+      actionCategories={BALANCE_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Total actif"
@@ -148,7 +141,7 @@ export default function BilanPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+    </DashboardPage>
   )
 }
 

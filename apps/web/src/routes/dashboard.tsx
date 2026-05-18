@@ -12,7 +12,7 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
 })
 
-export default function DashboardLayout() {
+function DashboardLayout() {
   return (
     <SidebarProvider>
       <DashboardSidebar />

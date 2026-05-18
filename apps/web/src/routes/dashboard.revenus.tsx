@@ -1,8 +1,8 @@
 /* oxlint-disable eslint/complexity */
 "use client"
 
-import { ActionSummaryLink } from "@/components/fec/action-summary-link"
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
+import { DashboardPage } from "@/components/fec/dashboard-page"
 import { DashboardEmptyState } from "@/components/fec/empty-state"
 import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
 import {
@@ -12,6 +12,11 @@ import {
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
 import { RepartitionSection } from "@/components/fec/repartition-section"
+import {
+  computeMonthlyAverage,
+  computeRecentRevenueGrowth,
+  computeTopCounterpartyShare,
+} from "@/lib/fec/dashboard-metrics"
 import { formatPercent } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
@@ -30,7 +35,7 @@ export const Route = createFileRoute("/dashboard/revenus")({
 
 const REVENUE_ACTION_CATEGORIES = ["ventes"] as const
 
-export default function RevenusPage() {
+function RevenusPage() {
   const { data, comparisonData } = useFecStore()
   const [showComparison, setShowComparison] = useState(true)
   const toggleComparison = useCallback(
@@ -41,19 +46,9 @@ export default function RevenusPage() {
 
   const { kpi, monthly, revenueCategories, revenueDetails, topCustomers } = data
 
-  // Calcul ratio CA / customer concentration
-  const top3ClientShare =
-    topCustomers.length >= 3 && kpi.revenue > 0
-      ? (topCustomers.slice(0, 3).reduce((s, c) => s + c.amount, 0) /
-          kpi.revenue) *
-        100
-      : 0
-
-  // Croissance derniers 3 mois vs 3 precedents
-  const last3 = monthly.slice(-3).reduce((s, m) => s + m.revenue, 0)
-  const prev3 = monthly.slice(-6, -3).reduce((s, m) => s + m.revenue, 0)
-  const growth = prev3 > 0 ? ((last3 - prev3) / prev3) * 100 : 0
-  const monthlyAvg = monthly.length > 0 ? kpi.revenue / monthly.length : 0
+  const top3ClientShare = computeTopCounterpartyShare(topCustomers, kpi.revenue)
+  const growth = computeRecentRevenueGrowth(monthly) ?? 0
+  const monthlyAvg = computeMonthlyAverage(kpi.revenue, monthly.length)
   const revenueValue = createElement(FormattedCurrency, { value: kpi.revenue })
   const monthlyAverageValue = createElement(FormattedCurrency, {
     value: monthlyAvg,
@@ -67,17 +62,11 @@ export default function RevenusPage() {
   )
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pt-4 pb-8 md:px-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          Revenus
-        </h1>
-        <ActionSummaryLink
-          insights={data.insights}
-          categories={REVENUE_ACTION_CATEGORIES}
-        />
-      </header>
-
+    <DashboardPage
+      title="Revenus"
+      insights={data.insights}
+      actionCategories={REVENUE_ACTION_CATEGORIES}
+    >
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Chiffre d'affaires"
@@ -155,6 +144,6 @@ export default function RevenusPage() {
           />
         </CardContent>
       </Card>
-    </div>
+    </DashboardPage>
   )
 }

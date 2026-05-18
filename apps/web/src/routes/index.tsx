@@ -91,7 +91,7 @@ const QUESTIONS = [
   },
 ]
 
-export default function HomePage() {
+function HomePage() {
   return (
     <div className="relative min-h-svh overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
