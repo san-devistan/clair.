@@ -1,6 +1,6 @@
 ---
 name: email-best-practices
-description: Use when building email features, emails going to spam, high bounce rates, setting up SPF/DKIM/DMARC authentication, implementing email capture, ensuring compliance (CAN-SPAM, GDPR, CASL), handling webhooks, retry logic, or deciding transactional vs marketing.
+description: Use when building email features, emails going to spam, high bounce rates, setting up SPF/DKIM/DMARC authentication, implementing email capture, ensuring compliance (CAN-SPAM, GDPR, CASL), handling webhooks, retry logic, making emails accessible (alt text, headings, contrast, screen readers), or deciding transactional vs marketing.
 license: MIT
 metadata:
   author: Resend
@@ -41,18 +41,19 @@ Guidance for building deliverable, compliant, user-friendly emails.
 
 ## Quick Reference
 
-| Need to...                               | See                                                                        |
-| ---------------------------------------- | -------------------------------------------------------------------------- |
-| Set up SPF/DKIM/DMARC, fix spam issues   | [Deliverability](./references/deliverability.md)                           |
-| Build password reset, OTP, confirmations | [Transactional Emails](./references/transactional-emails.md)               |
-| Plan which emails your app needs         | [Transactional Email Catalog](./references/transactional-email-catalog.md) |
-| Build newsletter signup, validate emails | [Email Capture](./references/email-capture.md)                             |
-| Send newsletters, promotions             | [Marketing Emails](./references/marketing-emails.md)                       |
-| Ensure CAN-SPAM/GDPR/CASL compliance     | [Compliance](./references/compliance.md)                                   |
-| Decide transactional vs marketing        | [Email Types](./references/email-types.md)                                 |
-| Handle retries, idempotency, errors      | [Sending Reliability](./references/sending-reliability.md)                 |
-| Process delivery events, set up webhooks | [Webhooks & Events](./references/webhooks-events.md)                       |
-| Manage bounces, complaints, suppression  | [List Management](./references/list-management.md)                         |
+| Need to... | See |
+|------------|-----|
+| Set up SPF/DKIM/DMARC, fix spam issues | [Deliverability](./references/deliverability.md) |
+| Build password reset, OTP, confirmations | [Transactional Emails](./references/transactional-emails.md) |
+| Plan which emails your app needs | [Transactional Email Catalog](./references/transactional-email-catalog.md) |
+| Build newsletter signup, validate emails | [Email Capture](./references/email-capture.md) |
+| Send newsletters, promotions | [Marketing Emails](./references/marketing-emails.md) |
+| Ensure CAN-SPAM/GDPR/CASL compliance | [Compliance](./references/compliance.md) |
+| Decide transactional vs marketing | [Email Types](./references/email-types.md) |
+| Handle retries, idempotency, errors | [Sending Reliability](./references/sending-reliability.md) |
+| Process delivery events, set up webhooks | [Webhooks & Events](./references/webhooks-events.md) |
+| Manage bounces, complaints, suppression | [List Management](./references/list-management.md) |
+| Make emails accessible (screen readers, alt text, contrast) | [Accessibility](./references/accessibility.md) |
 
 ## Start Here
 
@@ -67,3 +68,6 @@ Follow this path: [Email Capture](./references/email-capture.md) (collect consen
 
 **Production-ready sending?**
 Add reliability: [Sending Reliability](./references/sending-reliability.md) (retry + idempotency) → [Webhooks & Events](./references/webhooks-events.md) (track delivery) → [List Management](./references/list-management.md) (handle bounces).
+
+**Accessibility?**
+Most emails fail basic accessibility checks. See [Accessibility](./references/accessibility.md) for `lang`/`dir`, presentational tables, headings, alt text, `<title>`, and contrast.

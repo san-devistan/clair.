@@ -7,14 +7,15 @@ Comprehensive styling reference for React Email templates.
 Use the `Tailwind` component for styling if the project uses Tailwind CSS. Otherwise, use inline styles.
 
 ```tsx
-import { Tailwind, pixelBasedPreset } from "react-email"
-;<Tailwind
+import { Tailwind, pixelBasedPreset } from 'react-email';
+
+<Tailwind
   config={{
     presets: [pixelBasedPreset],
     theme: {
       extend: {
         colors: {
-          brand: "#007bff",
+          brand: '#007bff',
         },
       },
     },
@@ -86,12 +87,12 @@ const Email = ({ source }: { source: string }) => {
     <div>
       <a href={source}>Click here</a>
     </div>
-  )
-}
+  );
+};
 
 Email.PreviewProps = {
   source: "https://example.com",
-}
+};
 ```
 
 ## Default Layout Structure
@@ -227,7 +228,7 @@ Create a centralized Tailwind config file that all email templates import. Using
 
 ```tsx
 // emails/tailwind.config.ts
-import { pixelBasedPreset, type TailwindConfig } from "react-email"
+import { pixelBasedPreset, type TailwindConfig } from 'react-email';
 
 export default {
   presets: [pixelBasedPreset],
@@ -235,22 +236,22 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: "#007bff",
-          secondary: "#6c757d",
+          primary: '#007bff',
+          secondary: '#6c757d',
         },
       },
     },
   },
-} satisfies TailwindConfig
+} satisfies TailwindConfig;
 
 // For non-Tailwind brand assets (optional)
 export const brandAssets = {
   logo: {
-    src: "https://example.com/logo.png",
-    alt: "Company Name",
+    src: 'https://example.com/logo.png',
+    alt: 'Company Name',
     width: 120,
   },
-}
+};
 ```
 
 ### Using Tailwind Config
@@ -258,15 +259,12 @@ export const brandAssets = {
 Import the shared config in every email template:
 
 ```tsx
-import tailwindConfig, { brandAssets } from "./tailwind.config"
-;<Tailwind config={tailwindConfig}>
+import tailwindConfig, { brandAssets } from './tailwind.config';
+
+<Tailwind config={tailwindConfig}>
   <Body className="bg-gray-100 font-sans">
     <Container className="bg-white p-6">
-      <Img
-        src={brandAssets.logo.src}
-        alt={brandAssets.logo.alt}
-        width={brandAssets.logo.width}
-      />
+      <Img src={brandAssets.logo.src} alt={brandAssets.logo.alt} width={brandAssets.logo.width} />
       <Button className="bg-brand-primary text-white">Action</Button>
     </Container>
   </Body>
@@ -288,9 +286,7 @@ Direct users to place brand assets in appropriate locations:
 - **Custom fonts**: Use the `Font` component with a web font URL (Google Fonts, Adobe Fonts, or self-hosted).
 
 **Example prompt for gathering brand info:**
-
 > "Before I create your email template, I need some brand information to ensure consistency. Could you provide:
->
 > 1. Your primary brand color (hex code, e.g., #007bff)
 > 2. Your logo URL (must be a publicly accessible PNG or JPEG)
 > 3. Any secondary colors you'd like to use
@@ -303,3 +299,4 @@ Direct users to place brand assets in appropriate locations:
 3. **Keep file size under 102KB** - Gmail clips larger emails
 4. **Use keywords strategically** - Increase engagement in email body
 5. **Inline styles as fallback** - Some clients strip `<style>` tags
+

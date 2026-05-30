@@ -13,77 +13,17 @@
       "skillPath": "skills/agent-browser/SKILL.md",
       "computedHash": "228f87d57035100d9dc6efcfc05aafd4b6e3962adacaa04b8217ab2fadb15dc8"
     },
-    "better-auth-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/best-practices/SKILL.md",
-      "computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc"
-    },
-    "better-auth-security-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "security/SKILL.md",
-      "computedHash": "5717187bba9c22030c7174c74012f01c359f21e2ce87e0eb80e24244d8b8c915"
-    },
     "building-native-ui": {
       "source": "expo/skills",
       "sourceType": "github",
       "skillPath": "plugins/expo/skills/building-native-ui/SKILL.md",
       "computedHash": "342df93f481a0dba919f372d6c7b40d2b4bf5b51dd24363aea2e5d0bae27a6fa"
     },
-    "convex": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex/SKILL.md",
-      "computedHash": "c5f3622c64ef550aac27d1dbc041f0c7c40d9119863c9fb8bac180b0498ee8ed"
-    },
-    "convex-create-component": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex-create-component/SKILL.md",
-      "computedHash": "25b6f56cc6afa4237aa191f5bfa5b86f68b70dc7f1195b86d027bd85346cff41"
-    },
-    "convex-migration-helper": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex-migration-helper/SKILL.md",
-      "computedHash": "8da4dee6f36c71b5d899b90ad7bd1d3730cf4dd35118f9ea856075df29809c04"
-    },
-    "convex-performance-audit": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex-performance-audit/SKILL.md",
-      "computedHash": "d4f372ad6bed01b3a83983f5e8386017606e1bf8a97833c016af07f277157f96"
-    },
-    "convex-quickstart": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex-quickstart/SKILL.md",
-      "computedHash": "8735052585ff81bb6ad4b362a7bb599413288e55d071c8ddf4f798b6d989ebac"
-    },
-    "convex-setup-auth": {
-      "source": "get-convex/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/convex-setup-auth/SKILL.md",
-      "computedHash": "b1a940758751c5b2fdc6ced105b19927a1655f0c1d4bd2fd5536dc3264202c00"
-    },
-    "create-auth-skill": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/create-auth/SKILL.md",
-      "computedHash": "31c027d02dbf1faa37f58191f574b9443143042fb2b684fe32df53ab0270487c"
-    },
     "eas-update-insights": {
       "source": "expo/skills",
       "sourceType": "github",
       "skillPath": "plugins/expo/skills/eas-update-insights/SKILL.md",
-      "computedHash": "1e75ed22734fb37993f0ae0c57eceeaf37661ab452d7c7f55c740b1e41c2a0c1"
-    },
-    "email-and-password-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/emailAndPassword/SKILL.md",
-      "computedHash": "747d7f73bd9e2ec5317b8ef88dc70f97df716d00e3d02de4051feebaa48b062d"
+      "computedHash": "acd11310b3902e12475de618bb10a36889da3e5dd97bf8199e857755254a1f0a"
     },
     "expo-api-routes": {
       "source": "expo/skills",
@@ -107,7 +47,7 @@
       "source": "expo/skills",
       "sourceType": "github",
       "skillPath": "plugins/expo/skills/expo-module/SKILL.md",
-      "computedHash": "439263df82d935eb35fa3074b7cc176b1cbc26cd95c619ba8c1f9331242016ec"
+      "computedHash": "6da487764496337c984d86a0ae1fdb35838c40bebbe871d9d773a4cdcc41346a"
     },
     "expo-tailwind-setup": {
       "source": "expo/skills",
@@ -127,29 +67,17 @@
       "skillPath": "skills/productivity/grill-me/SKILL.md",
       "computedHash": "784f0dbb7403b0f00324bce9a112f715342777a0daee7bbb7385f9c6f0a170ea"
     },
-    "grill-with-docs": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
-      "computedHash": "1adf321072f53cce3dcaf5357d91b8230d4aa647bb8a51756745337a6ee567b8"
-    },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
-      "computedHash": "c77b86b4332919499608f9af1880074e1fec65a59b95c70c27a9f39cd137865e"
+      "computedHash": "ef32aea0a8fab9b365ff9e08a95f8d353e20ca21ea46ec2e73587c86dd341351"
     },
     "native-data-fetching": {
       "source": "expo/skills",
       "sourceType": "github",
       "skillPath": "plugins/expo/skills/native-data-fetching/SKILL.md",
       "computedHash": "3cd0ba91f359f9f84cd40f36f356287994a0e952520fac6e03ef7952d0397879"
-    },
-    "organization-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/organization/SKILL.md",
-      "computedHash": "79a5a85b43d10e9fe37582b3506b051a33a991817b938f349099baa5ddba21aa"
     },
     "shadcn": {
       "source": "shadcn/ui",
@@ -180,18 +108,6 @@
       "sourceType": "github",
       "skillPath": "skills/tanstack-start/SKILL.md",
       "computedHash": "8b073187405a10f9997158f9139a9664cc801595d2fe63d542a0bac9bf2152f5"
-    },
-    "to-issues": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/engineering/to-issues/SKILL.md",
-      "computedHash": "47f648f3414848ccfc62cb41d2828b7e575fb5e7cbd6c4bdf630c063b5dc5e82"
-    },
-    "two-factor-authentication-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/twoFactor/SKILL.md",
-      "computedHash": "7e297aaf887e11fdc03e52bdbf44974e161e8f7c393170ced7dc66cace4f6d46"
     },
     "upgrading-expo": {
       "source": "expo/skills",

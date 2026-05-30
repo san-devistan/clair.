@@ -2,31 +2,12 @@
 
 import Link from "@/components/link"
 import { useFecStore } from "@/lib/fec/store"
-import { useRouter, useSearchParams } from "@/lib/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { ArrowRight, FileSpreadsheet, Loader2, Sparkles } from "lucide-react"
-import { Suspense, useCallback, useEffect } from "react"
+import { useCallback } from "react"
 
 const UPLOAD_LINK = <Link href="/upload" />
-
-function DemoAutoLoader() {
-  const { hydrated, importDemo, importState } = useFecStore()
-  const { get } = useSearchParams()
-  const { replace } = useRouter()
-
-  useEffect(() => {
-    if (!hydrated) return
-    if (get("demo") === "1" && importState.status === "idle") {
-      void (async () => {
-        await importDemo()
-        replace("/dashboard")
-      })()
-    }
-  }, [hydrated, get, importState.status, importDemo, replace])
-
-  return null
-}
 
 function EmptyStateInner() {
   const { hydrated, importDemo, importState } = useFecStore()
@@ -92,12 +73,5 @@ function EmptyStateInner() {
 }
 
 export function DashboardEmptyState() {
-  return (
-    <>
-      <Suspense fallback={null}>
-        <DemoAutoLoader />
-      </Suspense>
-      <EmptyStateInner />
-    </>
-  )
+  return <EmptyStateInner />
 }
