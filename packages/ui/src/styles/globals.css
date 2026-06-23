@@ -1,3 +1,5 @@
+/* Generated from packages/ui/src/tokens/design-tokens.json. Do not edit by hand. */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -9,6 +11,70 @@
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+
+@theme inline {
+  --font-heading: "Space Grotesk Variable", var(--font-sans);
+  --font-sans: "Geist Variable", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-elevation-sm: 0 1px 2px oklch(0 0 0 / 5%);
+  --shadow-elevation-md: 0 4px 12px oklch(0 0 0 / 8%);
+  --shadow-elevation-lg: 0 12px 32px oklch(0 0 0 / 12%);
+  --color-revenue: var(--revenue);
+  --color-revenue-1: var(--revenue-1);
+  --color-revenue-2: var(--revenue-2);
+  --color-revenue-3: var(--revenue-3);
+  --color-revenue-4: var(--revenue-4);
+  --color-revenue-5: var(--revenue-5);
+  --color-expense: var(--expense);
+  --color-expense-1: var(--expense-1);
+  --color-expense-2: var(--expense-2);
+  --color-expense-3: var(--expense-3);
+  --color-expense-4: var(--expense-4);
+  --color-expense-5: var(--expense-5);
+  --color-expenses: var(--expense);
+  --color-result: var(--result);
+  --color-result-loss: var(--result-loss);
+  --color-bar-neutral: var(--bar-neutral);
+  --font-mono: "Geist Mono Variable", monospace;
+}
 
 :root {
   --background: oklch(1 0 0);
@@ -26,7 +92,7 @@
   --accent: oklch(0.963 0.002 197.1);
   --accent-foreground: oklch(0.218 0.008 223.9);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-1: oklch(0.78 0.13 22);
+  --destructive-foreground: oklch(0.97 0.014 254.604);
   --border: oklch(0.925 0.005 214.3);
   --input: oklch(0.925 0.005 214.3);
   --ring: oklch(0.723 0.014 214.4);
@@ -35,9 +101,47 @@
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  /* Palette financiere : 2 rampes paralleles pour differencier les charts produits/charges.
-     Revenue = aliases sur les --chart-N (bleus existants).
-     Expense = palette orange dediee, du peche au rouge brique. */
+  --sidebar: oklch(0.987 0.002 197.1);
+  --sidebar-foreground: oklch(0.148 0.004 228.8);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.963 0.002 197.1);
+  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
+  --sidebar-border: oklch(0.925 0.005 214.3);
+  --sidebar-ring: oklch(0.723 0.014 214.4);
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+  --ease-standard: ease-out;
+  --shadow-elevation-sm: 0 1px 2px oklch(0 0 0 / 5%);
+  --shadow-elevation-md: 0 4px 12px oklch(0 0 0 / 8%);
+  --shadow-elevation-lg: 0 12px 32px oklch(0 0 0 / 12%);
+  --text-body-size: 1rem;
+  --text-body-line-height: 1.5rem;
+  --text-body-font-weight: 400;
+  --text-small-size: 0.875rem;
+  --text-small-line-height: 1.25rem;
+  --text-small-font-weight: 400;
+  --text-label-size: 0.875rem;
+  --text-label-line-height: 1.25rem;
+  --text-label-font-weight: 500;
+  --text-heading-sm-size: 1.125rem;
+  --text-heading-sm-line-height: 1.5rem;
+  --text-heading-sm-font-weight: 600;
+  --text-heading-md-size: 1.5rem;
+  --text-heading-md-line-height: 2rem;
+  --text-heading-md-font-weight: 600;
+  --text-heading-lg-size: 2.25rem;
+  --text-heading-lg-line-height: 2.5rem;
+  --text-heading-lg-font-weight: 800;
   --revenue: var(--chart-3);
   --revenue-1: var(--chart-1);
   --revenue-2: var(--chart-2);
@@ -52,19 +156,7 @@
   --expense-5: #9f2d00;
   --result: oklch(0.6 0.2 155);
   --result-loss: oklch(0.58 0.22 22);
-  /* Gris doux pour segments "neutres" dans les bar charts (ex. tranche non echu
-     de la balance agee). --muted-foreground est trop contraste : tune pour du
-     texte, pas pour une surface de fond. */
-  --bar-neutral: oklch(0.74 0.012 213.5);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.987 0.002 197.1);
-  --sidebar-foreground: oklch(0.148 0.004 228.8);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.963 0.002 197.1);
-  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-  --sidebar-border: oklch(0.925 0.005 214.3);
-  --sidebar-ring: oklch(0.723 0.014 214.4);
+  --bar-neutral: color-mix(in oklch, var(--foreground) 38%, var(--background));
 }
 
 .dark {
@@ -83,7 +175,7 @@
   --accent: oklch(0.275 0.011 216.9);
   --accent-foreground: oklch(0.987 0.002 197.1);
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-1: oklch(0.82 0.13 22);
+  --destructive-foreground: oklch(0.97 0.014 254.604);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.56 0.021 213.5);
@@ -92,11 +184,6 @@
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  /* Palette financiere dark mode : --revenue (alias chart-N) et --expense (hex) heritent de :root.
-     Seuls --result/--result-loss sont decales pour preserver la visibilite sur fond sombre. */
-  --result: oklch(0.7 0.18 155);
-  --result-loss: oklch(0.65 0.21 22);
-  --bar-neutral: oklch(0.42 0.01 214.4);
   --sidebar: oklch(0.218 0.008 223.9);
   --sidebar-foreground: oklch(0.987 0.002 197.1);
   --sidebar-primary: oklch(0.623 0.214 259.815);
@@ -105,67 +192,9 @@
   --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.56 0.021 213.5);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-1: var(--destructive-1);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-revenue: var(--revenue);
-  --color-revenue-1: var(--revenue-1);
-  --color-revenue-2: var(--revenue-2);
-  --color-revenue-3: var(--revenue-3);
-  --color-revenue-4: var(--revenue-4);
-  --color-revenue-5: var(--revenue-5);
-  --color-expense: var(--expense);
-  --color-expense-1: var(--expense-1);
-  --color-expense-2: var(--expense-2);
-  --color-expense-3: var(--expense-3);
-  --color-expense-4: var(--expense-4);
-  --color-expense-5: var(--expense-5);
-  --color-expenses: var(--expense);
-  --color-result: var(--result);
-  --color-result-loss: var(--result-loss);
-  --color-bar-neutral: var(--bar-neutral);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: "Geist Variable", sans-serif;
-  --font-heading: "Space Grotesk Variable", var(--font-sans);
-  --font-mono: "Geist Mono Variable", monospace;
+  --result: oklch(0.7 0.18 155);
+  --result-loss: oklch(0.65 0.21 22);
+  --bar-neutral: color-mix(in oklch, var(--foreground) 50%, var(--background));
 }
 
 @layer base {

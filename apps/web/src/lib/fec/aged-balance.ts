@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/max-lines */
 // Balance agee (aged balance) : pour chaque tiers, on isole les factures
 // restant a payer en faisant un matching FIFO entre factures et reglements.
 // Plus robuste que de se baser uniquement sur le lettrage (`ecritureLet`),
@@ -6,189 +5,27 @@
 // lettrage est correctement applique.
 
 import { isCustomerAccount, isSupplierAccount } from "./accounts"
+import {
+  netOpenInvoicesByParty,
+  type OpenInvoice,
+} from "./aged-balance-matching"
+import type {
+  AgedBalance,
+  AgedBalanceBucket,
+  AgedBalanceBucketKey,
+  AgedBalanceCounterparty,
+  AgedBalanceInvoice,
+} from "./aged-balance-types"
 import type { FecEntry } from "./types"
-
-export type AgedBalanceBucketKey = "notDue" | "0_30" | "31_60" | "60plus"
-
-export interface AgedBalanceBucket {
-  key: AgedBalanceBucketKey
-  label: string
-  count: number
-  amount: number
-}
-
-export interface AgedBalanceCounterparty {
-  accountNum: string
-  label: string
-  totalAmount: number
-  overdueAmount: number
-  oldestDaysOverdue: number
-  oldestOpenDays: number
-  invoiceCount: number
-  worstBucketKey: AgedBalanceBucketKey
-  worstBucketLabel: string
-  worstBucketAmount: number
-}
-
-export interface AgedBalanceInvoice {
-  id: string
-  accountNum: string
-  label: string
-  ecritureNum: string
-  ecritureLib: string
-  pieceRef: string
-  pieceDate: Date | null
-  invoiceDate: Date
-  dueDate: Date
-  amount: number
-  daysOverdue: number
-  daysOpen: number
-  bucketKey: AgedBalanceBucketKey
-  bucketLabel: string
-}
-
-export interface AgedBalance {
-  asOf: Date
-  paymentDays: number
-  totalAmount: number
-  invoiceCount: number
-  partyCount: number
-  overdueAmount: number
-  overdueInvoiceCount: number
-  overduePartyCount: number
-  notDueAmount: number
-  notDueInvoiceCount: number
-  notDuePartyCount: number
-  buckets: AgedBalanceBucket[]
-  invoices: AgedBalanceInvoice[]
-  counterparties: AgedBalanceCounterparty[]
-  topOverdueParties: AgedBalanceCounterparty[]
-}
 
 const PAYMENT_DAYS_DEFAULT = 30
 const TOP_N_DEFAULT = 5
-const AMOUNT_TOLERANCE = 0.01
 const DAY_MS = 86_400_000
 const BUCKET_PRIORITY: Record<AgedBalanceBucketKey, number> = {
   notDue: 0,
   "0_30": 1,
   "31_60": 2,
   "60plus": 3,
-}
-
-interface OpenInvoice {
-  id: string
-  partyKey: string
-  partyLabel: string
-  ecritureNum: string
-  ecritureLib: string
-  pieceRef: string
-  pieceDate: Date | null
-  date: Date
-  amount: number
-}
-
-interface QueuedInvoice {
-  id: string
-  ecritureNum: string
-  ecritureLib: string
-  pieceRef: string
-  pieceDate: Date | null
-  date: Date
-  amount: number
-}
-
-// Consomme les factures les plus anciennes a hauteur de `payment`.
-// Retourne le residu de paiement non impute (avoir / acompte).
-function applyPaymentFIFO(queue: QueuedInvoice[], payment: number): number {
-  let remaining = payment
-  while (remaining > 0 && queue.length > 0) {
-    const front = queue[0]
-    const consumed = Math.min(remaining, front.amount)
-    front.amount -= consumed
-    remaining -= consumed
-    if (front.amount <= AMOUNT_TOLERANCE) queue.shift()
-  }
-  return remaining
-}
-
-// Pour un tiers, applique les regles de matching FIFO et renvoie la queue
-// finale des factures restant ouvertes.
-function netOneParty(
-  partyEntries: FecEntry[],
-  signMultiplier: 1 | -1
-): QueuedInvoice[] {
-  partyEntries.sort(
-    (a, b) => a.ecritureDate.getTime() - b.ecritureDate.getTime()
-  )
-
-  const queue: QueuedInvoice[] = []
-  // Avoirs / paiements anticipes pas encore imputes a une facture
-  let creditPool = 0
-
-  for (const [index, e] of partyEntries.entries()) {
-    const value = signMultiplier === 1 ? e.debit - e.credit : e.credit - e.debit
-    if (value > AMOUNT_TOLERANCE) {
-      const applied = Math.min(value, creditPool)
-      creditPool -= applied
-      const remaining = value - applied
-      if (remaining > AMOUNT_TOLERANCE)
-        queue.push({
-          id: invoiceId(e, index),
-          ecritureNum: e.ecritureNum,
-          ecritureLib: e.ecritureLib,
-          pieceRef: e.pieceRef,
-          pieceDate: e.pieceDate,
-          date: e.ecritureDate,
-          amount: remaining,
-        })
-    } else if (value < -AMOUNT_TOLERANCE) {
-      const residue = applyPaymentFIFO(queue, -value)
-      if (residue > AMOUNT_TOLERANCE) creditPool += residue
-    }
-  }
-
-  return queue
-}
-
-function netOpenInvoicesByParty(
-  entries: FecEntry[],
-  isAccountFn: (compteNum: string) => boolean,
-  signMultiplier: 1 | -1
-): OpenInvoice[] {
-  const byParty = new Map<string, { label: string; entries: FecEntry[] }>()
-  for (const e of entries) {
-    if (!isAccountFn(e.compteNum)) continue
-    const key = e.compAuxNum || e.compteNum
-    const label = e.compAuxLib || e.compteLib || key
-    let group = byParty.get(key)
-    if (!group) {
-      group = { label, entries: [] }
-      byParty.set(key, group)
-    }
-    group.entries.push(e)
-  }
-
-  const open: OpenInvoice[] = []
-  for (const [partyKey, { label, entries: partyEntries }] of byParty) {
-    const queue = netOneParty(partyEntries, signMultiplier)
-    for (const inv of queue) {
-      if (inv.amount > AMOUNT_TOLERANCE)
-        open.push({
-          id: inv.id,
-          partyKey,
-          partyLabel: label,
-          ecritureNum: inv.ecritureNum,
-          ecritureLib: inv.ecritureLib,
-          pieceRef: inv.pieceRef,
-          pieceDate: inv.pieceDate,
-          date: inv.date,
-          amount: inv.amount,
-        })
-    }
-  }
-
-  return open
 }
 
 function makeBuckets(): Record<AgedBalanceBucketKey, AgedBalanceBucket> {
@@ -423,18 +260,6 @@ function computeAgedBalance(
   }
 }
 
-function invoiceId(entry: FecEntry, index: number): string {
-  return [
-    entry.compAuxNum || entry.compteNum,
-    entry.ecritureNum,
-    entry.pieceRef,
-    entry.ecritureDate.toISOString(),
-    String(index),
-  ]
-    .filter(Boolean)
-    .join(":")
-}
-
 function sortAgedBalanceInvoices(
   invoices: AgedBalanceInvoice[]
 ): AgedBalanceInvoice[] {
@@ -474,3 +299,11 @@ export function computeAgedPayables(
     { asOf }
   )
 }
+
+export type {
+  AgedBalance,
+  AgedBalanceBucket,
+  AgedBalanceBucketKey,
+  AgedBalanceCounterparty,
+  AgedBalanceInvoice,
+} from "./aged-balance-types"

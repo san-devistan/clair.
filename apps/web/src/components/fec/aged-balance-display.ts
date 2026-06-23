@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/complexity */
 import type {
   AgedBalance,
   AgedBalanceBucket,
@@ -52,32 +51,12 @@ export function buildAgingGroups(
   data: AgedBalance,
   bucketColors: AgingBucketColorMap = SUPPLIER_AGING_BUCKET_COLOR
 ): AgingGroup[] {
-  const invoicesByBucket = new Map<AgedBalanceBucketKey, AgedBalanceInvoice[]>()
-  for (const invoice of data.invoices) {
-    const invoices = invoicesByBucket.get(invoice.bucketKey) ?? []
-    invoices.push(invoice)
-    invoicesByBucket.set(invoice.bucketKey, invoices)
-  }
-
-  const total = data.totalAmount
+  const invoicesByBucket = groupInvoicesByBucket(data.invoices)
   const groups: AgingGroup[] = []
 
   for (const key of BAR_BUCKET_ORDER) {
-    const bucket = findBucket(data.buckets, key)
-    const invoices = invoicesByBucket.get(key) ?? []
-    const amount = bucket?.amount ?? sumInvoiceAmounts(invoices)
-    if (amount <= 0) continue
-
-    groups.push({
-      key,
-      label: bucket?.label ?? bucketLabel(key),
-      fill: bucketColors[key],
-      amount,
-      share: total > 0 ? (amount / total) * 100 : 0,
-      count: bucket?.count ?? invoices.length,
-      partyCount: countInvoiceParties(invoices),
-      invoices: sortInvoicesForDisplay(invoices),
-    })
+    const group = buildAgingGroup(key, data, bucketColors, invoicesByBucket)
+    if (group) groups.push(group)
   }
 
   return groups
@@ -103,6 +82,43 @@ function findBucket(
   key: AgedBalanceBucketKey
 ): AgedBalanceBucket | undefined {
   return buckets.find((bucket) => bucket.key === key)
+}
+
+function groupInvoicesByBucket(
+  invoices: AgedBalanceInvoice[]
+): Map<AgedBalanceBucketKey, AgedBalanceInvoice[]> {
+  const invoicesByBucket = new Map<AgedBalanceBucketKey, AgedBalanceInvoice[]>()
+
+  for (const invoice of invoices) {
+    const bucketInvoices = invoicesByBucket.get(invoice.bucketKey) ?? []
+    bucketInvoices.push(invoice)
+    invoicesByBucket.set(invoice.bucketKey, bucketInvoices)
+  }
+
+  return invoicesByBucket
+}
+
+function buildAgingGroup(
+  key: AgedBalanceBucketKey,
+  data: AgedBalance,
+  bucketColors: AgingBucketColorMap,
+  invoicesByBucket: Map<AgedBalanceBucketKey, AgedBalanceInvoice[]>
+): AgingGroup | null {
+  const bucket = findBucket(data.buckets, key)
+  const invoices = invoicesByBucket.get(key) ?? []
+  const amount = bucket?.amount ?? sumInvoiceAmounts(invoices)
+  if (amount <= 0) return null
+
+  return {
+    key,
+    label: bucket?.label ?? bucketLabel(key),
+    fill: bucketColors[key],
+    amount,
+    share: data.totalAmount > 0 ? (amount / data.totalAmount) * 100 : 0,
+    count: bucket?.count ?? invoices.length,
+    partyCount: countInvoiceParties(invoices),
+    invoices: sortInvoicesForDisplay(invoices),
+  }
 }
 
 function bucketLabel(key: AgedBalanceBucketKey): string {

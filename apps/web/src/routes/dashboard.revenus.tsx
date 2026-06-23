@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/complexity */
 "use client"
 
 import { ComparisonToggle } from "@/components/fec/comparison-toggle"
@@ -12,6 +11,7 @@ import {
 import { KpiCard } from "@/components/fec/kpi-card"
 import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
 import { RepartitionSection } from "@/components/fec/repartition-section"
+import type { DashboardData } from "@/lib/fec/analytics"
 import {
   computeMonthlyAverage,
   computeRecentRevenueGrowth,
@@ -49,6 +49,7 @@ function RevenusPage() {
   const top3ClientShare = computeTopCounterpartyShare(topCustomers, kpi.revenue)
   const growth = computeRecentRevenueGrowth(monthly) ?? 0
   const monthlyAvg = computeMonthlyAverage(kpi.revenue, monthly.length)
+  const comparison = getRevenueComparison(showComparison, comparisonData)
   const revenueValue = createElement(FormattedCurrency, { value: kpi.revenue })
   const monthlyAverageValue = createElement(FormattedCurrency, {
     value: monthlyAvg,
@@ -87,7 +88,7 @@ function RevenusPage() {
           value={`${growth > 0 ? "+" : ""}${growth.toFixed(1)}%`}
           icon={TrendingUp}
           description="Compare le chiffre d'affaires des 3 derniers mois aux 3 mois précédents pour capter la tendance récente."
-          tone={growth > 0 ? "success" : growth < -5 ? "warning" : "default"}
+          tone={growthTone(growth)}
           hint="3 derniers mois vs précédents"
         />
         <KpiCard
@@ -95,7 +96,7 @@ function RevenusPage() {
           value={formatPercent(top3ClientShare)}
           icon={Users}
           description="Part du chiffre d'affaires concentrée sur vos trois plus gros clients. Plus elle est élevée, plus la dépendance commerciale augmente."
-          tone={top3ClientShare > 60 ? "warning" : "default"}
+          tone={concentrationTone(top3ClientShare)}
           hint={
             top3ClientShare > 60 ? "Forte concentration" : "Concentration saine"
           }
@@ -130,20 +131,29 @@ function RevenusPage() {
             monthly={monthly}
             metric="revenue"
             categories={revenueCategories}
-            comparison={
-              showComparison && comparisonData
-                ? comparisonData.monthly
-                : undefined
-            }
-            comparisonCategories={
-              showComparison && comparisonData
-                ? comparisonData.revenueCategories
-                : undefined
-            }
+            comparison={comparison?.monthly}
+            comparisonCategories={comparison?.revenueCategories}
             className="h-[320px] w-full"
           />
         </CardContent>
       </Card>
     </DashboardPage>
   )
+}
+
+function getRevenueComparison(
+  showComparison: boolean,
+  comparisonData: DashboardData | null
+): Pick<DashboardData, "monthly" | "revenueCategories"> | undefined {
+  return showComparison && comparisonData ? comparisonData : undefined
+}
+
+function growthTone(growth: number) {
+  if (growth > 0) return "success"
+  if (growth < -5) return "warning"
+  return "default"
+}
+
+function concentrationTone(share: number) {
+  return share > 60 ? "warning" : "default"
 }

@@ -1,5 +1,6 @@
 import { Icon } from "@/components/ui/icon"
 import { TextClassContext } from "@/components/ui/text"
+import { MOTION } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 import * as AccordionPrimitive from "@rn-primitives/accordion"
 import { ChevronDown } from "lucide-react-native"
@@ -20,9 +21,22 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
 
 type AccordionProps = DistributiveOmit<AccordionPrimitive.RootProps, "asChild">
 
-function Accordion({ children, ...props }: AccordionProps) {
+const accordionDuration = MOTION.durationMs.base
+const accordionSlowDuration = MOTION.durationMs.slow
+const accordionLayoutTransition = LinearTransition.duration(accordionDuration)
+const accordionNativeLayoutTransition = Platform.select({
+  native: accordionLayoutTransition,
+})
+const accordionNativeExitTransition = Platform.select({
+  native: FadeOutUp.duration(accordionDuration),
+})
+
+function Accordion({ children, className, ...props }: AccordionProps) {
   const root = (
-    <Animated.View layout={LinearTransition.duration(200)}>
+    <Animated.View
+      className={cn("flex w-full flex-col", className)}
+      layout={accordionLayoutTransition}
+    >
       {children}
     </Animated.View>
   )
@@ -65,7 +79,7 @@ function AccordionItem({
     >
       <Animated.View
         className="native:overflow-hidden"
-        layout={Platform.select({ native: LinearTransition.duration(200) })}
+        layout={accordionNativeLayoutTransition}
       >
         {children}
       </Animated.View>
@@ -74,6 +88,10 @@ function AccordionItem({
 }
 
 const Trigger = Platform.OS === "web" ? View : Pressable
+const accordionTriggerTextClassName = cn(
+  "text-left text-sm font-medium",
+  Platform.select({ web: "group-hover:underline" })
+)
 
 function AccordionTrigger({
   className,
@@ -83,16 +101,12 @@ function AccordionTrigger({
   children?: React.ReactNode
 }) {
   const { isExpanded } = AccordionPrimitive.useItemContext()
-  const textClassName = cn(
-    "text-left text-sm font-medium",
-    Platform.select({ web: "group-hover:underline" })
-  )
 
   const progress = useDerivedValue(
     () =>
       isExpanded
-        ? withTiming(1, { duration: 250 })
-        : withTiming(0, { duration: 200 }),
+        ? withTiming(1, { duration: accordionSlowDuration })
+        : withTiming(0, { duration: accordionDuration }),
     [isExpanded]
   )
   const chevronStyle = useAnimatedStyle(
@@ -103,12 +117,12 @@ function AccordionTrigger({
   )
 
   return (
-    <TextClassContext.Provider value={textClassName}>
+    <TextClassContext.Provider value={accordionTriggerTextClassName}>
       <AccordionPrimitive.Header>
         <AccordionPrimitive.Trigger {...props} asChild>
           <Trigger
             className={cn(
-              "flex-row items-start justify-between gap-4 rounded-md py-4 disabled:opacity-50",
+              "flex-1 flex-row items-start justify-between gap-6 rounded-md border border-transparent py-4 disabled:opacity-50",
               Platform.select({
                 web: "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 outline-none transition-all hover:underline focus-visible:ring-[3px] disabled:pointer-events-none [&[data-state=open]>svg]:rotate-180",
               }),
@@ -153,7 +167,7 @@ function AccordionContent({
         {...props}
       >
         <Animated.View
-          exiting={Platform.select({ native: FadeOutUp.duration(200) })}
+          exiting={accordionNativeExitTransition}
           className={cn("pb-4", className)}
         >
           {children}

@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
+import type { Config as RouterPluginConfig } from "@tanstack/router-plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import { nitro } from "nitro/vite"
 import { defineConfig, type Rollup } from "vite"
@@ -20,6 +21,10 @@ const handleRollupWarning: Rollup.WarningHandlerWithDefault = (
 
   warn(warning)
 }
+
+const routerConfig = {
+  routeFileIgnorePattern: "\\.js$",
+} satisfies Partial<RouterPluginConfig>
 
 const vendorChunkRules = [
   {
@@ -115,9 +120,7 @@ const config = defineConfig({
     }),
     tailwindcss(),
     tanstackStart({
-      router: {
-        routeFileIgnorePattern: "\\.js$",
-      },
+      router: routerConfig,
     }),
     viteReact(),
   ],

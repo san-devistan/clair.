@@ -20,6 +20,16 @@ type DefaultClassNames = ReturnType<typeof getDefaultClassNames>
 type CalendarClassNames = NonNullable<CalendarProps["classNames"]>
 type CalendarComponents = NonNullable<CalendarProps["components"]>
 
+const NUMERIC_DATE_FORMATTER = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+})
+
+const NUMERIC_MONTH_FORMATTER = new Intl.DateTimeFormat("fr-FR", {
+  month: "2-digit",
+})
+
 function Calendar({
   className,
   classNames,
@@ -34,8 +44,8 @@ function Calendar({
   const defaultClassNames = React.useMemo(() => getDefaultClassNames(), [])
   const calendarFormatters = React.useMemo(
     () => ({
-      formatMonthDropdown: (date: Date) =>
-        date.toLocaleString(undefined, { month: "short" }),
+      formatCaption: formatMonthStartDate,
+      formatMonthDropdown: formatMonthNumber,
       ...formatters,
     }),
     [formatters]
@@ -276,7 +286,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatNumericDate(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
@@ -294,6 +304,18 @@ function CalendarDayButton({
       {...props}
     />
   )
+}
+
+function formatNumericDate(date: Date): string {
+  return NUMERIC_DATE_FORMATTER.format(date)
+}
+
+function formatMonthStartDate(date: Date): string {
+  return formatNumericDate(new Date(date.getFullYear(), date.getMonth(), 1))
+}
+
+function formatMonthNumber(date: Date): string {
+  return NUMERIC_MONTH_FORMATTER.format(date)
 }
 
 export { Calendar, CalendarDayButton }

@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/max-lines-per-function */
 "use client"
 
 import { formatFileSize } from "@/lib/fec/format"
@@ -140,114 +139,148 @@ export function FecDropzone() {
         />
       </Card>
 
-      {importState.status === "error" ? (
-        <Card className="border-destructive/30 bg-destructive/5 p-4">
-          <div className="flex gap-3">
-            <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
-            <div>
-              <p className="font-medium">Le fichier n'a pas pu être analysé</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {importState.message}
-              </p>
-            </div>
-          </div>
-        </Card>
-      ) : null}
+      <ImportError
+        message={importState.status === "error" ? importState.message : null}
+      />
 
-      <Card className="p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Sparkles className="size-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">Pas de FEC sous la main ?</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Découvrez Clair avec un jeu de données fictif (PME de services, 12
-              mois).
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadDemo}
-            disabled={isProcessing}
-          >
-            Charger la démo
-          </Button>
-        </div>
-      </Card>
+      <DemoImportCard onLoadDemo={loadDemo} disabled={isProcessing} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Card className="p-4">
-          <ShieldCheck className="mb-2 size-4 text-primary" />
-          <p className="text-sm font-medium">100% local</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Le fichier ne quitte jamais votre navigateur. Aucun upload serveur.
-          </p>
-        </Card>
-        <Card className="p-4">
-          <FileSpreadsheet className="mb-2 size-4 text-primary" />
-          <p className="text-sm font-medium">Format normalisé DGFiP</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Tabulé ou pipe, UTF-8 ou Windows-1252. On gère tous les exports.
-          </p>
-        </Card>
-      </div>
+      <ImportFeatureCards />
 
-      {selectedFile ? (
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <FileSpreadsheet className="size-5 text-muted-foreground" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
-                {selectedFile.name}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {formatFileSize(selectedFile.size)}
-              </p>
-            </div>
-            <Badge variant="secondary">
-              {isProcessing ? "Analyse…" : "Reçu"}
-            </Badge>
-          </div>
-        </Card>
-      ) : null}
+      <SelectedFileCard file={selectedFile} isProcessing={isProcessing} />
 
       <Separator />
 
-      <div>
-        <p className="mb-2 font-heading text-sm font-semibold">
-          Comment exporter mon FEC ?
-        </p>
-        <ul className="space-y-1.5 text-sm text-muted-foreground">
-          <li>
-            • <span className="font-medium text-foreground">Pennylane</span> :
-            Paramètres &raquo; Comptabilité &raquo; Export FEC
-          </li>
-          <li>
-            •{" "}
-            <span className="font-medium text-foreground">
-              Sage / EBP / Cegid
-            </span>{" "}
-            : Module Fiscalité &raquo; Export FEC
-          </li>
-          <li>
-            •{" "}
-            <span className="font-medium text-foreground">
-              Quickbooks / Indy
-            </span>{" "}
-            : Profil &raquo; Comptabilité &raquo; Exports
-          </li>
-          <li>
-            •{" "}
-            <span className="font-medium text-foreground">
-              Expert-comptable
-            </span>{" "}
-            : demandez-lui simplement &laquo;&nbsp;mon FEC pour l'exercice en
-            cours&nbsp;&raquo;
-          </li>
-        </ul>
+      <ExportInstructions />
+    </div>
+  )
+}
+
+function ImportError({ message }: { message: string | null }) {
+  if (!message) return null
+
+  return (
+    <Card className="border-destructive/30 bg-destructive/5 p-4">
+      <div className="flex gap-3">
+        <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
+        <div>
+          <p className="font-medium">Le fichier n'a pas pu être analysé</p>
+          <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+        </div>
       </div>
+    </Card>
+  )
+}
+
+function DemoImportCard({
+  onLoadDemo,
+  disabled,
+}: {
+  onLoadDemo: () => void
+  disabled: boolean
+}) {
+  return (
+    <Card className="p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Sparkles className="size-4" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium">Pas de FEC sous la main ?</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Découvrez Clair avec un jeu de données fictif (PME de services, 12
+            mois).
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLoadDemo}
+          disabled={disabled}
+        >
+          Charger la démo
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+function ImportFeatureCards() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Card className="p-4">
+        <ShieldCheck className="mb-2 size-4 text-primary" />
+        <p className="text-sm font-medium">100% local</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Le fichier ne quitte jamais votre navigateur. Aucun upload serveur.
+        </p>
+      </Card>
+      <Card className="p-4">
+        <FileSpreadsheet className="mb-2 size-4 text-primary" />
+        <p className="text-sm font-medium">Format normalisé DGFiP</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Tabulé ou pipe, UTF-8 ou Windows-1252. On gère tous les exports.
+        </p>
+      </Card>
+    </div>
+  )
+}
+
+function SelectedFileCard({
+  file,
+  isProcessing,
+}: {
+  file: File | null
+  isProcessing: boolean
+}) {
+  if (!file) return null
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-3">
+        <FileSpreadsheet className="size-5 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{file.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatFileSize(file.size)}
+          </p>
+        </div>
+        <Badge variant="secondary">{isProcessing ? "Analyse…" : "Reçu"}</Badge>
+      </div>
+    </Card>
+  )
+}
+
+function ExportInstructions() {
+  return (
+    <div>
+      <p className="mb-2 font-heading text-sm font-semibold">
+        Comment exporter mon FEC ?
+      </p>
+      <ul className="space-y-1.5 text-sm text-muted-foreground">
+        <li>
+          • <span className="font-medium text-foreground">Pennylane</span> :
+          Paramètres &raquo; Comptabilité &raquo; Export FEC
+        </li>
+        <li>
+          •{" "}
+          <span className="font-medium text-foreground">
+            Sage / EBP / Cegid
+          </span>{" "}
+          : Module Fiscalité &raquo; Export FEC
+        </li>
+        <li>
+          •{" "}
+          <span className="font-medium text-foreground">Quickbooks / Indy</span>{" "}
+          : Profil &raquo; Comptabilité &raquo; Exports
+        </li>
+        <li>
+          •{" "}
+          <span className="font-medium text-foreground">Expert-comptable</span>{" "}
+          : demandez-lui simplement &laquo;&nbsp;mon FEC pour l'exercice en
+          cours&nbsp;&raquo;
+        </li>
+      </ul>
     </div>
   )
 }

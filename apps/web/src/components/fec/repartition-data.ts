@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/complexity */
 import {
   type ChartColorMode,
   OTHER_SEGMENT_LABEL,
@@ -56,6 +55,15 @@ export function buildRepartitionGroups(
   variant: RepartitionVariant,
   colorMode: ChartColorMode = "light"
 ): RepartitionGroup[] {
+  const groups = buildSortedGroups(buildGroupDrafts(categories, details))
+
+  return withGroupShares(withRepartitionFills(groups, variant, colorMode))
+}
+
+function buildGroupDrafts(
+  categories: CategoryBreakdown[],
+  details: AccountDetail[]
+): Map<string, GroupDraft> {
   const drafts = new Map<string, GroupDraft>()
 
   for (const category of categories) {
@@ -76,21 +84,7 @@ export function buildRepartitionGroups(
     if (detail.amount > 0) draft.positiveDetailAmount += detail.amount
   }
 
-  const groups: RepartitionGroup[] = []
-  for (const draft of drafts.values()) {
-    const group = buildGroup(draft)
-    if (group.amount > 0 || group.details.length > 0) groups.push(group)
-  }
-  groups.sort((a, b) => b.amount - a.amount)
-
-  for (const [index, group] of groups.entries())
-    group.fill = repartitionFill(variant, index, groups.length, colorMode)
-
-  const positiveTotal = computePositiveGroupTotal(groups)
-  for (const group of groups)
-    group.share = positiveTotal > 0 ? (group.amount / positiveTotal) * 100 : 0
-
-  return groups
+  return drafts
 }
 
 export function computePositiveGroupTotal(groups: RepartitionGroup[]): number {
@@ -191,6 +185,35 @@ function buildGroup(draft: GroupDraft): RepartitionGroup {
     share: 0,
     details: [...draft.details].toSorted((a, b) => b.amount - a.amount),
   }
+}
+
+function buildSortedGroups(
+  drafts: Map<string, GroupDraft>
+): RepartitionGroup[] {
+  return Array.from(drafts.values())
+    .map(buildGroup)
+    .filter((group) => group.amount > 0 || group.details.length > 0)
+    .toSorted((a, b) => b.amount - a.amount)
+}
+
+function withRepartitionFills(
+  groups: RepartitionGroup[],
+  variant: RepartitionVariant,
+  colorMode: ChartColorMode
+): RepartitionGroup[] {
+  return groups.map((group, index) => ({
+    ...group,
+    fill: repartitionFill(variant, index, groups.length, colorMode),
+  }))
+}
+
+function withGroupShares(groups: RepartitionGroup[]): RepartitionGroup[] {
+  const positiveTotal = computePositiveGroupTotal(groups)
+
+  return groups.map((group) => ({
+    ...group,
+    share: positiveTotal > 0 ? (group.amount / positiveTotal) * 100 : 0,
+  }))
 }
 
 function buildCategorySegment(group: RepartitionGroup): InteractiveSegment {

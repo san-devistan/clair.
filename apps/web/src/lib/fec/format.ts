@@ -35,12 +35,9 @@ const compactMillionFormatter = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 1,
 })
 
-const shortDateFormatter = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-})
+function formatDatePart(value: number): string {
+  return String(value).padStart(2, "0")
+}
 
 export function formatEuro(value: number): string {
   return euroFormatter.format(value)
@@ -88,7 +85,12 @@ export function formatAccurateNumber(value: number): string {
 }
 
 export function formatShortDate(value: Date): string {
-  return shortDateFormatter.format(value)
+  if (Number.isNaN(value.getTime())) throw new RangeError("Invalid date")
+
+  const day = formatDatePart(value.getUTCDate())
+  const month = formatDatePart(value.getUTCMonth() + 1)
+  const year = String(value.getUTCFullYear())
+  return `${day}/${month}/${year}`
 }
 
 export function formatFileSize(bytes: number): string {

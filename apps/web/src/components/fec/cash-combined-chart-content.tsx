@@ -19,6 +19,8 @@ const CHART_CURSOR = {
 const ACTIVE_DOT_SMALL = { r: 3 }
 const ACTIVE_DOT = { r: 4 }
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0]
+const COMPARISON_NEGATIVE_FILL =
+  "color-mix(in srgb, var(--destructive) 75%, var(--background))"
 const TOOLTIP_CONTENT = <ChartTooltipContent formatter={tooltipFormatter} />
 const LEGEND_CONTENT = <ChartLegendContent />
 
@@ -142,7 +144,7 @@ function CombinedComparisonSeries({
           Cell,
           comparisonFlow,
           "var(--chart-1)",
-          "var(--destructive-1)"
+          COMPARISON_NEGATIVE_FILL
         )}
       </Bar>
     </>
