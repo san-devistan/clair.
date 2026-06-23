@@ -15,25 +15,52 @@ before introducing new patterns.
 
 ## Design System Ownership
 
-`packages/ui` defines the canonical web design system. Treat
-`packages/ui/src/styles/globals.css` and `packages/ui/src/components` as the
-source of truth for tokens, component anatomy, variants, naming, and interaction
-patterns.
+`packages/ui` owns the canonical web design system, web tokens, and shadcn-style
+components. `apps/web` consumes those components through `@workspace/ui`.
+`apps/mobile` owns native UI components that track the shared design language
+without importing web React components.
 
-The mobile app does not directly reuse web React components. Instead,
-`apps/mobile/components/ui` implements native components with React Native
-Reusables and `@rn-primitives`, while matching the web design system's tokens,
-variants, and component behavior where native constraints allow.
+For implementation details, read the local workspace guide before editing UI:
 
-Mobile theme files are generated from the web token source:
+- Web app: `apps/web/AGENTS.md`
+- Mobile app: `apps/mobile/AGENTS.md`
+- Web UI system: `packages/ui/AGENTS.md`
 
-- Source: `packages/ui/src/styles/globals.css`
-- Generated: `apps/mobile/global.css`
-- Generated: `apps/mobile/lib/theme.ts`
-- Sync command: `pnpm sync:mobile-theme`
+Do not hand-edit generated mobile theme files. Change token sources in
+`packages/ui`, then run `pnpm sync:mobile-theme`.
 
-Do not hand-edit generated mobile theme files. Change the token source in
-`packages/ui`, then sync the mobile theme.
+## File Naming
+
+Use directories as naming context across the entire codebase. For any directory
+that names a domain, workflow, module, or role, do not repeat that directory
+name in descendant filenames unless an external convention requires it.
+
+Framework-mandated filenames, generated files, config entrypoints, and
+third-party convention files may keep their required names.
+
+## Module Layout
+
+Prefer domain-, workflow-, or module-first structure over flat folders once any
+area of the codebase has several related files. This applies across apps,
+packages, backend functions, scripts, tooling, and UI code.
+
+Inside any source folder, group by user-facing workflow, domain concept, or
+module ownership before grouping by implementation role. Avoid broad top-level
+piles of components, hooks, actions, controllers, utilities, or helpers when
+those files actually belong to different workflows or modules.
+
+Within a workflow, domain, or module folder, split by role only when there are
+enough files to justify it:
+
+- `_components/` contains UI implementation private to that workflow or domain.
+- `_hooks/` contains React or React Native hooks private to that workflow or
+  domain.
+- `_lib/` contains state, actions, controllers, adapters, and domain logic.
+- `_pages/` contains page-level compositions used by routes or screens.
+- `_types/` contains shared types when they are large enough to deserve their
+  own file.
+- `_utils/` is a last resort for small pure helpers genuinely reused inside that
+  workflow, domain, or module; prefer named domain files over generic utilities.
 
 ## Quality Gate
 
@@ -43,28 +70,56 @@ Before handing off code, run:
 pnpm fix
 ```
 
-Wait for the command to finish. If it reports errors or warnings, fix them and
-run `pnpm fix` again. Repeat until it passes, or clearly explain the remaining
-blocker.
+Wait for the command to finish. It is designed to continue after failed checks
+and print a final summary of failed commands. Treat Oxlint errors and React
+Doctor errors/warnings as blocking quality feedback.
+
+React Doctor is used for React-specific diagnostics; Oxlint owns the generic
+lint gate. Do not use React Doctor's duplicate lint pass as a substitute for
+fixing or intentionally configuring Oxlint diagnostics.
+
+Fix every `pnpm fix` diagnostic that is caused by, or directly related to, the
+code you changed. Then run `pnpm fix` again and repeat until the relevant
+diagnostics are resolved.
+
+If remaining errors or warnings are unrelated to the implemented work,
+pre-existing, or confirmed false positives, do not expand the scope to fix them
+unless the user asks. Clearly report the failed command(s), representative
+diagnostics, and why they were left untreated.
 
 ## Skill Selection
 
-Read only the skill files needed for the task. Prefer repo-local skills in
-`.agents/skills`. For backend-owned features, read `packages/backend/AGENTS.md`
-first and then use the backend-local skills in `packages/backend/.agents/skills`.
+Read only the skill files needed for the task. Select skills by the workspace
+being touched first, then add cross-cutting skills for the specific technology
+or concern. If multiple rows match, use the smallest useful set and read them in
+the order listed.
 
-| Work type                                | Primary skills                                                                                                                                                    |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Global web UI, styling, design review    | `frontend-design`, `web-design-guidelines`, `shadcn`, `vercel-react-best-practices`                                                                               |
-| Shared React component APIs              | `vercel-composition-patterns`, `usehooks-ts`, `shadcn`                                                                                                            |
-| Web app routing, loaders, SSR, data flow | `tanstack-start-best-practices`, `tanstack-router-best-practices`, `tanstack-query-best-practices`, `tanstack-integration-best-practices`, `native-data-fetching` |
-| Mobile screens, navigation, native UI    | `building-native-ui`, `vercel-react-native-skills`, `react-native-reusables`, `expo-tailwind-setup`                                                               |
-| Mobile builds, releases, native modules  | `expo-dev-client`, `expo-deployment`, `upgrading-expo`, `expo-module`, `Expo UI SwiftUI`, `use-dom`                                                               |
-| Convex backend                           | `packages/backend/AGENTS.md`, then the needed backend-local Convex skills in `packages/backend/.agents/skills/`.                                                  |
-| Backend auth                             | `packages/backend/AGENTS.md`, `convex-dev-better-auth`, and the backend-local Better Auth skills in `packages/backend/.agents/skills/`.                           |
-| Backend email                            | `packages/backend/AGENTS.md`, `convex-dev-resend`, and the backend-local Resend/email skills in `packages/backend/.agents/skills/`.                               |
-| Backend billing                          | `packages/backend/AGENTS.md`, `convex-dev-stripe`, and the backend-local Stripe skills in `packages/backend/.agents/skills/`.                                     |
-| Tooling and architecture                 | `improve-codebase-architecture`                                                                                                                                   |
+When launching an agent from the repository root, route to the local workspace
+guide first. Do not assume workspace-local skills are globally available by name.
+
+| Scope / workspace                 | Read first                   | Local skill families                                              |
+| --------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| `apps/web`                        | `apps/web/AGENTS.md`         | TanStack Start, Router, Query, React performance, web guidelines  |
+| `apps/mobile`                     | `apps/mobile/AGENTS.md`      | Expo, EAS, React Native, native UI, data fetching, ASC CLI        |
+| `packages/backend`                | `packages/backend/AGENTS.md` | Convex, Better Auth, Resend/email, Stripe                         |
+| `packages/ui`                     | `packages/ui/AGENTS.md`      | shadcn, web design tokens, shared React components, UI primitives |
+| Root, `scripts`, workspace config | this file                    | Turborepo, package boundaries, repo tooling                       |
+
+For TypeScript code, prefer the project-standard packages that encode safer
+patterns instead of hand-written equivalents:
+
+- Use `effect-ts` for typed async workflows, service dependencies, structured
+  errors, schemas, config, retries, resource handling, and concurrency. Prefer
+  Effect composition over scattered `try`/`catch`, nullable error state, ad hoc
+  dependency wiring, or bespoke validation in nontrivial logic.
+- Use `usehooks-ts` for common browser and React hook concerns such as storage,
+  media queries, events, debounce/throttle, timers, observers, clipboard, dark
+  mode, scroll lock, and mounted/client checks. Prefer its SSR-safe hooks over
+  handwritten `useEffect` wrappers unless the behavior is genuinely
+  domain-specific or unsupported.
+
+Keep trivial synchronous code simple; do not force these packages into places
+where they add ceremony without reducing risk or duplication.
 
 ## Available MCPs
 
@@ -72,7 +127,6 @@ first and then use the backend-local skills in `packages/backend/.agents/skills`
 | ----------- | ---------------------------------------------------------------------------------------------------------- |
 | Convex      | Inspect deployments, tables, function specs, logs, environment variables, and run Convex functions.        |
 | Better Auth | Inspect Better Auth docs and integration guidance for backend auth work.                                   |
-| Resend      | Inspect Resend email provider docs and resources for backend transactional email work.                     |
 | Stripe      | Inspect Stripe docs and resources for backend billing and payment work.                                    |
 | shadcn      | Search registries, inspect component examples, and get add commands for shadcn components.                 |
 | Vercel      | Inspect projects, deployments, runtime/build logs, toolbar comments, domains, and deployment access links. |

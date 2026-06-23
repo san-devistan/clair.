@@ -1,9 +1,9 @@
-import { isPlanComptableCode } from "./plan-comptable-2026";
+import { isPlanComptableCode } from "./plan-comptable-2026"
 
 export interface ExpenseCategory {
-  key: string;
-  label: string;
-  prefixes: readonly string[];
+  key: string
+  label: string
+  prefixes: readonly string[]
 }
 
 export const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [
@@ -58,12 +58,12 @@ export const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [
     label: "Charges gouvernementales",
     prefixes: ["63", "69"],
   },
-];
+]
 
 export interface RevenueCategory {
-  key: string;
-  label: string;
-  prefixes: readonly string[];
+  key: string
+  label: string
+  prefixes: readonly string[]
 }
 
 export const REVENUE_CATEGORIES: readonly RevenueCategory[] = [
@@ -97,16 +97,16 @@ export const REVENUE_CATEGORIES: readonly RevenueCategory[] = [
     label: "Produits divers",
     prefixes: ["71", "72", "74", "75", "77", "78"],
   },
-];
+]
 
 export function getUnknownClairCategoryPrefixes(): string[] {
-  const prefixes = new Set<string>();
+  const prefixes = new Set<string>()
   for (const category of EXPENSE_CATEGORIES)
-    for (const prefix of category.prefixes) prefixes.add(prefix);
+    for (const prefix of category.prefixes) prefixes.add(prefix)
   for (const category of REVENUE_CATEGORIES)
-    for (const prefix of category.prefixes) prefixes.add(prefix);
+    for (const prefix of category.prefixes) prefixes.add(prefix)
 
   return Array.from(prefixes)
     .filter((prefix) => !isPlanComptableCode(prefix))
-    .toSorted();
+    .toSorted()
 }
