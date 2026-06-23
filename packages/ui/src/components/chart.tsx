@@ -7,23 +7,59 @@ import { ChartStyle } from "@workspace/ui/components/chart-style"
 import { ChartTooltipContent } from "@workspace/ui/components/chart-tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import * as React from "react"
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ComposedChart,
-  LabelList,
-  Legend as ChartLegend,
-  ResponsiveContainer,
-  Tooltip as ChartTooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
+type ChartDimension = {
+  width: number
+  height: number
+}
+type RechartsComponents = Awaited<ReturnType<typeof loadRechartsComponents>>
+type ChartComponents = Omit<RechartsComponents, "ResponsiveContainer">
+type ChartContainerProps = Omit<React.ComponentProps<"div">, "children"> & {
+  config: ChartConfig
+  children: (components: ChartComponents) => React.ReactNode
+  initialDimension?: ChartDimension
+}
+
+async function loadRechartsComponents() {
+  const module = await import("recharts")
+
+  return {
+    Area: module.Area,
+    AreaChart: module.AreaChart,
+    Bar: module.Bar,
+    BarChart: module.BarChart,
+    CartesianGrid: module.CartesianGrid,
+    Cell: module.Cell,
+    ChartLegend: module.Legend,
+    ChartTooltip: module.Tooltip,
+    ComposedChart: module.ComposedChart,
+    LabelList: module.LabelList,
+    ResponsiveContainer: module.ResponsiveContainer,
+    XAxis: module.XAxis,
+    YAxis: module.YAxis,
+  }
+}
+
+const RechartsRoot = React.lazy(async () => {
+  const { ResponsiveContainer, ...components } = await loadRechartsComponents()
+
+  function LoadedRechartsRoot({
+    children,
+    initialDimension,
+  }: {
+    children: (components: ChartComponents) => React.ReactNode
+    initialDimension: ChartDimension
+  }) {
+    return (
+      <ResponsiveContainer initialDimension={initialDimension}>
+        {children(components)}
+      </ResponsiveContainer>
+    )
+  }
+
+  return { default: LoadedRechartsRoot }
+})
 
 function ChartContainer({
   id,
@@ -32,14 +68,7 @@ function ChartContainer({
   config,
   initialDimension = INITIAL_DIMENSION,
   ...props
-}: React.ComponentProps<"div"> & {
-  config: ChartConfig
-  children: React.ComponentProps<typeof ResponsiveContainer>["children"]
-  initialDimension?: {
-    width: number
-    height: number
-  }
-}) {
+}: ChartContainerProps) {
   const uniqueId = React.useId()
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`
   const contextValue = React.useMemo(() => ({ config }), [config])
@@ -56,30 +85,21 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <ResponsiveContainer initialDimension={initialDimension}>
-          {children}
-        </ResponsiveContainer>
+        <React.Suspense fallback={null}>
+          <RechartsRoot initialDimension={initialDimension}>
+            {children}
+          </RechartsRoot>
+        </React.Suspense>
       </div>
     </ChartContext.Provider>
   )
 }
 
 export {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
   type ChartConfig,
+  type ChartComponents,
   ChartContainer,
-  ChartLegend,
   ChartLegendContent,
   ChartStyle,
-  ChartTooltip,
   ChartTooltipContent,
-  ComposedChart,
-  LabelList,
-  XAxis,
-  YAxis,
 }

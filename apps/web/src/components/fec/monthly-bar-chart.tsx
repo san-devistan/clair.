@@ -15,16 +15,9 @@ import {
 } from "@/lib/fec/analytics"
 import { formatEuroCompact } from "@/lib/fec/format"
 import {
+  type ChartComponents,
   type ChartConfig,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
   ChartContainer,
-  ChartLegend,
-  ChartTooltip,
-  XAxis,
-  YAxis,
 } from "@workspace/ui/components/chart"
 import { useTheme } from "next-themes"
 import { useMemo } from "react"
@@ -110,6 +103,7 @@ interface TooltipRow {
 }
 
 interface StackedMonthlyBarsProps {
+  components: Pick<ChartComponents, "Bar" | "Cell" | "ChartLegend">
   monthly: MonthlyPoint[]
   comparison?: MonthlyPoint[]
   metric: StackedMetric
@@ -118,6 +112,7 @@ interface StackedMonthlyBarsProps {
 }
 
 interface SingleMonthlyBarsProps {
+  components: Pick<ChartComponents, "Bar" | "Cell">
   monthly: MonthlyPoint[]
   metric: Metric
   fillVar: string
@@ -195,31 +190,45 @@ export function MonthlyBarChart({
 
   return (
     <ChartContainer config={config} className={className}>
-      <BarChart data={data}>
-        <ChartAxes />
-        <ChartTooltip content={MONTHLY_TOOLTIP_CONTENT} />
-        {isStacked && stackedMetric ? (
-          <StackedMonthlyBars
-            monthly={monthly}
-            comparison={comparison}
-            metric={stackedMetric}
-            categories={stackedCategories}
-            hasComparison={hasComparison}
-          />
-        ) : (
-          <SingleMonthlyBars
-            monthly={monthly}
-            metric={metric}
-            fillVar={fillVar}
-            hasComparison={hasComparison}
-          />
-        )}
-      </BarChart>
+      {(components) => {
+        const { BarChart, ChartTooltip } = components
+
+        return (
+          <BarChart data={data}>
+            <ChartAxes components={components} />
+            <ChartTooltip content={MONTHLY_TOOLTIP_CONTENT} />
+            {isStacked && stackedMetric ? (
+              <StackedMonthlyBars
+                components={components}
+                monthly={monthly}
+                comparison={comparison}
+                metric={stackedMetric}
+                categories={stackedCategories}
+                hasComparison={hasComparison}
+              />
+            ) : (
+              <SingleMonthlyBars
+                components={components}
+                monthly={monthly}
+                metric={metric}
+                fillVar={fillVar}
+                hasComparison={hasComparison}
+              />
+            )}
+          </BarChart>
+        )
+      }}
     </ChartContainer>
   )
 }
 
-function ChartAxes() {
+function ChartAxes({
+  components,
+}: {
+  components: Pick<ChartComponents, "CartesianGrid" | "XAxis" | "YAxis">
+}) {
+  const { CartesianGrid, XAxis, YAxis } = components
+
   return (
     <>
       <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -242,6 +251,7 @@ function ChartAxes() {
 }
 
 function StackedMonthlyBars({
+  components,
   monthly,
   comparison,
   metric,
@@ -257,6 +267,7 @@ function StackedMonthlyBars({
     ),
     [categories]
   )
+  const { Bar, Cell, ChartLegend } = components
 
   return (
     <>
@@ -306,11 +317,14 @@ function StackedMonthlyBars({
 }
 
 function SingleMonthlyBars({
+  components,
   monthly,
   metric,
   fillVar,
   hasComparison,
 }: SingleMonthlyBarsProps) {
+  const { Bar, Cell } = components
+
   return (
     <>
       {/* On rend la barre comparison meme quand inactive et on la masque

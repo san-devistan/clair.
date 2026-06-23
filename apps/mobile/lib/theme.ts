@@ -1,7 +1,7 @@
 // Generated from packages/ui/src/styles/globals.css. Do not edit by hand.
 import { DarkTheme, DefaultTheme, type Theme } from "@react-navigation/native"
 
-export const THEME = {
+const THEME = {
   light: {
     background: "hsl(0 0% 100%)",
     foreground: "hsl(199.993 14.105% 4.144%)",

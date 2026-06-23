@@ -1,0 +1,16 @@
+import { MinusIcon } from "lucide-react"
+
+function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="input-otp-separator"
+      className="flex items-center [&_svg:not([class*='size-'])]:size-4"
+      aria-hidden="true"
+      {...props}
+    >
+      <MinusIcon />
+    </div>
+  )
+}
+
+export { InputOTPSeparator }

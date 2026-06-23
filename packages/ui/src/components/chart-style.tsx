@@ -12,8 +12,10 @@ const themeEntries: Array<[keyof typeof THEMES, string]> = [
 function ChartStyle({ id, config }: { id: string; config: ChartConfig }) {
   const colorConfig = React.useMemo(
     () =>
-      Object.entries(config).filter(
-        ([, itemConfig]) => itemConfig.theme ?? itemConfig.color
+      Object.entries(config).flatMap(([key, itemConfig]) =>
+        (itemConfig.theme ?? itemConfig.color)
+          ? [[key, itemConfig] satisfies [string, ChartConfig[string]]]
+          : []
       ),
     [config]
   )
@@ -38,11 +40,10 @@ function getChartCssText(
       ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
-  .map(([key, itemConfig]) => {
+  .flatMap(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme] ?? itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return color ? [`  --color-${key}: ${color};`] : []
   })
-  .filter(Boolean)
   .join("\n")}
 }
 `

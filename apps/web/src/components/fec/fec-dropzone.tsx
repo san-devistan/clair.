@@ -53,7 +53,7 @@ export function FecDropzone() {
   )
 
   const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLLabelElement>) => {
+    (e: React.DragEvent<HTMLButtonElement>) => {
       e.preventDefault()
       setIsDragging(false)
       const file = e.dataTransfer.files[0]
@@ -85,7 +85,8 @@ export function FecDropzone() {
       toast.error("Impossible de charger la démo")
     }
   }, [importDemo, push])
-  const markDragging = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+  const openFilePicker = useCallback(() => inputRef.current?.click(), [])
+  const markDragging = useCallback((e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setIsDragging(true)
   }, [])
@@ -101,12 +102,14 @@ export function FecDropzone() {
           isProcessing && "pointer-events-none opacity-80"
         )}
       >
-        <label
-          htmlFor="fec-file-input"
+        <button
+          type="button"
           onDragOver={markDragging}
           onDragLeave={clearDragging}
           onDrop={handleDrop}
-          className="flex cursor-pointer flex-col items-center justify-center gap-4 px-6 py-16 text-center"
+          onClick={openFilePicker}
+          disabled={isProcessing}
+          className="flex w-full cursor-pointer flex-col items-center justify-center gap-4 px-6 py-16 text-center disabled:cursor-not-allowed"
         >
           <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             {isProcessing ? (
@@ -125,16 +128,16 @@ export function FecDropzone() {
               ou cliquez pour le sélectionner ({ACCEPTED_EXTENSIONS.join(", ")})
             </p>
           </div>
-          <input
-            ref={inputRef}
-            id="fec-file-input"
-            type="file"
-            accept={ACCEPTED_EXTENSIONS.join(",")}
-            onChange={importSelectedFile}
-            className="sr-only"
-            disabled={isProcessing}
-          />
-        </label>
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED_EXTENSIONS.join(",")}
+          onChange={importSelectedFile}
+          className="sr-only"
+          disabled={isProcessing}
+          aria-label="Importer un fichier FEC"
+        />
       </Card>
 
       {importState.status === "error" ? (

@@ -35,13 +35,6 @@ const compactMillionFormatter = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 1,
 })
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-})
-
 const shortDateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",
@@ -94,10 +87,6 @@ export function formatAccurateNumber(value: number): string {
   return accurateNumberFormatter.format(value)
 }
 
-export function formatDate(value: Date): string {
-  return dateFormatter.format(value)
-}
-
 export function formatShortDate(value: Date): string {
   return shortDateFormatter.format(value)
 }
@@ -108,13 +97,4 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024 * 1024)
     return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} Go`
-}
-
-export function formatDelta(value: number): {
-  text: string
-  tone: "up" | "down" | "neutral"
-} {
-  if (value === 0) return { text: "0%", tone: "neutral" }
-  const text = `${value > 0 ? "+" : ""}${value.toFixed(1)}%`
-  return { text, tone: value > 0 ? "up" : "down" }
 }

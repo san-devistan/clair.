@@ -6,17 +6,10 @@ import type { TopCounterparty } from "@/lib/fec/analytics"
 import { formatEuroCompact, formatPercent } from "@/lib/fec/format"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import {
+  type ChartComponents,
   type ChartConfig,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
-  LabelList,
-  XAxis,
-  YAxis,
 } from "@workspace/ui/components/chart"
 import { useMemo } from "react"
 
@@ -173,43 +166,78 @@ function CounterpartyWeightChart({ rows }: { rows: CounterpartyWeightRow[] }) {
         style={chartStyle}
         initialDimension={initialDimension}
       >
-        <BarChart
-          accessibilityLayer
-          data={rows}
-          layout="vertical"
-          margin={CHART_MARGIN}
-        >
-          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-          <XAxis
-            type="number"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tickFormatter={formatPercentAxis}
-          />
-          <YAxis
-            type="category"
-            dataKey="shortLabel"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            width={156}
-          />
-          <ChartTooltip cursor={false} content={TOOLTIP_CONTENT} />
-          <Bar dataKey="share" radius={SHARE_BAR_RADIUS}>
-            {rows.map((row) => (
-              <Cell key={row.accountNum} fill={row.fill} />
-            ))}
-            <LabelList
-              dataKey="share"
-              position="right"
-              className="fill-foreground font-mono text-[10px]"
-              formatter={formatPercentLabel}
-            />
-          </Bar>
-        </BarChart>
+        {(components) => (
+          <CounterpartyWeightChartContent components={components} rows={rows} />
+        )}
       </ChartContainer>
     </div>
+  )
+}
+
+function CounterpartyWeightChartContent({
+  components,
+  rows,
+}: {
+  components: Pick<
+    ChartComponents,
+    | "Bar"
+    | "BarChart"
+    | "CartesianGrid"
+    | "Cell"
+    | "ChartTooltip"
+    | "LabelList"
+    | "XAxis"
+    | "YAxis"
+  >
+  rows: CounterpartyWeightRow[]
+}) {
+  const {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    ChartTooltip,
+    LabelList,
+    XAxis,
+    YAxis,
+  } = components
+
+  return (
+    <BarChart
+      accessibilityLayer
+      data={rows}
+      layout="vertical"
+      margin={CHART_MARGIN}
+    >
+      <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+      <XAxis
+        type="number"
+        tickLine={false}
+        axisLine={false}
+        tickMargin={8}
+        tickFormatter={formatPercentAxis}
+      />
+      <YAxis
+        type="category"
+        dataKey="shortLabel"
+        tickLine={false}
+        axisLine={false}
+        tickMargin={8}
+        width={156}
+      />
+      <ChartTooltip cursor={false} content={TOOLTIP_CONTENT} />
+      <Bar dataKey="share" radius={SHARE_BAR_RADIUS}>
+        {rows.map((row) => (
+          <Cell key={row.accountNum} fill={row.fill} />
+        ))}
+        <LabelList
+          dataKey="share"
+          position="right"
+          className="fill-foreground font-mono text-[10px]"
+          formatter={formatPercentLabel}
+        />
+      </Bar>
+    </BarChart>
   )
 }
 

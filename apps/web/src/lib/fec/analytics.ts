@@ -3,7 +3,6 @@ import { computeAccountDetails, type AccountDetail } from "./account-details"
 import {
   type ExpenseCategory,
   EXPENSE_CATEGORIES,
-  getAccountClass,
   getExpenseCategory,
   getRevenueCategory,
   isAmortizationAccount,
@@ -694,6 +693,5 @@ export function buildDashboardData(parseResult: FecParseResult): DashboardData {
   }
 }
 
-// Re-export des types et constantes pour les composants
 export type { ExpenseCategory, RevenueCategory }
-export { EXPENSE_CATEGORIES, REVENUE_CATEGORIES, getAccountClass }
+export { EXPENSE_CATEGORIES, REVENUE_CATEGORIES }

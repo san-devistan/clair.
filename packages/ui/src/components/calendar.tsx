@@ -1,4 +1,5 @@
-import { Button, buttonVariants } from "@workspace/ui/components/button"
+import { Button } from "@workspace/ui/components/button"
+import { buttonVariants } from "@workspace/ui/components/button-variants"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   ChevronDownIcon,
@@ -10,7 +11,6 @@ import {
   DayPicker,
   type DayButton,
   getDefaultClassNames,
-  type Locale,
 } from "react-day-picker"
 
 type CalendarProps = React.ComponentProps<typeof DayPicker> & {
@@ -35,10 +35,10 @@ function Calendar({
   const calendarFormatters = React.useMemo(
     () => ({
       formatMonthDropdown: (date: Date) =>
-        date.toLocaleString(locale?.code, { month: "short" }),
+        date.toLocaleString(undefined, { month: "short" }),
       ...formatters,
     }),
-    [formatters, locale?.code]
+    [formatters]
   )
   const calendarClassNames = React.useMemo(
     () =>
@@ -58,8 +58,8 @@ function Calendar({
     ]
   )
   const calendarComponents = React.useMemo(
-    () => getCalendarComponents(locale, components),
-    [components, locale]
+    () => getCalendarComponents(components),
+    [components]
   )
 
   return (
@@ -187,15 +187,12 @@ function getCalendarClassNames({
 }
 
 function getCalendarComponents(
-  locale: Partial<Locale> | undefined,
   components: CalendarProps["components"]
 ): CalendarComponents {
   return {
     Root: CalendarRoot,
     Chevron: CalendarChevron,
-    DayButton: (dayButtonProps) => (
-      <CalendarDayButton locale={locale} {...dayButtonProps} />
-    ),
+    DayButton: CalendarDayButton,
     WeekNumber: CalendarWeekNumber,
     ...components,
   }
@@ -264,21 +261,22 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
-  locale,
   ...props
-}: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
+}: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
-
-  const ref = React.useRef<HTMLButtonElement>(null)
-  React.useEffect(() => {
-    if (modifiers.focused) ref.current?.focus()
-  }, [modifiers.focused])
+  const ref = React.useCallback(
+    (node: HTMLButtonElement | null) => {
+      if (modifiers.focused) node?.focus()
+    },
+    [modifiers.focused]
+  )
 
   return (
     <Button
+      ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString(locale?.code)}
+      data-day={day.date.toLocaleDateString()}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

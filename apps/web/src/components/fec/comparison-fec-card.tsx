@@ -246,6 +246,7 @@ export function ComparisonFecCard() {
           onChange={importSelectedFile}
           className="sr-only"
           disabled={isProcessing}
+          aria-label="Importer un FEC de comparaison"
         />
       </DialogContent>
     </Dialog>

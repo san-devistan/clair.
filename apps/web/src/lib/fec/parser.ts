@@ -1,4 +1,4 @@
-/* oxlint-disable eslint/complexity, eslint/max-lines-per-function */
+/* oxlint-disable eslint/complexity */
 import {
   FecParseException,
   type FecEntry,

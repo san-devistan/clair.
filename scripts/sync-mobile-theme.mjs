@@ -245,7 +245,7 @@ function buildThemeTs(light, dark, radius) {
   return `// Generated from packages/ui/src/styles/globals.css. Do not edit by hand.
 import { DarkTheme, DefaultTheme, type Theme } from "@react-navigation/native"
 
-export const THEME = {
+const THEME = {
   light: {
 ${buildThemeObject(light, radius)}
   },

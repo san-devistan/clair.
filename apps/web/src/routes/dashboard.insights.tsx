@@ -32,6 +32,30 @@ const SEVERITY_ORDER: Record<string, number> = {
   positive: 3,
 }
 
+type SeverityStatTone = "danger" | "warning" | "info" | "success"
+
+const SEVERITY_STAT_STYLES: Record<
+  SeverityStatTone,
+  { card: string; text: string }
+> = {
+  danger: {
+    card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
+    text: "text-destructive",
+  },
+  warning: {
+    card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
+    text: "text-amber-700 dark:text-amber-500",
+  },
+  info: {
+    card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
+    text: "text-blue-700 dark:text-blue-400",
+  },
+  success: {
+    card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
+    text: "text-emerald-700 dark:text-emerald-500",
+  },
+}
+
 function InsightsPage() {
   const { data } = useFecStore()
   if (!data) return <DashboardEmptyState />
@@ -120,26 +144,8 @@ function SeverityStat({
   count: number
   description: string
   icon: typeof CheckCircle2
-  tone: "danger" | "warning" | "info" | "success"
+  tone: SeverityStatTone
 }) {
-  const styles: Record<typeof tone, { card: string; text: string }> = {
-    danger: {
-      card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
-      text: "text-destructive",
-    },
-    warning: {
-      card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
-      text: "text-amber-700 dark:text-amber-500",
-    },
-    info: {
-      card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
-      text: "text-blue-700 dark:text-blue-400",
-    },
-    success: {
-      card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
-      text: "text-emerald-700 dark:text-emerald-500",
-    },
-  }
   const trigger = useMemo(
     () => (
       <p
@@ -153,13 +159,13 @@ function SeverityStat({
   )
 
   return (
-    <Card className={`gap-2 ${styles[tone].card}`}>
+    <Card className={`gap-2 ${SEVERITY_STAT_STYLES[tone].card}`}>
       <CardContent>
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {label}
           </p>
-          <Icon className={`size-4 ${styles[tone].text}`} />
+          <Icon className={`size-4 ${SEVERITY_STAT_STYLES[tone].text}`} />
         </div>
         <Tooltip>
           <TooltipTrigger render={trigger} />

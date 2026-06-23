@@ -269,7 +269,6 @@ function AgingChart({
       <StackedSegmentBar
         segments={groups}
         ariaLabel="Répartition de la balance âgée par tranche"
-        role={onToggleBucket ? "group" : "img"}
         onSegmentClick={onToggleBucket ? toggleSegment : undefined}
         getSegmentAriaLabel={getSegmentAriaLabel}
         getSegmentPressed={getSegmentPressed}

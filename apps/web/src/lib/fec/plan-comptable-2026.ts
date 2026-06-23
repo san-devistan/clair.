@@ -21,7 +21,7 @@ export interface PlanComptableEntry {
   readonly usage: PlanComptableUsage
 }
 
-export const PLAN_COMPTABLE_2026_TREE = [
+const PLAN_COMPTABLE_2026_TREE = [
   {
     code: "1",
     label: "COMPTES DE CAPITAUX",
@@ -5307,14 +5307,6 @@ const PLAN_COMPTABLE_BY_CODE: ReadonlyMap<string, PlanComptableEntry> = new Map(
   PLAN_COMPTABLE_2026.map((entry) => [entry.code, entry])
 )
 
-export function getPlanComptableEntry(code: string): PlanComptableEntry | null {
-  return PLAN_COMPTABLE_BY_CODE.get(code.trim()) ?? null
-}
-
-export function isPlanComptableCode(code: string): boolean {
-  return PLAN_COMPTABLE_BY_CODE.has(code.trim())
-}
-
 export function resolvePlanComptableEntry(
   compteNum: string
 ): PlanComptableEntry | null {
@@ -5325,6 +5317,10 @@ export function resolvePlanComptableEntry(
     if (entry) return entry
   }
   return null
+}
+
+function isPlanComptableCode(code: string): boolean {
+  return PLAN_COMPTABLE_BY_CODE.has(code.trim())
 }
 
 export function getPlanComptableClass(compteNum: string): AccountClass | null {

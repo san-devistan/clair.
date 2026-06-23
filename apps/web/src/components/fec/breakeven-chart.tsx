@@ -64,10 +64,9 @@ export function BreakevenChart({
   )
 
   return (
-    <div
+    <figure
       aria-label={`Chiffre d'affaires ${formatEuroCompact(revenue)} comparé au seuil de rentabilité ${formatEuroCompact(breakevenPoint)}`}
       className={cn("space-y-3", className)}
-      role="img"
     >
       <div className="relative h-10 w-full">
         <Tooltip>
@@ -102,7 +101,7 @@ export function BreakevenChart({
           </span>
         </div>
       </div>
-    </div>
+    </figure>
   )
 }
 

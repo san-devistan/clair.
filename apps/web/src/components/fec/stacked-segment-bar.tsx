@@ -29,7 +29,6 @@ interface StackedSegmentBarProps<TSegment extends StackedSegmentBarSegment> {
   ariaLabel: string
   getTooltipContent: (segment: TSegment) => ReactNode
   className?: string
-  role?: "group" | "img"
   minInlineShare?: number
   onSegmentClick?: (segment: TSegment) => void
   getSegmentAriaLabel?: (segment: TSegment) => string
@@ -47,7 +46,6 @@ export function StackedSegmentBar<TSegment extends StackedSegmentBarSegment>({
   ariaLabel,
   getTooltipContent,
   className,
-  role = "img",
   minInlineShare = DEFAULT_MIN_INLINE_SHARE,
   onSegmentClick,
   getSegmentAriaLabel,
@@ -58,7 +56,6 @@ export function StackedSegmentBar<TSegment extends StackedSegmentBarSegment>({
   return (
     <div
       className={cn(STACKED_BAR_CONTAINER_CLASS, className)}
-      role={role}
       aria-label={ariaLabel}
     >
       {segments.map((segment, idx) => (

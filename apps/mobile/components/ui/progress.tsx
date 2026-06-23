@@ -45,11 +45,6 @@ type IndicatorProps = {
 }
 
 function WebIndicator({ value, className }: IndicatorProps) {
-  const indicatorStyle = React.useMemo(
-    () => ({ transform: `translateX(-${100 - (value ?? 0)}%)` }),
-    [value]
-  )
-
   if (Platform.OS !== "web") {
     return null
   }
@@ -60,11 +55,23 @@ function WebIndicator({ value, className }: IndicatorProps) {
         "h-full w-full flex-1 bg-primary transition-all",
         className
       )}
-      style={indicatorStyle}
+      style={getWebIndicatorStyle(value)}
     >
       <ProgressPrimitive.Indicator className={cn("h-full w-full", className)} />
     </View>
   )
+}
+
+const webIndicatorStyleCache = new Map<number, { transform: string }>()
+
+function getWebIndicatorStyle(value: IndicatorProps["value"]) {
+  const normalizedValue = value ?? 0
+  const cachedStyle = webIndicatorStyleCache.get(normalizedValue)
+  if (cachedStyle) return cachedStyle
+
+  const style = { transform: `translateX(-${100 - normalizedValue}%)` }
+  webIndicatorStyleCache.set(normalizedValue, style)
+  return style
 }
 
 function NativeIndicator({ value, className }: IndicatorProps) {

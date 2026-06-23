@@ -373,7 +373,7 @@ function aggregateOpenInvoices(
   return aggregate
 }
 
-export function computeAgedBalance(
+function computeAgedBalance(
   entries: FecEntry[],
   selector: AccountSelector,
   options: AgedBalanceOptions

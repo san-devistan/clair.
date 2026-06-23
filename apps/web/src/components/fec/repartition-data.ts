@@ -50,8 +50,6 @@ const UNCATEGORIZED_KEY = "uncategorized"
 const UNCATEGORIZED_LABEL = "Non catégorisé"
 const UNCATEGORIZED_FILL = "var(--muted-foreground)"
 
-export const MIN_INLINE_SHARE = 8
-
 export function buildRepartitionGroups(
   categories: CategoryBreakdown[],
   details: AccountDetail[],

@@ -1,4 +1,4 @@
-/* oxlint-disable eslint/max-lines, eslint/max-lines-per-function */
+/* oxlint-disable eslint/max-lines */
 "use client"
 
 import {

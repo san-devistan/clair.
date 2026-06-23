@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
-import { createElement, useEffect, useRef, useState } from "react"
+import { createElement, useCallback, useEffect, useRef, useState } from "react"
 
 interface OverflowTooltipProps {
   text: string
@@ -21,24 +21,30 @@ export function OverflowTooltip({
 }: OverflowTooltipProps) {
   const ref = useRef<HTMLSpanElement>(null)
   const [isOverflowing, setIsOverflowing] = useState(false)
+  const updateOverflow = useCallback((element: HTMLSpanElement) => {
+    setIsOverflowing(element.scrollWidth > element.clientWidth)
+  }, [])
+  const setTextElement = useCallback(
+    (element: HTMLSpanElement | null) => {
+      ref.current = element
+      if (element) updateOverflow(element)
+    },
+    [updateOverflow]
+  )
 
   useEffect(() => {
     const element = ref.current
     if (!element) return undefined
 
-    const updateOverflow = () => {
-      setIsOverflowing(element.scrollWidth > element.clientWidth)
-    }
-
-    updateOverflow()
-    const observer = new ResizeObserver(updateOverflow)
+    const observer = new ResizeObserver(() => updateOverflow(element))
     observer.observe(element)
     return () => observer.disconnect()
-  }, [text])
+  }, [updateOverflow])
 
   const content = (
     <span
-      ref={ref}
+      key={text}
+      ref={setTextElement}
       className={cn("block max-w-full min-w-0 truncate", className)}
     >
       {text}

@@ -1,5 +1,3 @@
-import { isPlanComptableCode } from "./plan-comptable-2026"
-
 export interface ExpenseCategory {
   key: string
   label: string
@@ -98,15 +96,3 @@ export const REVENUE_CATEGORIES: readonly RevenueCategory[] = [
     prefixes: ["71", "72", "74", "75", "77", "78"],
   },
 ]
-
-export function getUnknownClairCategoryPrefixes(): string[] {
-  const prefixes = new Set<string>()
-  for (const category of EXPENSE_CATEGORIES)
-    for (const prefix of category.prefixes) prefixes.add(prefix)
-  for (const category of REVENUE_CATEGORIES)
-    for (const prefix of category.prefixes) prefixes.add(prefix)
-
-  return Array.from(prefixes)
-    .filter((prefix) => !isPlanComptableCode(prefix))
-    .toSorted()
-}

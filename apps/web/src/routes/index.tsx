@@ -1,4 +1,4 @@
-/* oxlint-disable react/jsx-max-depth, eslint/max-lines, eslint/max-lines-per-function */
+/* oxlint-disable react/jsx-max-depth, eslint/max-lines-per-function */
 import { FormattedCurrency } from "@/components/fec/formatted-number"
 import Link from "@/components/link"
 import { createFileRoute } from "@tanstack/react-router"

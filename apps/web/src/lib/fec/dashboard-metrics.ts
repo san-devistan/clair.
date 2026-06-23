@@ -18,7 +18,7 @@ export interface TreasuryProjectionPoint {
   flow: number
 }
 
-export function annualizeAmount(amount: number, monthsCovered: number): number {
+function annualizeAmount(amount: number, monthsCovered: number): number {
   return monthsCovered > 0 ? (amount / monthsCovered) * MONTHS_PER_YEAR : amount
 }
 

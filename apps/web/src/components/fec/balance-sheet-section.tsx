@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/max-lines */
 "use client"
 
 import { BalanceSheetRatioSummary } from "@/components/fec/balance-sheet-ratios"

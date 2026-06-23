@@ -1,4 +1,3 @@
-/* oxlint-disable eslint/max-lines */
 "use client"
 
 import type { ChartColorMode } from "@/components/fec/bar-chart-style"
@@ -177,7 +176,6 @@ export function RepartitionChart({
       <StackedSegmentBar
         segments={segments}
         ariaLabel={`Répartition des ${label.toLowerCase()} par catégorie`}
-        role="group"
         onSegmentClick={toggleSegment}
         getSegmentAriaLabel={getSegmentAriaLabel}
         getSegmentPressed={getSegmentPressed}
