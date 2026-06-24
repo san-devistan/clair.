@@ -31,6 +31,13 @@ into the token source, then regenerates web and mobile theme artifacts. If the
 token file already has changes, the token file remains the source of truth; pass
 `--import-applied-css` only when the applied CSS should overwrite the tokens.
 
+## Component Accessibility
+
+`Label` and `FieldLabel` are shared primitives, so they stay flexible enough for
+callers to either pass `htmlFor` or wrap the associated control. Form call sites
+must provide a real label association with matching `htmlFor`/`id` values or by
+nesting the control inside the label.
+
 ## Skills
 
 UI-local skills live in `packages/ui/.agents/skills/<skill>/SKILL.md`. The

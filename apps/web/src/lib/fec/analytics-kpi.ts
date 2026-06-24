@@ -15,7 +15,10 @@ import {
 import type { KpiSummary } from "./analytics-types"
 import type { FecEntry } from "./types"
 
-export function computeKpi(entries: FecEntry[]): KpiSummary {
+export function computeKpi(
+  entries: FecEntry[],
+  balanceEntries: FecEntry[] = entries
+): KpiSummary {
   const revenue = sumRevenue(entries)
   const expenses = sumExpenses(entries)
   const netResult = revenue - expenses
@@ -35,7 +38,7 @@ export function computeKpi(entries: FecEntry[]): KpiSummary {
   const amortizations = sumByPredicate(entries, (e) =>
     isAmortizationAccount(e.compteNum)
   )
-  const balance = computeBalanceKpis(entries)
+  const balance = computeBalanceKpis(balanceEntries)
   const grossMargin = revenue - purchases
   const contribution = computeContributionMargin(entries, revenue, expenses)
 

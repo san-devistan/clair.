@@ -1,118 +1,74 @@
-import {
-  assignExpenseFills,
-  assignRevenueFills,
-  type DashboardData,
-} from "./analytics"
-import { computeInsights } from "./insights"
+import type { DataSource } from "./data-source"
+import { isMonthKey, type MonthRange } from "./date-ranges"
+import type { FecEntry, FecParseResult } from "./types"
 
 const STORAGE_KEY = "clair.fec.dashboard"
+const STORAGE_VERSION = 2
 
-type SerializedAgedBalance = Omit<
-  DashboardData["agedReceivables"],
-  "asOf" | "invoices"
+export interface PersistedFecStore {
+  source: DataSource | null
+  selectedRange: MonthRange | null
+  comparisonRange: MonthRange | null
+}
+
+type SerializedFecEntry = Omit<
+  FecEntry,
+  "ecritureDate" | "pieceDate" | "dateLet" | "validDate"
 > & {
-  asOf: string
-  invoices: Array<
-    Omit<
-      DashboardData["agedReceivables"]["invoices"][number],
-      "pieceDate" | "invoiceDate" | "dueDate"
-    > & {
-      pieceDate: string | null
-      invoiceDate: string
-      dueDate: string
-    }
-  >
+  ecritureDate: string
+  pieceDate: string | null
+  dateLet: string | null
+  validDate: string | null
 }
 
-type SerializedBalanceSheet = Omit<DashboardData["balanceSheet"], "asOf"> & {
-  asOf: string
+type SerializedFecParseResult = Omit<FecParseResult, "entries" | "meta"> & {
+  entries: SerializedFecEntry[]
+  meta: Omit<FecParseResult["meta"], "minDate" | "maxDate"> & {
+    minDate: string | null
+    maxDate: string | null
+  }
 }
 
-interface SerializedSnapshot {
-  meta: DashboardData["meta"]
-  period: {
-    startDate: string
-    endDate: string
-    fiscalYear: number
-    monthsCovered: number
-  }
-  kpi: DashboardData["kpi"]
-  monthly: DashboardData["monthly"]
-  expenseCategories: DashboardData["expenseCategories"]
-  revenueCategories: DashboardData["revenueCategories"]
-  topCustomers: Array<
-    Omit<DashboardData["topCustomers"][number], "firstDate" | "lastDate"> & {
-      firstDate: string
-      lastDate: string
-    }
-  >
-  topSuppliers: Array<
-    Omit<DashboardData["topSuppliers"][number], "firstDate" | "lastDate"> & {
-      firstDate: string
-      lastDate: string
-    }
-  >
-  expenseDetails: Array<
-    Omit<DashboardData["expenseDetails"][number], "lastDate"> & {
-      lastDate: string
-    }
-  >
-  revenueDetails: Array<
-    Omit<DashboardData["revenueDetails"][number], "lastDate"> & {
-      lastDate: string
-    }
-  >
-  cashByAccount: Array<
-    Omit<DashboardData["cashByAccount"][number], "firstDate" | "lastDate"> & {
-      firstDate: string
-      lastDate: string
-    }
-  >
-  insights: DashboardData["insights"]
-  agedReceivables: SerializedAgedBalance
-  agedPayables: SerializedAgedBalance
-  cashProjection: Omit<DashboardData["cashProjection"], "asOf"> & {
-    asOf: string
-  }
-  balanceSheet: SerializedBalanceSheet
-  warnings: string[]
+type SerializedDataSource = {
+  kind: "fec"
+  parseResult: SerializedFecParseResult
 }
 
 interface SerializedStore {
-  primary: SerializedSnapshot | null
-  comparison: SerializedSnapshot | null
+  version: typeof STORAGE_VERSION
+  source: SerializedDataSource | null
+  selectedRange: MonthRange | null
+  comparisonRange: MonthRange | null
 }
 
-export function loadStore(): {
-  primary: DashboardData | null
-  comparison: DashboardData | null
-} {
-  if (typeof window === "undefined") return { primary: null, comparison: null }
+export function loadStore(): PersistedFecStore {
+  if (typeof window === "undefined") return EMPTY_PERSISTED_STORE
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { primary: null, comparison: null }
+    if (!raw) return EMPTY_PERSISTED_STORE
+
     const store = parseSerializedStore(raw)
-    if (!store) return { primary: null, comparison: null }
-    return {
-      primary: store.primary ? deserialize(store.primary) : null,
-      comparison: store.comparison ? deserialize(store.comparison) : null,
+    if (!store) {
+      window.localStorage.removeItem(STORAGE_KEY)
+      return EMPTY_PERSISTED_STORE
     }
+
+    return store
   } catch {
     window.localStorage.removeItem(STORAGE_KEY)
-    return { primary: null, comparison: null }
+    return EMPTY_PERSISTED_STORE
   }
 }
 
-export function saveStore(
-  primary: DashboardData | null,
-  comparison: DashboardData | null
-) {
+export function saveStore(store: PersistedFecStore) {
   if (typeof window === "undefined") return
-  const store: SerializedStore = {
-    primary: primary ? serialize(primary) : null,
-    comparison: comparison ? serialize(comparison) : null,
+  const serialized: SerializedStore = {
+    version: STORAGE_VERSION,
+    source: store.source ? serializeDataSource(store.source) : null,
+    selectedRange: store.selectedRange,
+    comparisonRange: store.comparisonRange,
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serialized))
 }
 
 export function clearStore() {
@@ -143,181 +99,173 @@ export async function buildDemoFile(): Promise<File> {
   return new File([blob], "demo-clair.txt", { type: "text/plain" })
 }
 
-function serialize(data: DashboardData): SerializedSnapshot {
+const EMPTY_PERSISTED_STORE: PersistedFecStore = {
+  source: null,
+  selectedRange: null,
+  comparisonRange: null,
+}
+
+function serializeDataSource(source: DataSource): SerializedDataSource {
   return {
-    meta: data.meta,
-    period: {
-      startDate: data.period.startDate.toISOString(),
-      endDate: data.period.endDate.toISOString(),
-      fiscalYear: data.period.fiscalYear,
-      monthsCovered: data.period.monthsCovered,
-    },
-    kpi: data.kpi,
-    monthly: data.monthly,
-    expenseCategories: stripFill(data.expenseCategories),
-    revenueCategories: stripFill(data.revenueCategories),
-    topCustomers: data.topCustomers.map(serializeDatedCounterparty),
-    topSuppliers: data.topSuppliers.map(serializeDatedCounterparty),
-    expenseDetails: data.expenseDetails.map((c) => ({
-      ...c,
-      lastDate: c.lastDate.toISOString(),
-    })),
-    revenueDetails: data.revenueDetails.map((c) => ({
-      ...c,
-      lastDate: c.lastDate.toISOString(),
-    })),
-    cashByAccount: data.cashByAccount.map(serializeDatedCounterparty),
-    insights: data.insights,
-    agedReceivables: serializeAgedBalance(data.agedReceivables),
-    agedPayables: serializeAgedBalance(data.agedPayables),
-    cashProjection: {
-      ...data.cashProjection,
-      asOf: data.cashProjection.asOf.toISOString(),
-    },
-    balanceSheet: serializeBalanceSheet(data.balanceSheet),
-    warnings: data.warnings,
+    kind: "fec",
+    parseResult: serializeParseResult(source.parseResult),
   }
 }
 
-function deserialize(snap: SerializedSnapshot): DashboardData {
-  const data: DashboardData = {
+function serializeParseResult(
+  parseResult: FecParseResult
+): SerializedFecParseResult {
+  return {
+    entries: parseResult.entries.map(serializeFecEntry),
+    warnings: parseResult.warnings,
     meta: {
-      ...snap.meta,
-      minDate: snap.meta.minDate ? new Date(String(snap.meta.minDate)) : null,
-      maxDate: snap.meta.maxDate ? new Date(String(snap.meta.maxDate)) : null,
+      ...parseResult.meta,
+      minDate: parseResult.meta.minDate?.toISOString() ?? null,
+      maxDate: parseResult.meta.maxDate?.toISOString() ?? null,
     },
-    period: {
-      startDate: new Date(snap.period.startDate),
-      endDate: new Date(snap.period.endDate),
-      fiscalYear: snap.period.fiscalYear,
-      monthsCovered: snap.period.monthsCovered,
-    },
-    kpi: snap.kpi,
-    monthly: snap.monthly,
-    expenseCategories: assignExpenseFills(snap.expenseCategories),
-    revenueCategories: assignRevenueFills(snap.revenueCategories),
-    topCustomers: snap.topCustomers.map(deserializeDatedCounterparty),
-    topSuppliers: snap.topSuppliers.map(deserializeDatedCounterparty),
-    expenseDetails: snap.expenseDetails.map((c) => ({
-      ...c,
-      lastDate: new Date(c.lastDate),
-    })),
-    revenueDetails: snap.revenueDetails.map((c) => ({
-      ...c,
-      lastDate: new Date(c.lastDate),
-    })),
-    cashByAccount: snap.cashByAccount.map(deserializeDatedCounterparty),
-    insights: snap.insights,
-    agedReceivables: deserializeAgedBalance(snap.agedReceivables),
-    agedPayables: deserializeAgedBalance(snap.agedPayables),
-    cashProjection: {
-      ...snap.cashProjection,
-      asOf: new Date(snap.cashProjection.asOf),
-    },
-    balanceSheet: deserializeBalanceSheet(snap.balanceSheet),
-    warnings: snap.warnings,
   }
-
-  return refreshInsights(data)
 }
 
-function stripFill(items: DashboardData["expenseCategories"]) {
-  return items.map(({ key, label, amount, share }) => ({
-    key,
-    label,
-    amount,
-    share,
-  }))
-}
-
-function serializeAgedBalance(
-  data: DashboardData["agedReceivables"]
-): SerializedAgedBalance {
+function serializeFecEntry(entry: FecEntry): SerializedFecEntry {
   return {
-    ...data,
-    asOf: data.asOf.toISOString(),
-    invoices: data.invoices.map((invoice) => ({
-      ...invoice,
-      pieceDate: invoice.pieceDate?.toISOString() ?? null,
-      invoiceDate: invoice.invoiceDate.toISOString(),
-      dueDate: invoice.dueDate.toISOString(),
-    })),
+    ...entry,
+    ecritureDate: entry.ecritureDate.toISOString(),
+    pieceDate: entry.pieceDate?.toISOString() ?? null,
+    dateLet: entry.dateLet?.toISOString() ?? null,
+    validDate: entry.validDate?.toISOString() ?? null,
   }
 }
 
-function deserializeAgedBalance(
-  snap: SerializedAgedBalance
-): DashboardData["agedReceivables"] {
-  return {
-    ...snap,
-    asOf: new Date(snap.asOf),
-    invoices: snap.invoices.map((invoice) => ({
-      ...invoice,
-      pieceDate: invoice.pieceDate ? new Date(invoice.pieceDate) : null,
-      invoiceDate: new Date(invoice.invoiceDate),
-      dueDate: new Date(invoice.dueDate),
-    })),
-  }
-}
-
-function serializeBalanceSheet(
-  data: DashboardData["balanceSheet"]
-): SerializedBalanceSheet {
-  return {
-    ...data,
-    asOf: data.asOf.toISOString(),
-  }
-}
-
-function deserializeBalanceSheet(
-  snap: SerializedBalanceSheet
-): DashboardData["balanceSheet"] {
-  return {
-    ...snap,
-    asOf: new Date(snap.asOf),
-  }
-}
-
-function serializeDatedCounterparty<
-  T extends { firstDate: Date; lastDate: Date },
->(counterparty: T) {
-  return {
-    ...counterparty,
-    firstDate: counterparty.firstDate.toISOString(),
-    lastDate: counterparty.lastDate.toISOString(),
-  }
-}
-
-function deserializeDatedCounterparty<
-  T extends { firstDate: string; lastDate: string },
->(counterparty: T) {
-  return {
-    ...counterparty,
-    firstDate: new Date(counterparty.firstDate),
-    lastDate: new Date(counterparty.lastDate),
-  }
-}
-
-function refreshInsights(data: DashboardData): DashboardData {
-  return {
-    ...data,
-    insights: computeInsights({
-      kpi: data.kpi,
-      expenseCategories: data.expenseCategories,
-      topCustomers: data.topCustomers,
-      topSuppliers: data.topSuppliers,
-      monthly: data.monthly,
-    }),
-  }
-}
-
-function parseSerializedStore(raw: string): SerializedStore | null {
+function parseSerializedStore(raw: string): PersistedFecStore | null {
   const parsed: unknown = JSON.parse(raw)
-  if (!isSerializedStore(parsed)) return null
-  return parsed
+  const record = asRecord(parsed)
+  if (!record || record.version !== STORAGE_VERSION) return null
+
+  return {
+    source: deserializeDataSource(record.source),
+    selectedRange: deserializeMonthRange(record.selectedRange),
+    comparisonRange: deserializeMonthRange(record.comparisonRange),
+  }
 }
 
-function isSerializedStore(value: unknown): value is SerializedStore {
-  if (typeof value !== "object" || value === null) return false
-  return "primary" in value && "comparison" in value
+function deserializeDataSource(value: unknown): DataSource | null {
+  if (value === null || value === undefined) return null
+
+  const record = asRecord(value)
+  if (!record || record.kind !== "fec") return null
+
+  const parseResult = deserializeParseResult(record.parseResult)
+  return parseResult ? { kind: "fec", parseResult } : null
+}
+
+function deserializeParseResult(value: unknown): FecParseResult | null {
+  const record = asRecord(value)
+  const meta = asRecord(record?.meta)
+  if (!record || !meta || !Array.isArray(record.entries)) return null
+
+  const entries: FecEntry[] = []
+  for (const entryValue of record.entries) {
+    const entry = deserializeFecEntry(entryValue)
+    if (!entry) return null
+    entries.push(entry)
+  }
+
+  if (entries.length === 0 || !Array.isArray(record.warnings)) return null
+
+  const separator = deserializeSeparator(meta.separator)
+  if (!separator) return null
+
+  return {
+    entries,
+    warnings: record.warnings.filter((warning) => typeof warning === "string"),
+    meta: {
+      fileName: stringValue(meta.fileName),
+      fileSizeBytes: numberValue(meta.fileSizeBytes),
+      encoding: stringValue(meta.encoding),
+      separator,
+      rowCount: numberValue(meta.rowCount),
+      parsedAt: numberValue(meta.parsedAt),
+      minDate: nullableDate(meta.minDate),
+      maxDate: nullableDate(meta.maxDate),
+    },
+  }
+}
+
+function deserializeFecEntry(value: unknown): FecEntry | null {
+  const record = asRecord(value)
+  if (!record) return null
+
+  const ecritureDate = dateValue(record.ecritureDate)
+  if (!ecritureDate) return null
+
+  return {
+    journalCode: stringValue(record.journalCode),
+    journalLib: stringValue(record.journalLib),
+    ecritureNum: stringValue(record.ecritureNum),
+    ecritureDate,
+    ecritureLib: stringValue(record.ecritureLib),
+    compteNum: stringValue(record.compteNum),
+    compteLib: stringValue(record.compteLib),
+    compAuxNum: stringValue(record.compAuxNum),
+    compAuxLib: stringValue(record.compAuxLib),
+    pieceRef: stringValue(record.pieceRef),
+    pieceDate: nullableDate(record.pieceDate),
+    debit: numberValue(record.debit),
+    credit: numberValue(record.credit),
+    ecritureLet: stringValue(record.ecritureLet),
+    dateLet: nullableDate(record.dateLet),
+    validDate: nullableDate(record.validDate),
+    montantDevise:
+      record.montantDevise === null ? null : numberValue(record.montantDevise),
+    idevise: stringValue(record.idevise),
+  }
+}
+
+function deserializeMonthRange(value: unknown): MonthRange | null {
+  const record = asRecord(value)
+  if (!record) return null
+
+  const startMonth = record.startMonth
+  const endMonth = record.endMonth
+  return typeof startMonth === "string" &&
+    typeof endMonth === "string" &&
+    isMonthKey(startMonth) &&
+    isMonthKey(endMonth)
+    ? { startMonth, endMonth }
+    : null
+}
+
+function deserializeSeparator(
+  value: unknown
+): FecParseResult["meta"]["separator"] | null {
+  return value === "\t" || value === ";" || value === "|" || value === ","
+    ? value
+    : null
+}
+
+function nullableDate(value: unknown): Date | null {
+  if (value === null || value === undefined) return null
+  return dateValue(value)
+}
+
+function dateValue(value: unknown): Date | null {
+  if (typeof value !== "string") return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value : ""
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return isRecord(value) ? value : null
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
 }

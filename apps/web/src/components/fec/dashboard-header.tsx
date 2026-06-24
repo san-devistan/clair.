@@ -1,9 +1,12 @@
 "use client"
 
-import { formatShortDate } from "@/lib/fec/format"
+import {
+  comparisonStartBounds,
+  monthCount,
+  suggestComparisonRange,
+} from "@/lib/fec/date-ranges"
 import { useFecStore } from "@/lib/fec/store"
 import { usePathname } from "@/lib/navigation"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,7 +15,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
-import { Calendar } from "lucide-react"
+import {
+  MonthRangePicker,
+  type MonthRangePickerValue,
+} from "@workspace/ui/components/month-range-picker"
+import { useCallback, useMemo } from "react"
 
 const PAGE_LABELS: Record<string, string> = {
   "/dashboard": "Vue d'ensemble",
@@ -27,12 +34,63 @@ const PAGE_LABELS: Record<string, string> = {
 
 export function DashboardHeader() {
   const pathname = usePathname() ?? "/dashboard"
-  const { data } = useFecStore()
+  const {
+    availableRange,
+    selectedRange,
+    comparisonRange,
+    setSelectedRange,
+    setComparisonRange,
+  } = useFecStore()
   const pageLabel = PAGE_LABELS[pathname] ?? "Tableau de bord"
   const isOverview = pathname === "/dashboard"
+  const comparisonStartRange = useMemo(
+    () =>
+      selectedRange && availableRange
+        ? comparisonStartBounds(selectedRange, availableRange)
+        : null,
+    [availableRange, selectedRange]
+  )
+  const comparisonSuggestion = useMemo(
+    () =>
+      selectedRange && availableRange
+        ? suggestComparisonRange(selectedRange, availableRange)
+        : null,
+    [availableRange, selectedRange]
+  )
+  const changeSelectedRange = useCallback(
+    (value: MonthRangePickerValue) => setSelectedRange(value),
+    [setSelectedRange]
+  )
+  const changeComparisonRange = useCallback(
+    (value: MonthRangePickerValue | null) => setComparisonRange(value),
+    [setComparisonRange]
+  )
+  const comparison = useMemo(
+    () =>
+      selectedRange && comparisonStartRange
+        ? {
+            value: comparisonRange,
+            onValueChange: changeComparisonRange,
+            suggestedValue: comparisonSuggestion,
+            minStartMonth: comparisonStartRange.startMonth,
+            maxStartMonth: comparisonStartRange.endMonth,
+            monthsCovered: monthCount(selectedRange),
+            label: "Comparaison",
+            addLabel: "Ajouter une comparaison",
+            removeLabel: "Retirer la comparaison",
+          }
+        : undefined,
+    [
+      comparisonRange,
+      comparisonStartRange,
+      comparisonSuggestion,
+      changeComparisonRange,
+      selectedRange,
+    ]
+  )
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full min-w-0 items-center justify-between gap-3">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem className="hidden md:block">
@@ -54,14 +112,16 @@ export function DashboardHeader() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {data ? (
-        <Badge variant="secondary" className="hidden gap-1.5 md:inline-flex">
-          <Calendar className="size-3" />
-          <span>
-            {formatShortDate(data.period.startDate)} →{" "}
-            {formatShortDate(data.period.endDate)}
-          </span>
-        </Badge>
+      {selectedRange && availableRange ? (
+        <MonthRangePicker
+          value={selectedRange}
+          onValueChange={changeSelectedRange}
+          minMonth={availableRange.startMonth}
+          maxMonth={availableRange.endMonth}
+          label="Période affichée"
+          className="max-w-[13rem] md:max-w-none"
+          comparison={comparison}
+        />
       ) : null}
     </div>
   )

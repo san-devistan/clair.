@@ -10,10 +10,25 @@ import {
   type PeriodInfo,
   UNCATEGORIZED_CATEGORY_KEY,
 } from "./analytics-types"
+import {
+  monthKeyFromDate,
+  monthKeysInRange,
+  monthRangeDates,
+  monthStartDate,
+  type MonthRange,
+} from "./date-ranges"
 import { formatShortDate } from "./format"
 import type { FecEntry } from "./types"
 
-export function computePeriod(entries: FecEntry[]): PeriodInfo {
+export function computePeriod(
+  entries: FecEntry[],
+  range?: MonthRange
+): PeriodInfo {
+  if (range) return computePeriodFromRange(range)
+  if (entries.length === 0) {
+    throw new Error("Cannot compute an accounting period without entries.")
+  }
+
   const dates = entries.map((e) => e.ecritureDate.getTime())
   const startDate = new Date(Math.min(...dates))
   const endDate = new Date(Math.max(...dates))
@@ -29,9 +44,15 @@ export function computePeriod(entries: FecEntry[]): PeriodInfo {
   }
 }
 
-export function computeMonthly(entries: FecEntry[]): MonthlyPoint[] {
+export function computeMonthly(
+  entries: FecEntry[],
+  range?: MonthRange,
+  openingCashBalance = 0
+): MonthlyPoint[] {
   const map = new Map<string, MonthlyPoint>()
-  let runningCash = 0
+  seedMonthlyPoints(map, range)
+
+  let runningCash = openingCashBalance
   const sorted = [...entries].toSorted(
     (a, b) => a.ecritureDate.getTime() - b.ecritureDate.getTime()
   )
@@ -43,20 +64,50 @@ export function computeMonthly(entries: FecEntry[]): MonthlyPoint[] {
     runningCash = addCashToMonthlyPoint(bucket, entry, runningCash)
   }
 
-  return finalizeMonthlyPoints(map)
+  return finalizeMonthlyPoints(map, openingCashBalance)
+}
+
+function computePeriodFromRange(range: MonthRange): PeriodInfo {
+  const { startDate, endDate } = monthRangeDates(range)
+  const months =
+    (endDate.getUTCFullYear() - startDate.getUTCFullYear()) * 12 +
+    (endDate.getUTCMonth() - startDate.getUTCMonth()) +
+    1
+
+  return {
+    startDate,
+    endDate,
+    fiscalYear: endDate.getUTCFullYear(),
+    monthsCovered: Math.max(1, months),
+  }
+}
+
+function seedMonthlyPoints(
+  map: Map<string, MonthlyPoint>,
+  range: MonthRange | undefined
+) {
+  if (!range) return
+  for (const key of monthKeysInRange(range))
+    map.set(key, createMonthlyPoint(key))
 }
 
 function getOrCreateMonthlyPoint(
   map: Map<string, MonthlyPoint>,
   entry: FecEntry
 ): MonthlyPoint {
-  const key = monthKey(entry.ecritureDate)
+  const key = monthKeyFromDate(entry.ecritureDate)
   const existing = map.get(key)
   if (existing) return existing
 
-  const point: MonthlyPoint = {
+  const point = createMonthlyPoint(key)
+  map.set(key, point)
+  return point
+}
+
+function createMonthlyPoint(key: string): MonthlyPoint {
+  return {
     month: key,
-    monthLabel: monthLabel(entry.ecritureDate),
+    monthLabel: monthLabel(key),
     revenue: 0,
     expenses: 0,
     result: 0,
@@ -65,8 +116,6 @@ function getOrCreateMonthlyPoint(
     revenueByCategory: {},
     expensesByCategory: {},
   }
-  map.set(key, point)
-  return point
 }
 
 function addRevenueToMonthlyPoint(point: MonthlyPoint, entry: FecEntry) {
@@ -108,9 +157,12 @@ function addCashToMonthlyPoint(
   return point.cashBalance
 }
 
-function finalizeMonthlyPoints(map: Map<string, MonthlyPoint>): MonthlyPoint[] {
+function finalizeMonthlyPoints(
+  map: Map<string, MonthlyPoint>,
+  openingCashBalance: number
+): MonthlyPoint[] {
   const sortedKeys = Array.from(map.keys()).toSorted()
-  let lastBalance = 0
+  let lastBalance = openingCashBalance
   for (const key of sortedKeys) {
     const point = map.get(key)
     if (!point) continue
@@ -134,12 +186,6 @@ function addMonthlyCategoryAmount(
   amounts[categoryKey] = (amounts[categoryKey] ?? 0) + amount
 }
 
-function monthKey(date: Date): string {
-  return `${String(date.getUTCFullYear())}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`
-}
-
-function monthLabel(date: Date): string {
-  return formatShortDate(
-    new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
-  )
+function monthLabel(month: string): string {
+  return formatShortDate(monthStartDate(month))
 }

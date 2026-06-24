@@ -1,9 +1,9 @@
 "use client"
 
-import { ComparisonFecCard } from "@/components/fec/comparison-fec-card"
 import { FormattedNumber } from "@/components/fec/formatted-number"
 import Link from "@/components/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { monthEndDate, monthStartDate } from "@/lib/fec/date-ranges"
 import { formatShortDate } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"
 import { usePathname, useRouter } from "@/lib/navigation"
@@ -39,6 +39,7 @@ import {
   ReceiptText,
   RotateCcw,
   Scale,
+  TableProperties,
   Truck,
   Users,
   Wallet,
@@ -85,7 +86,7 @@ const CANCEL_RESET_BUTTON = <Button variant="outline" />
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { push } = useRouter()
-  const { data, reset } = useFecStore()
+  const { availableRange, source, reset } = useFecStore()
 
   const isActive = useCallback(
     (href: string) =>
@@ -123,8 +124,13 @@ export function DashboardSidebar() {
 
       <SidebarFooter>
         <ThemeToggle />
-        {data ? <AnalyzedPeriodCard data={data} onReset={handleReset} /> : null}
-        {data ? <ComparisonFecCard /> : null}
+        {source && availableRange ? (
+          <DataSourceCard
+            availableRange={availableRange}
+            source={source}
+            onReset={handleReset}
+          />
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   )
@@ -171,13 +177,16 @@ function NavMenuItem({ item, active }: { item: NavItem; active: boolean }) {
   )
 }
 
-function AnalyzedPeriodCard({
-  data,
+function DataSourceCard({
+  availableRange,
+  source,
   onReset,
 }: {
-  data: NonNullable<ReturnType<typeof useFecStore>["data"]>
+  availableRange: NonNullable<ReturnType<typeof useFecStore>["availableRange"]>
+  source: NonNullable<ReturnType<typeof useFecStore>["source"]>
   onReset: () => void
 }) {
+  const { meta } = source.parseResult
   const resetButton = useMemo(
     () => <Button variant="destructive" onClick={onReset} />,
     [onReset]
@@ -185,25 +194,31 @@ function AnalyzedPeriodCard({
 
   return (
     <div className="mx-1 mb-1 rounded-lg border border-border bg-muted/30 p-3">
-      <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        Période analysée
-      </p>
-      <p className="mt-1 text-sm font-medium">
-        {formatShortDate(data.period.startDate)} →{" "}
-        {formatShortDate(data.period.endDate)}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Source de données
+          </p>
+          <p className="mt-1 truncate text-sm font-medium">{meta.fileName}</p>
+        </div>
+        <TableProperties className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {formatShortDate(monthStartDate(availableRange.startMonth))} →{" "}
+        {formatShortDate(monthEndDate(availableRange.endMonth))}
       </p>
       <p className="mt-0.5 text-xs text-muted-foreground">
-        <FormattedNumber value={data.meta.rowCount} /> écritures
+        <FormattedNumber value={meta.rowCount} /> écritures disponibles
       </p>
 
       <Dialog>
         <DialogTrigger render={CHANGE_FEC_BUTTON}>
           <ArrowLeftRight className="size-3.5" />
-          <span>Changer de FEC</span>
+          <span>Changer de source</span>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Importer un nouveau FEC ?</DialogTitle>
+            <DialogTitle>Importer une nouvelle source ?</DialogTitle>
             <DialogDescription>
               Vos données actuelles seront supprimées de votre navigateur. Cette
               action est irréversible.
@@ -213,7 +228,7 @@ function AnalyzedPeriodCard({
             <DialogClose render={CANCEL_RESET_BUTTON}>Annuler</DialogClose>
             <DialogClose render={resetButton}>
               <RotateCcw />
-              Importer un nouveau FEC
+              Importer une nouvelle source
             </DialogClose>
           </DialogFooter>
         </DialogContent>

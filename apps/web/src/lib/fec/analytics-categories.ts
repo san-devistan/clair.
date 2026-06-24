@@ -31,15 +31,11 @@ interface CategoryAccumulator {
   amount: number
 }
 
-export function assignRevenueFills(
-  items: CategoryBreakdown[]
-): CategoryBreakdown[] {
+function assignRevenueFills(items: CategoryBreakdown[]): CategoryBreakdown[] {
   return assignFills(items, REVENUE_RAMP)
 }
 
-export function assignExpenseFills(
-  items: CategoryBreakdown[]
-): CategoryBreakdown[] {
+function assignExpenseFills(items: CategoryBreakdown[]): CategoryBreakdown[] {
   return assignFills(items, EXPENSE_RAMP)
 }
 

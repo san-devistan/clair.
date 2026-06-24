@@ -28,7 +28,7 @@ interface MonthlyBarChartProps {
   monthly: MonthlyPoint[]
   metric: Metric
   categories?: CategoryBreakdown[]
-  // FEC de comparaison aligne par index (mois 1 du primary <-> mois 1 du compare).
+  // Periode de comparaison alignee par index (mois 1 primary <-> mois 1 compare).
   // Choix delibere : on ne tente pas d'aligner par date pour permettre les YoY
   // sur des exercices decales.
   comparison?: MonthlyPoint[]
@@ -255,7 +255,7 @@ function SingleMonthlyBars({
     <>
       <Bar
         dataKey={COMPARISON_KEY}
-        name="FEC comparé"
+        name="Période comparée"
         fill="var(--color-comparison)"
         radius={STACK_RADIUS}
         hide={!hasComparison}

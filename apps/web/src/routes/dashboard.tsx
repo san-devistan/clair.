@@ -1,10 +1,12 @@
 "use client"
 
+import { OrgSwitcher } from "@/components/auth/org-switcher"
 import { DashboardHeader } from "@/components/fec/dashboard-header"
 import { DashboardSidebar } from "@/components/fec/dashboard-sidebar"
+import { getAuthToken } from "@/lib/auth/auth.functions"
 import { useFecStore } from "@/lib/fec/store"
 import { useRouter, useSearchParams } from "@/lib/navigation"
-import { Outlet, createFileRoute } from "@tanstack/react-router"
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   SidebarInset,
@@ -14,6 +16,16 @@ import {
 import { useEffect, useRef } from "react"
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: async ({ location }) => {
+    const token = await getAuthToken()
+
+    if (!token) {
+      throw redirect({
+        to: "/auth",
+        search: { redirect: location.href },
+      })
+    }
+  },
   component: DashboardLayout,
 })
 
@@ -26,7 +38,10 @@ function DashboardLayout() {
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mx-2 h-4" />
-          <DashboardHeader />
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <OrgSwitcher />
+            <DashboardHeader />
+          </div>
         </header>
         <div className="flex-1">
           <Outlet />

@@ -10,13 +10,25 @@ import {
   useReducer,
 } from "react"
 
-import { buildDashboardData, type DashboardData } from "./analytics"
+import { buildDashboardDataOrNull, type DashboardData } from "./analytics"
+import {
+  createFecDataSource,
+  type DataSource,
+  sourceAvailableRange,
+} from "./data-source"
+import {
+  coerceComparisonRange,
+  isMonthRangeInside,
+  normalizeMonthRange,
+  type MonthRange,
+} from "./date-ranges"
 import { parseFecFile } from "./parser"
 import {
   buildDemoFile,
   clearLegacyStorage,
   clearStore,
   loadStore,
+  type PersistedFecStore,
   saveStore,
 } from "./store-persistence"
 
@@ -27,52 +39,49 @@ type ImportState =
   | { status: "error"; message: string }
 
 interface FecStoreValue {
+  source: DataSource | null
   data: DashboardData | null
+  comparisonData: DashboardData | null
   hydrated: boolean
   importState: ImportState
+  availableRange: MonthRange | null
+  selectedRange: MonthRange | null
+  comparisonRange: MonthRange | null
   importFile: (file: File) => Promise<void>
   importDemo: () => Promise<void>
-  importDashboardData: (data: DashboardData) => void
-  reset: () => void
-  // Slot secondaire utilise pour comparer un second FEC au FEC principal.
-  comparisonData: DashboardData | null
-  comparisonImportState: ImportState
-  importComparisonFile: (file: File) => Promise<void>
-  importComparisonDemo: () => Promise<void>
+  setSelectedRange: (range: MonthRange) => void
+  setComparisonRange: (range: MonthRange | null) => void
   resetComparison: () => void
+  reset: () => void
 }
 
 const FecStoreContext = createContext<FecStoreValue | null>(null)
 
 interface FecStoreState {
-  data: DashboardData | null
-  comparisonData: DashboardData | null
+  source: DataSource | null
+  selectedRange: MonthRange | null
+  comparisonRange: MonthRange | null
   hydrated: boolean
   importState: ImportState
-  comparisonImportState: ImportState
 }
 
-type ImportSlot = "primary" | "comparison"
-
 type FecStoreAction =
-  | {
-      type: "hydrate"
-      primary: DashboardData | null
-      comparison: DashboardData | null
-    }
-  | { type: "set-import-state"; slot: ImportSlot; importState: ImportState }
-  | { type: "set-dashboard"; slot: ImportSlot; data: DashboardData }
+  | { type: "hydrate"; store: PersistedFecStore }
+  | { type: "set-import-state"; importState: ImportState }
+  | { type: "set-source"; source: DataSource }
+  | { type: "set-selected-range"; range: MonthRange }
+  | { type: "set-comparison-range"; range: MonthRange | null }
   | { type: "reset-comparison" }
   | { type: "reset-all" }
 
 const IDLE_IMPORT_STATE: ImportState = { status: "idle" }
 const READY_IMPORT_STATE: ImportState = { status: "ready" }
 const INITIAL_FEC_STORE_STATE: FecStoreState = {
-  data: null,
-  comparisonData: null,
+  source: null,
+  selectedRange: null,
+  comparisonRange: null,
   hydrated: false,
   importState: IDLE_IMPORT_STATE,
-  comparisonImportState: IDLE_IMPORT_STATE,
 }
 
 function fecStoreReducer(
@@ -81,33 +90,17 @@ function fecStoreReducer(
 ): FecStoreState {
   switch (action.type) {
     case "hydrate":
-      return {
-        data: action.primary,
-        comparisonData: action.comparison,
-        hydrated: true,
-        importState: action.primary ? READY_IMPORT_STATE : IDLE_IMPORT_STATE,
-        comparisonImportState: action.comparison
-          ? READY_IMPORT_STATE
-          : IDLE_IMPORT_STATE,
-      }
+      return hydrateState(action.store)
     case "set-import-state":
-      return action.slot === "primary"
-        ? { ...state, importState: action.importState }
-        : { ...state, comparisonImportState: action.importState }
-    case "set-dashboard":
-      return action.slot === "primary"
-        ? { ...state, data: action.data, importState: READY_IMPORT_STATE }
-        : {
-            ...state,
-            comparisonData: action.data,
-            comparisonImportState: READY_IMPORT_STATE,
-          }
+      return { ...state, importState: action.importState }
+    case "set-source":
+      return setSourceState(state, action.source)
+    case "set-selected-range":
+      return setSelectedRangeState(state, action.range)
+    case "set-comparison-range":
+      return setComparisonRangeState(state, action.range)
     case "reset-comparison":
-      return {
-        ...state,
-        comparisonData: null,
-        comparisonImportState: IDLE_IMPORT_STATE,
-      }
+      return { ...state, comparisonRange: null }
     case "reset-all":
       return { ...INITIAL_FEC_STORE_STATE, hydrated: state.hydrated }
   }
@@ -119,29 +112,52 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     clearLegacyStorage()
-    const store = loadStore()
-    dispatch({
-      type: "hydrate",
-      primary: store.primary,
-      comparison: store.comparison,
-    })
+    dispatch({ type: "hydrate", store: loadStore() })
   }, [])
 
-  const parseDashboardFile = useCallback(
-    async (file: File, slot: ImportSlot, fallbackError: string) => {
+  useEffect(() => {
+    if (!state.hydrated) return
+
+    if (!state.source) {
+      clearStore()
+      return
+    }
+
+    saveStore({
+      source: state.source,
+      selectedRange: state.selectedRange,
+      comparisonRange: state.comparisonRange,
+    })
+  }, [state.comparisonRange, state.hydrated, state.selectedRange, state.source])
+
+  const availableRange = useMemo(
+    () => (state.source ? sourceAvailableRange(state.source) : null),
+    [state.source]
+  )
+
+  const data = useMemo(
+    () => buildRangeDashboardData(state.source, state.selectedRange),
+    [state.source, state.selectedRange]
+  )
+
+  const comparisonData = useMemo(
+    () => buildRangeDashboardData(state.source, state.comparisonRange),
+    [state.comparisonRange, state.source]
+  )
+
+  const parseSourceFile = useCallback(
+    async (file: File, fallbackError: string) => {
       dispatch({
         type: "set-import-state",
-        slot,
         importState: { status: "parsing", fileName: file.name },
       })
       try {
         const parsed = await parseFecFile(file)
-        return buildDashboardData(parsed)
+        return createFecDataSource(parsed)
       } catch (error) {
         const message = error instanceof Error ? error.message : fallbackError
         dispatch({
           type: "set-import-state",
-          slot,
           importState: { status: "error", message },
         })
         throw error
@@ -152,64 +168,35 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
 
   const importFile = useCallback(
     async (file: File) => {
-      const dashboard = await parseDashboardFile(
+      const source = await parseSourceFile(
         file,
-        "primary",
         "Une erreur est survenue lors de l'analyse du fichier."
       )
-      dispatch({ type: "set-dashboard", slot: "primary", data: dashboard })
-      saveStore(dashboard, state.comparisonData)
+      dispatch({ type: "set-source", source })
     },
-    [parseDashboardFile, state.comparisonData]
+    [parseSourceFile]
   )
 
   const importDemo = useCallback(async () => {
     const file = await buildDemoFile()
-    const dashboard = await parseDashboardFile(
+    const source = await parseSourceFile(
       file,
-      "primary",
       "Erreur lors du chargement du jeu de demonstration."
     )
-    dispatch({ type: "set-dashboard", slot: "primary", data: dashboard })
-    saveStore(dashboard, state.comparisonData)
-  }, [parseDashboardFile, state.comparisonData])
+    dispatch({ type: "set-source", source })
+  }, [parseSourceFile])
 
-  const importComparisonFile = useCallback(
-    async (file: File) => {
-      const dashboard = await parseDashboardFile(
-        file,
-        "comparison",
-        "Une erreur est survenue lors de l'analyse du fichier."
-      )
-      dispatch({ type: "set-dashboard", slot: "comparison", data: dashboard })
-      saveStore(state.data, dashboard)
-    },
-    [parseDashboardFile, state.data]
-  )
+  const setSelectedRange = useCallback((range: MonthRange) => {
+    dispatch({ type: "set-selected-range", range })
+  }, [])
 
-  const importComparisonDemo = useCallback(async () => {
-    const file = await buildDemoFile()
-    const dashboard = await parseDashboardFile(
-      file,
-      "comparison",
-      "Erreur lors du chargement du jeu de demonstration."
-    )
-    dispatch({ type: "set-dashboard", slot: "comparison", data: dashboard })
-    saveStore(state.data, dashboard)
-  }, [parseDashboardFile, state.data])
-
-  const importDashboardData = useCallback(
-    (next: DashboardData) => {
-      dispatch({ type: "set-dashboard", slot: "primary", data: next })
-      saveStore(next, state.comparisonData)
-    },
-    [state.comparisonData]
-  )
+  const setComparisonRange = useCallback((range: MonthRange | null) => {
+    dispatch({ type: "set-comparison-range", range })
+  }, [])
 
   const resetComparison = useCallback(() => {
     dispatch({ type: "reset-comparison" })
-    saveStore(state.data, null)
-  }, [state.data])
+  }, [])
 
   const reset = useCallback(() => {
     dispatch({ type: "reset-all" })
@@ -218,32 +205,36 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<FecStoreValue>(
     () => ({
-      data: state.data,
+      source: state.source,
+      data,
+      comparisonData,
       hydrated: state.hydrated,
       importState: state.importState,
+      availableRange,
+      selectedRange: state.selectedRange,
+      comparisonRange: state.comparisonRange,
       importFile,
       importDemo,
-      importDashboardData,
-      reset,
-      comparisonData: state.comparisonData,
-      comparisonImportState: state.comparisonImportState,
-      importComparisonFile,
-      importComparisonDemo,
+      setSelectedRange,
+      setComparisonRange,
       resetComparison,
+      reset,
     }),
     [
-      state.data,
+      state.source,
+      data,
+      comparisonData,
       state.hydrated,
       state.importState,
+      availableRange,
+      state.selectedRange,
+      state.comparisonRange,
       importFile,
       importDemo,
-      importDashboardData,
-      reset,
-      state.comparisonData,
-      state.comparisonImportState,
-      importComparisonFile,
-      importComparisonDemo,
+      setSelectedRange,
+      setComparisonRange,
       resetComparison,
+      reset,
     ]
   )
 
@@ -260,4 +251,114 @@ export function useFecStore(): FecStoreValue {
     throw new Error("useFecStore must be used within a FecStoreProvider")
   }
   return ctx
+}
+
+function hydrateState(store: PersistedFecStore): FecStoreState {
+  if (!store.source) {
+    return {
+      ...INITIAL_FEC_STORE_STATE,
+      hydrated: true,
+    }
+  }
+
+  const availableRange = sourceAvailableRange(store.source)
+  if (!availableRange) {
+    return {
+      ...INITIAL_FEC_STORE_STATE,
+      hydrated: true,
+    }
+  }
+
+  const selectedRange = resolveSelectedRange(
+    store.selectedRange,
+    availableRange
+  )
+
+  return {
+    source: store.source,
+    selectedRange,
+    comparisonRange: coerceComparisonRange(
+      store.comparisonRange,
+      selectedRange,
+      availableRange
+    ),
+    hydrated: true,
+    importState: READY_IMPORT_STATE,
+  }
+}
+
+function setSourceState(
+  state: FecStoreState,
+  source: DataSource
+): FecStoreState {
+  const availableRange = sourceAvailableRange(source)
+  return {
+    ...state,
+    source,
+    selectedRange: availableRange,
+    comparisonRange: null,
+    importState: READY_IMPORT_STATE,
+  }
+}
+
+function setSelectedRangeState(
+  state: FecStoreState,
+  range: MonthRange
+): FecStoreState {
+  if (!state.source) return state
+
+  const availableRange = sourceAvailableRange(state.source)
+  if (!availableRange) return state
+
+  const selectedRange = resolveSelectedRange(range, availableRange)
+  return {
+    ...state,
+    selectedRange,
+    comparisonRange: coerceComparisonRange(
+      state.comparisonRange,
+      selectedRange,
+      availableRange
+    ),
+  }
+}
+
+function setComparisonRangeState(
+  state: FecStoreState,
+  range: MonthRange | null
+): FecStoreState {
+  if (!state.source || !state.selectedRange || !range) {
+    return { ...state, comparisonRange: null }
+  }
+
+  const availableRange = sourceAvailableRange(state.source)
+  if (!availableRange) return { ...state, comparisonRange: null }
+
+  return {
+    ...state,
+    comparisonRange: coerceComparisonRange(
+      range,
+      state.selectedRange,
+      availableRange
+    ),
+  }
+}
+
+function resolveSelectedRange(
+  range: MonthRange | null,
+  availableRange: MonthRange
+): MonthRange {
+  if (!range) return availableRange
+
+  const normalized = normalizeMonthRange(range)
+  return isMonthRangeInside(normalized, availableRange)
+    ? normalized
+    : availableRange
+}
+
+function buildRangeDashboardData(
+  source: DataSource | null,
+  range: MonthRange | null
+): DashboardData | null {
+  if (!source || !range) return null
+  return buildDashboardDataOrNull(source.parseResult, { range })
 }

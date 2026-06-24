@@ -61,7 +61,7 @@ export function buildChartConfig(
     return {
       [metric]: { label: METRIC_LABEL[metric], color: METRIC_COLOR[metric] },
       [COMPARISON_KEY]: {
-        label: "FEC comparé",
+        label: "Période comparée",
         color: COMPARISON_COLOR[metric],
       },
     }

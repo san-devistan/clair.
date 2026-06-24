@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTresorerieRouteImport } from './routes/dashboard.tresorerie'
@@ -20,6 +21,7 @@ import { Route as DashboardFournisseursRouteImport } from './routes/dashboard.fo
 import { Route as DashboardClientsRouteImport } from './routes/dashboard.clients'
 import { Route as DashboardChargesRouteImport } from './routes/dashboard.charges'
 import { Route as DashboardBilanRouteImport } from './routes/dashboard.bilan'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -29,6 +31,11 @@ const UploadRoute = UploadRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -76,9 +83,15 @@ const DashboardBilanRoute = DashboardBilanRouteImport.update({
   path: '/bilan',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/upload': typeof UploadRoute
   '/dashboard/bilan': typeof DashboardBilanRoute
@@ -89,9 +102,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/upload': typeof UploadRoute
   '/dashboard/bilan': typeof DashboardBilanRoute
   '/dashboard/charges': typeof DashboardChargesRoute
@@ -101,10 +116,12 @@ export interface FileRoutesByTo {
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/upload': typeof UploadRoute
   '/dashboard/bilan': typeof DashboardBilanRoute
@@ -115,11 +132,13 @@ export interface FileRoutesById {
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/dashboard'
     | '/upload'
     | '/dashboard/bilan'
@@ -130,9 +149,11 @@ export interface FileRouteTypes {
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
     | '/dashboard/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/upload'
     | '/dashboard/bilan'
     | '/dashboard/charges'
@@ -142,9 +163,11 @@ export interface FileRouteTypes {
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
     | '/dashboard'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/dashboard'
     | '/upload'
     | '/dashboard/bilan'
@@ -155,12 +178,15 @@ export interface FileRouteTypes {
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
     | '/dashboard/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   UploadRoute: typeof UploadRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -177,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -242,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBilanRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -273,8 +313,10 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   DashboardRoute: DashboardRouteWithChildren,
   UploadRoute: UploadRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
