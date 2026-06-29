@@ -169,7 +169,7 @@ function AccessListTitle({
         {canAddMember ? (
           <Button type="button" size="sm" onClick={onOpenAddMember}>
             <UserPlus />
-            Ajouter
+            Inviter
           </Button>
         ) : null}
       </div>

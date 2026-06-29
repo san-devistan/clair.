@@ -24,6 +24,7 @@ import {
   hasManageMembersRole,
   makeSlug,
 } from "./org-switcher.utils"
+import { useAuthOnboarding } from "./use-auth-onboarding"
 
 const INITIAL_STATE: OrgSwitcherState = {
   createOpen: false,
@@ -68,6 +69,8 @@ export function useOrgSwitcherState() {
   const { data: activeOrganization } = authClient.useActiveOrganization()
   const [state, dispatch] = useReducer(orgSwitcherReducer, INITIAL_STATE)
   const didSetInitialOrg = useRef(false)
+
+  useAuthOnboarding(session)
 
   useEffect(() => {
     if (didSetInitialOrg.current || activeOrganization || !organizations?.[0]) {

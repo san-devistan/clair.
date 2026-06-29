@@ -20,9 +20,11 @@
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.12.4",
+    "@convex-dev/stripe": "^0.1.4",
     "better-auth": "^1.6.20",
     "convex": "^1.41.0",
-    "effect": "^3.21.3"
+    "effect": "^3.21.3",
+    "stripe": "^22.3.0"
   },
   "devDependencies": {
     "typescript": "5.9.3"

@@ -9,6 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as billing from "../billing.js";
+import type * as billingActions from "../billingActions.js";
+import type * as billingLib from "../billingLib.js";
 import type * as http from "../http.js";
 
 import type {
@@ -19,6 +22,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  billing: typeof billing;
+  billingActions: typeof billingActions;
+  billingLib: typeof billingLib;
   http: typeof http;
 }>;
 
@@ -50,4 +56,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   betterAuth: import("../betterAuth/_generated/component.js").ComponentApi<"betterAuth">;
+  stripe: import("@convex-dev/stripe/_generated/component.js").ComponentApi<"stripe">;
 };

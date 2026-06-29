@@ -10,6 +10,10 @@ import { organization } from "better-auth/plugins/organization"
 import { components } from "../_generated/api"
 import { env } from "../_generated/server"
 import authConfig from "../auth.config"
+import {
+  getOrganizationMemberLimit,
+  hasReachedOwnedOrganizationLimit,
+} from "../billingLib"
 import schema from "./schema"
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -59,7 +63,7 @@ export const authComponent = createClient<DataModel, typeof schema>(
   }
 )
 
-export const options = {
+const baseOptions = {
   appName: "Clair",
   baseURL: env.SITE_URL,
   secret: env.BETTER_AUTH_SECRET,
@@ -93,23 +97,30 @@ export const options = {
       }
     }),
   },
-  plugins: [
-    organization({
-      allowUserToCreateOrganization: true,
-      creatorRole: "owner",
-      membershipLimit: 100,
-      invitationExpiresIn: 60 * 60 * 24 * 7,
-      cancelPendingInvitationsOnReInvite: true,
-      disableOrganizationDeletion: true,
-    }),
-    convex({ authConfig }),
-  ],
 } satisfies BetterAuthOptions
+
+function createOrganizationOptions(ctx: GenericCtx<DataModel>) {
+  return {
+    allowUserToCreateOrganization: true,
+    organizationLimit: async (user) =>
+      await hasReachedOwnedOrganizationLimit(ctx, user.id),
+    creatorRole: "owner",
+    membershipLimit: async (_user, org) =>
+      await getOrganizationMemberLimit(ctx, org.id),
+    invitationExpiresIn: 60 * 60 * 24 * 7,
+    cancelPendingInvitationsOnReInvite: true,
+    disableOrganizationDeletion: true,
+  } satisfies Parameters<typeof organization>[0]
+}
 
 export const createAuthOptions = (ctx: GenericCtx<DataModel>) =>
   ({
-    ...options,
+    ...baseOptions,
     database: authComponent.adapter(ctx),
+    plugins: [
+      organization(createOrganizationOptions(ctx)),
+      convex({ authConfig }),
+    ],
   }) satisfies BetterAuthOptions
 
 export const createAuth = (ctx: GenericCtx<DataModel>) =>

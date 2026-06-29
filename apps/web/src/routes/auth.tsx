@@ -84,6 +84,10 @@ function getResponseMessage(data: unknown) {
   return null
 }
 
+function isExistingUserError(message: string) {
+  return message.toLowerCase().includes("user already exists")
+}
+
 async function getAuthResponseError(response: Response) {
   const data: unknown = await response.json().catch(() => null)
 
@@ -232,16 +236,26 @@ function AuthPage() {
           })
 
       if (result.type === "error") {
+        const existingUserError =
+          isSignUp && isExistingUserError(result.message)
         dispatch({
           type: "patch",
           patch: {
-            error: result.message,
+            error: existingUserError
+              ? "Un compte existe déjà pour cet email. Connectez-vous."
+              : result.message,
+            ...(existingUserError ? { mode: "sign-in" } : {}),
           },
         })
         return
       }
 
       await authClient.getSession()
+      try {
+        await convex.mutation(api.auth.completeAuthOnboarding, {})
+      } catch (onboardingError) {
+        console.error(onboardingError)
+      }
 
       replace(redirectTo)
     } catch (caughtError) {

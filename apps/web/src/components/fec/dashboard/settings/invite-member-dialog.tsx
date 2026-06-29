@@ -50,7 +50,7 @@ export function InviteMemberDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ajouter un accès</DialogTitle>
+          <DialogTitle>Inviter un membre</DialogTitle>
         </DialogHeader>
         <form className="grid gap-4" onSubmit={onSubmit}>
           <FieldGroup>
@@ -64,7 +64,7 @@ export function InviteMemberDialog({
             </Button>
             <Button type="submit" disabled={pending}>
               <UserPlus />
-              Ajouter
+              Inviter
             </Button>
           </DialogFooter>
         </form>
