@@ -1,4 +1,5 @@
-import { FormattedCurrency } from "@/components/fec/formatted-number"
+import { ClairBrand } from "@/components/clair-brand"
+import { FormattedCurrency } from "@/components/fec/numbers/formatted"
 import {
   FEATURES,
   PREVIEW_BARS,
@@ -16,7 +17,7 @@ import type { ReactNode } from "react"
 const FEATURES_LINK = <Link href="#fonctionnalites" />
 const STEPS_LINK = <Link href="#fonctionnement" />
 const PRIVACY_LINK = <Link href="#confidentialite" />
-const UPLOAD_LINK = <Link href="/upload" />
+const START_LINK = <Link href="/auth?redirect=/dashboard" />
 const DEMO_LINK = <Link href="/dashboard?demo=1" />
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -50,17 +51,7 @@ function PageBackground() {
 function Header() {
   return (
     <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between p-6">
-      <div className="flex items-center gap-2.5">
-        <img
-          src="/logo.svg"
-          alt=""
-          className="size-8 rounded-lg"
-          aria-hidden="true"
-        />
-        <span className="font-heading text-lg font-semibold tracking-tight">
-          Clair
-        </span>
-      </div>
+      <ClairBrand />
       <nav className="hidden items-center gap-1 md:flex">
         <Button variant="ghost" size="sm" render={FEATURES_LINK}>
           Fonctionnalités
@@ -72,10 +63,15 @@ function Header() {
           Confidentialité
         </Button>
       </nav>
-      <Button size="sm" render={UPLOAD_LINK}>
-        Commencer
-        <ArrowRight />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" render={DEMO_LINK}>
+          Voir la démo
+        </Button>
+        <Button size="sm" render={START_LINK}>
+          Commencer
+          <ArrowRight />
+        </Button>
+      </div>
     </header>
   )
 }
@@ -98,16 +94,13 @@ function HeroSection() {
           réduire vos charges, et sécuriser votre trésorerie.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Button size="lg" render={UPLOAD_LINK}>
-            Importer mon FEC
+          <Button size="lg" render={DEMO_LINK}>
+            Voir la démo
             <ArrowRight />
-          </Button>
-          <Button size="lg" variant="outline" render={DEMO_LINK}>
-            Voir une démo
           </Button>
         </div>
         <p className="mt-5 text-xs text-muted-foreground">
-          Aucun compte requis, vos données ne quittent pas votre navigateur.
+          Démo accessible sans compte. Import FEC rattaché à votre entreprise.
         </p>
       </div>
       <DashboardPreview />
@@ -361,12 +354,12 @@ function CtaSection() {
         Prêt à voir votre entreprise en clair&nbsp;?
       </h2>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Button size="lg" render={UPLOAD_LINK}>
-          Importer mon FEC
-          <ArrowRight />
-        </Button>
         <Button size="lg" variant="outline" render={DEMO_LINK}>
-          Tester avec une démo
+          Voir la démo
+        </Button>
+        <Button size="lg" render={START_LINK}>
+          Commencer
+          <ArrowRight />
         </Button>
       </div>
     </section>

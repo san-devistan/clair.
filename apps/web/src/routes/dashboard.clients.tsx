@@ -1,14 +1,14 @@
 "use client"
 
-import { AgedBalanceCard } from "@/components/fec/aged-balance-card"
-import { CounterpartyWeightSection } from "@/components/fec/counterparty-weight-section"
-import { DashboardPage } from "@/components/fec/dashboard-page"
-import { DashboardEmptyState } from "@/components/fec/empty-state"
+import { AgedBalanceCard } from "@/components/fec/aged-balance/card"
+import { KpiCard } from "@/components/fec/cards/kpi"
+import { CounterpartyWeightSection } from "@/components/fec/counterparty-weight/section"
+import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
+import { DashboardPage } from "@/components/fec/dashboard/page"
 import {
   FormattedCurrency,
   FormattedNumber,
-} from "@/components/fec/formatted-number"
-import { KpiCard } from "@/components/fec/kpi-card"
+} from "@/components/fec/numbers/formatted"
 import {
   computeCounterpartyVolume,
   computeCustomerPaymentDelay,

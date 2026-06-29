@@ -4,7 +4,6 @@ import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -43,9 +42,6 @@ export function CreateOrganizationDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Créer une organisation</DialogTitle>
-          <DialogDescription>
-            Le compte courant deviendra owner de cette organisation.
-          </DialogDescription>
         </DialogHeader>
         <form className="grid gap-4" onSubmit={onSubmit}>
           <FieldGroup>

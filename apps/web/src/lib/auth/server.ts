@@ -23,13 +23,7 @@ function getConvexSiteUrl() {
   throw new Error("VITE_CONVEX_SITE_URL is required for authenticated Convex")
 }
 
-export const {
-  handler,
-  getToken,
-  fetchAuthQuery,
-  fetchAuthMutation,
-  fetchAuthAction,
-} = convexBetterAuthReactStart({
+export const { handler } = convexBetterAuthReactStart({
   convexUrl: getConvexUrl(),
   convexSiteUrl: getConvexSiteUrl(),
 })

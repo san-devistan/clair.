@@ -27,6 +27,8 @@ import {
 
 const INITIAL_STATE: OrgSwitcherState = {
   createOpen: false,
+  editOpen: false,
+  editOrgName: "",
   error: null,
   memberEmail: "",
   memberRole: "member",
@@ -43,7 +45,14 @@ function orgSwitcherReducer(
     case "created":
       return { ...state, createOpen: false, orgName: "" }
     case "member-added":
-      return { ...state, memberEmail: "", memberRole: "member" }
+      return {
+        ...state,
+        memberEmail: "",
+        memberRole: "member",
+        membersOpen: false,
+      }
+    case "organization-updated":
+      return { ...state, editOpen: false, editOrgName: "" }
     case "patch":
       return { ...state, ...action.patch }
     default:
@@ -75,6 +84,10 @@ export function useOrgSwitcherState() {
     dispatch({ type: "patch", patch: { createOpen } })
   }, [])
 
+  const setEditOpen = useCallback((editOpen: boolean) => {
+    dispatch({ type: "patch", patch: { editOpen } })
+  }, [])
+
   const setMembersOpen = useCallback((membersOpen: boolean) => {
     dispatch({ type: "patch", patch: { membersOpen } })
   }, [])
@@ -83,16 +96,43 @@ export function useOrgSwitcherState() {
     dispatch({ type: "patch", patch: { createOpen: true, error: null } })
   }, [])
 
+  const openEditDialog = useCallback(() => {
+    dispatch({
+      type: "patch",
+      patch: {
+        editOpen: true,
+        editOrgName: activeOrganization?.name ?? "",
+        error: null,
+      },
+    })
+  }, [activeOrganization?.name])
+
   const openMembersDialog = useCallback(() => {
-    dispatch({ type: "patch", patch: { membersOpen: true, error: null } })
+    dispatch({
+      type: "patch",
+      patch: {
+        error: null,
+        memberEmail: "",
+        memberRole: "member",
+        membersOpen: true,
+      },
+    })
   }, [])
 
   const closeCreateDialog = useCallback(() => {
     dispatch({ type: "patch", patch: { createOpen: false } })
   }, [])
 
+  const closeEditDialog = useCallback(() => {
+    dispatch({ type: "patch", patch: { editOpen: false } })
+  }, [])
+
   const setOrgName = useCallback((orgName: string) => {
     dispatch({ type: "patch", patch: { orgName } })
+  }, [])
+
+  const setEditOrgName = useCallback((editOrgName: string) => {
+    dispatch({ type: "patch", patch: { editOrgName } })
   }, [])
 
   const setMemberEmail = useCallback((memberEmail: string) => {
@@ -118,6 +158,11 @@ export function useOrgSwitcherState() {
   }, [])
 
   const createOrganization = useCreateOrganization(state.orgName, dispatch)
+  const updateOrganization = useUpdateOrganization(
+    activeOrganization,
+    state.editOrgName,
+    dispatch
+  )
   const addMember = useAddMember(
     activeOrganization,
     addMemberByEmail,
@@ -133,6 +178,14 @@ export function useOrgSwitcherState() {
       void createOrganization()
     },
     [createOrganization]
+  )
+
+  const submitUpdateOrganization = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      void updateOrganization()
+    },
+    [updateOrganization]
   )
 
   const submitAddMember = useCallback(
@@ -156,11 +209,15 @@ export function useOrgSwitcherState() {
     state,
     handlers: {
       closeCreateDialog,
+      closeEditDialog,
       openCreateDialog,
+      openEditDialog,
       openMembersDialog,
       removeMember,
       selectOrganization,
       setCreateOpen,
+      setEditOpen,
+      setEditOrgName,
       setMemberEmail,
       setMemberRole,
       setMembersOpen,
@@ -168,6 +225,7 @@ export function useOrgSwitcherState() {
       signOut,
       submitAddMember,
       submitCreateOrganization,
+      submitUpdateOrganization,
     },
   }
 }
@@ -214,6 +272,61 @@ function useCreateOrganization(
       dispatch({ type: "patch", patch: { pendingAction: null } })
     }
   }, [dispatch, orgName])
+}
+
+function useUpdateOrganization(
+  activeOrganization: ActiveOrganization | null,
+  editOrgName: string,
+  dispatch: Dispatch<OrgSwitcherAction>
+) {
+  return useCallback(async () => {
+    if (!activeOrganization) {
+      dispatch({
+        type: "patch",
+        patch: { error: "Sélectionnez une organisation." },
+      })
+      return
+    }
+
+    const name = editOrgName.trim()
+    if (!name) {
+      dispatch({
+        type: "patch",
+        patch: { error: "Le nom de l'organisation est requis." },
+      })
+      return
+    }
+
+    dispatch({
+      type: "patch",
+      patch: { error: null, pendingAction: "update-org" },
+    })
+    try {
+      const result = await authClient.organization.update({
+        organizationId: activeOrganization.id,
+        data: { name },
+      })
+      if (result.error) {
+        dispatch({
+          type: "patch",
+          patch: {
+            error:
+              result.error.message ?? "Impossible de modifier l'organisation.",
+          },
+        })
+        return
+      }
+
+      dispatch({ type: "organization-updated" })
+    } catch (caughtError) {
+      dispatch({
+        type: "patch",
+        patch: { error: getErrorMessage(caughtError) },
+      })
+    } finally {
+      dispatch({ type: "patch", patch: { pendingAction: null } })
+    }
+  }, [activeOrganization, dispatch, editOrgName])
 }
 
 function useAddMember(

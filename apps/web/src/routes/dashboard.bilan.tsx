@@ -1,16 +1,16 @@
 "use client"
 
-import { BalanceSheetRatioGrid } from "@/components/fec/balance-sheet-ratios"
+import { BalanceSheetRatioGrid } from "@/components/fec/balance-sheet/ratios"
 import {
   BalanceSheetAsOf,
   BalanceSheetLineTable,
   BalanceSheetVisual,
-} from "@/components/fec/balance-sheet-section"
-import { DashboardPage } from "@/components/fec/dashboard-page"
-import { DashboardEmptyState } from "@/components/fec/empty-state"
-import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
-import { FormattedCurrency } from "@/components/fec/formatted-number"
-import { KpiCard } from "@/components/fec/kpi-card"
+} from "@/components/fec/balance-sheet/section"
+import { ExplainedCardTitle } from "@/components/fec/cards/explained-title"
+import { KpiCard } from "@/components/fec/cards/kpi"
+import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
+import { DashboardPage } from "@/components/fec/dashboard/page"
+import { FormattedCurrency } from "@/components/fec/numbers/formatted"
 import type { BalanceSheetSummary } from "@/lib/fec/balance-sheet-types"
 import { formatPercent } from "@/lib/fec/format"
 import { useFecStore } from "@/lib/fec/store"

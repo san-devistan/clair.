@@ -1,7 +1,7 @@
 "use client"
 
-import { DashboardOverview } from "@/components/fec/dashboard-overview"
-import { DASHBOARD_PAGE_FALLBACK } from "@/components/fec/dashboard-page"
+import { DashboardOverview } from "@/components/fec/dashboard/overview"
+import { DASHBOARD_PAGE_FALLBACK } from "@/components/fec/dashboard/page"
 import { createFileRoute } from "@tanstack/react-router"
 import { Suspense } from "react"
 

@@ -1,16 +1,16 @@
 "use client"
 
-import { ComparisonToggle } from "@/components/fec/comparison-toggle"
-import { DashboardPage } from "@/components/fec/dashboard-page"
-import { DashboardEmptyState } from "@/components/fec/empty-state"
-import { ExplainedCardTitle } from "@/components/fec/explained-card-title"
+import { ExplainedCardTitle } from "@/components/fec/cards/explained-title"
+import { KpiCard } from "@/components/fec/cards/kpi"
+import { ComparisonToggle } from "@/components/fec/comparison/toggle"
+import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
+import { DashboardPage } from "@/components/fec/dashboard/page"
+import { MonthlyBarChart } from "@/components/fec/monthly/bar-chart"
 import {
   FormattedCurrency,
   FormattedNumber,
-} from "@/components/fec/formatted-number"
-import { KpiCard } from "@/components/fec/kpi-card"
-import { MonthlyBarChart } from "@/components/fec/monthly-bar-chart"
-import { RepartitionSection } from "@/components/fec/repartition-section"
+} from "@/components/fec/numbers/formatted"
+import { RepartitionSection } from "@/components/fec/repartition/section"
 import type { DashboardData } from "@/lib/fec/analytics"
 import {
   computeMonthlyAverage,

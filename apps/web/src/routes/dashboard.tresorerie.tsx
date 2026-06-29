@@ -1,7 +1,7 @@
 "use client"
 
-import { DashboardEmptyState } from "@/components/fec/empty-state"
-import { TresorerieContent } from "@/components/fec/tresorerie-content"
+import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
+import { TresorerieContent } from "@/components/fec/treasury/content"
 import { useFecStore } from "@/lib/fec/store"
 import { createFileRoute } from "@tanstack/react-router"
 

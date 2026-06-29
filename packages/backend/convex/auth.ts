@@ -17,6 +17,23 @@ export const getCurrentUser = query({
   },
 })
 
+export const getEmailAuthStatus = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = normalizeEmail(args.email)
+    if (!email) {
+      return { exists: false }
+    }
+
+    const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+      model: "user",
+      where: [{ field: "email", value: email }],
+    })
+
+    return { exists: Boolean(user && typeof user.id === "string") }
+  },
+})
+
 export const addMemberByEmail = mutation({
   args: {
     email: v.string(),

@@ -16,45 +16,8 @@ function parseHref(href: string) {
   }
 }
 
-function toSearchParams(search: Record<string, unknown>) {
-  const params = new URLSearchParams()
-
-  for (const [key, value] of Object.entries(search)) {
-    if (value == null) continue
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (item != null) params.append(key, searchValueToString(item))
-      }
-      continue
-    }
-    params.set(key, searchValueToString(value))
-  }
-
-  return params
-}
-
-function searchValueToString(value: unknown) {
-  if (typeof value === "string") return value
-  if (typeof value === "number" || typeof value === "boolean")
-    return String(value)
-  return JSON.stringify(value) ?? ""
-}
-
 export function usePathname() {
   return useRouterState({ select: (state) => state.location.pathname })
-}
-
-export function useSearchParams() {
-  const search = useRouterState({
-    select: (state) => state.location.search as Record<string, unknown>,
-  })
-
-  return useMemo(() => {
-    const params = toSearchParams(search)
-    return {
-      get: params.get.bind(params),
-    }
-  }, [search])
 }
 
 export function useRouter() {
