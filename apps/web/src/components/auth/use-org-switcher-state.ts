@@ -24,7 +24,6 @@ import {
   hasManageMembersRole,
   makeSlug,
 } from "./org-switcher.utils"
-import { useAuthOnboarding } from "./use-auth-onboarding"
 
 const INITIAL_STATE: OrgSwitcherState = {
   createOpen: false,
@@ -61,6 +60,16 @@ function orgSwitcherReducer(
   }
 }
 
+function isOrganizationLimitError(message: string) {
+  const normalized = message.toLowerCase()
+  return (
+    normalized.includes("maximum number of organizations") ||
+    normalized.includes("maxim") ||
+    normalized.includes("reached") ||
+    normalized.includes("limite")
+  )
+}
+
 export function useOrgSwitcherState() {
   const addMemberByEmail = useMutation(api.auth.addMemberByEmail)
   const { data: session } = authClient.useSession()
@@ -69,8 +78,6 @@ export function useOrgSwitcherState() {
   const { data: activeOrganization } = authClient.useActiveOrganization()
   const [state, dispatch] = useReducer(orgSwitcherReducer, INITIAL_STATE)
   const didSetInitialOrg = useRef(false)
-
-  useAuthOnboarding(session)
 
   useEffect(() => {
     if (didSetInitialOrg.current || activeOrganization || !organizations?.[0]) {
@@ -255,12 +262,18 @@ function useCreateOrganization(
     try {
       const result = await authClient.organization.create({ name, slug })
       if (result.error) {
+        const message =
+          result.error.message ?? "Impossible de créer l'organisation."
+        if (isOrganizationLimitError(message)) {
+          window.location.assign(
+            "/onboarding?intent=create-organization&redirect=/dashboard"
+          )
+          return
+        }
+
         dispatch({
           type: "patch",
-          patch: {
-            error:
-              result.error.message ?? "Impossible de créer l'organisation.",
-          },
+          patch: { error: message },
         })
         return
       }

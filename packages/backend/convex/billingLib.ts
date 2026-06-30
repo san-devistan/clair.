@@ -101,7 +101,7 @@ export const PLAN_CATALOG: PlanCatalogItem[] = [
 
 const FREE_ENTITLEMENTS: BillingEntitlements = {
   planId: "free",
-  organizationLimit: 1,
+  organizationLimit: 0,
   membersPerOrganization: 1,
   subscription: null,
 }

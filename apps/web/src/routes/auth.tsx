@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useReducer,
+  useRef,
   type ChangeEvent,
   type FormEvent,
 } from "react"
@@ -43,6 +44,10 @@ const INITIAL_AUTH_STATE: AuthState = {
 }
 
 type AuthResult = { type: "success" } | { type: "error"; message: string }
+type AuthOnboardingResult = {
+  status: string
+  activeOrganizationId?: string | null
+}
 type SignUpInput = {
   email: string
   password: string
@@ -64,51 +69,33 @@ function getErrorMessage(error: unknown) {
   return "Une erreur est survenue."
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null
-}
-
-function getResponseMessage(data: unknown) {
-  if (!isRecord(data)) {
-    return null
-  }
-
-  if (typeof data.message === "string") {
-    return data.message
-  }
-
-  if (isRecord(data.error) && typeof data.error.message === "string") {
-    return data.error.message
-  }
-
-  return null
-}
-
 function isExistingUserError(message: string) {
-  return message.toLowerCase().includes("user already exists")
-}
-
-async function getAuthResponseError(response: Response) {
-  const data: unknown = await response.json().catch(() => null)
-
-  return getResponseMessage(data) ?? "Authentification impossible."
+  const normalized = message.toLowerCase()
+  return (
+    normalized.includes("already exists") ||
+    normalized.includes("user exists") ||
+    normalized.includes("existe déjà")
+  )
 }
 
 async function signUpWithEmail({
   email,
   password,
 }: SignUpInput): Promise<AuthResult> {
-  const response = await fetch("/api/auth/sign-up/email", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email, password }),
+  const result = await authClient.signUp.email({
+    email,
+    password,
+    name: email,
   })
 
-  if (response.ok) {
-    return { type: "success" }
+  if (result.error) {
+    return {
+      type: "error",
+      message: result.error.message ?? "Authentification impossible.",
+    }
   }
 
-  return { type: "error", message: await getAuthResponseError(response) }
+  return { type: "success" }
 }
 
 async function signInWithEmail({
@@ -138,6 +125,16 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
+function makeOnboardingPath(redirectTo: string) {
+  const search = new URLSearchParams()
+  if (redirectTo !== "/dashboard") {
+    search.set("redirect", redirectTo)
+  }
+
+  const query = search.toString()
+  return query ? `/onboarding?${query}` : "/onboarding"
+}
+
 export const Route = createFileRoute("/auth")({
   validateSearch,
   component: AuthPage,
@@ -149,15 +146,39 @@ function AuthPage() {
   const convex = useConvex()
   const { data: session, isPending } = authClient.useSession()
   const [state, dispatch] = useReducer(authReducer, INITIAL_AUTH_STATE)
+  const redirectedSessionUserId = useRef<string | null>(null)
   const redirectTo = redirect ?? "/dashboard"
   const isPasswordStep = state.step === "password"
   const isSignUp = isPasswordStep && state.mode === "sign-up"
 
-  useEffect(() => {
-    if (!isPending && session) {
+  const completeOnboardingAndRedirect = useCallback(async () => {
+    const result: AuthOnboardingResult = await convex.mutation(
+      api.auth.completeAuthOnboarding,
+      {}
+    )
+
+    if (result.status === "ready") {
+      if (result.activeOrganizationId) {
+        await authClient.organization.setActive({
+          organizationId: result.activeOrganizationId,
+        })
+      }
       replace(redirectTo)
+      return
     }
-  }, [isPending, redirectTo, replace, session])
+
+    replace(makeOnboardingPath(redirectTo))
+  }, [convex, redirectTo, replace])
+
+  useEffect(() => {
+    const userId = session?.user.id
+    if (isPending || !userId || redirectedSessionUserId.current === userId) {
+      return
+    }
+
+    redirectedSessionUserId.current = userId
+    void completeOnboardingAndRedirect()
+  }, [completeOnboardingAndRedirect, isPending, session?.user.id])
 
   const title = getAuthTitle(state.step, state.mode)
   const subtitle = getAuthSubtitle(state.step, state.mode)
@@ -225,7 +246,7 @@ function AuthPage() {
         return
       }
 
-      const result = isSignUp
+      let result = isSignUp
         ? await signUpWithEmail({
             email,
             password: state.password,
@@ -235,29 +256,40 @@ function AuthPage() {
             password: state.password,
           })
 
+      if (
+        result.type === "error" &&
+        isSignUp &&
+        isExistingUserError(result.message)
+      ) {
+        result = await signInWithEmail({
+          email,
+          password: state.password,
+        })
+
+        if (result.type === "error") {
+          dispatch({
+            type: "patch",
+            patch: {
+              error: "Un compte existe déjà pour cet email. Connectez-vous.",
+              mode: "sign-in",
+            },
+          })
+          return
+        }
+      }
+
       if (result.type === "error") {
-        const existingUserError =
-          isSignUp && isExistingUserError(result.message)
         dispatch({
           type: "patch",
           patch: {
-            error: existingUserError
-              ? "Un compte existe déjà pour cet email. Connectez-vous."
-              : result.message,
-            ...(existingUserError ? { mode: "sign-in" } : {}),
+            error: result.message,
           },
         })
         return
       }
 
       await authClient.getSession()
-      try {
-        await convex.mutation(api.auth.completeAuthOnboarding, {})
-      } catch (onboardingError) {
-        console.error(onboardingError)
-      }
-
-      replace(redirectTo)
+      await completeOnboardingAndRedirect()
     } catch (caughtError) {
       dispatch({
         type: "patch",
@@ -267,10 +299,9 @@ function AuthPage() {
       dispatch({ type: "patch", patch: { submitting: false } })
     }
   }, [
+    completeOnboardingAndRedirect,
     convex,
     isSignUp,
-    redirectTo,
-    replace,
     state.email,
     state.password,
     state.step,

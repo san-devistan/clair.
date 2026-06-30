@@ -42,7 +42,7 @@ export const createSubscriptionCheckout = action({
       name: identity.name,
     })
 
-    const metadata = buildSubscriptionMetadata(args)
+    const metadata = buildSubscriptionMetadata(args, identity.subject)
     const stripe = createStripe()
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -120,13 +120,16 @@ function getLineItems(args: {
   ]
 }
 
-function buildSubscriptionMetadata(args: {
-  planId: "equipe" | "pro" | "enterprise"
-  enterprise?: {
-    extraOrganizationCount?: number
-    extraMembersPerOrganization?: number
-  }
-}) {
+function buildSubscriptionMetadata(
+  args: {
+    planId: "equipe" | "pro" | "enterprise"
+    enterprise?: {
+      extraOrganizationCount?: number
+      extraMembersPerOrganization?: number
+    }
+  },
+  userId: string
+) {
   if (!isPaidPlanId(args.planId)) {
     throw new ConvexError("Unknown billing plan")
   }
@@ -141,6 +144,7 @@ function buildSubscriptionMetadata(args: {
       : 0
 
   return {
+    userId,
     plan: args.planId,
     enterpriseExtraOrganizationCount: String(extraOrganizationCount),
     enterpriseExtraMembersPerOrganization: String(extraMembersPerOrganization),
