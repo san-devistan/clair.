@@ -7,17 +7,17 @@ import {
   STEPS,
 } from "@/components/landing/data"
 import Link from "@/components/link"
+import { authClient } from "@/lib/auth/client"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import { ArrowRight, CircleAlert, ShieldCheck } from "lucide-react"
-import type { ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 
 const FEATURES_LINK = <Link href="#fonctionnalites" />
 const STEPS_LINK = <Link href="#fonctionnement" />
 const PRIVACY_LINK = <Link href="#confidentialite" />
-const START_LINK = <Link href="/auth?redirect=/dashboard" />
 const DEMO_LINK = <Link href="/dashboard?demo=1" />
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -67,12 +67,24 @@ function Header() {
         <Button size="sm" variant="outline" render={DEMO_LINK}>
           Voir la démo
         </Button>
-        <Button size="sm" render={START_LINK}>
-          Commencer
-          <ArrowRight />
-        </Button>
+        <StartButton size="sm" />
       </div>
     </header>
+  )
+}
+
+function StartButton({ size }: { size: "sm" | "lg" }) {
+  const { data: session, isPending } = authClient.useSession()
+  const isSignedIn = Boolean(session?.user)
+  const href =
+    isSignedIn || isPending ? "/dashboard" : "/auth?redirect=/dashboard"
+  const startLink = useMemo(() => <Link href={href} />, [href])
+
+  return (
+    <Button size={size} render={startLink}>
+      {isSignedIn ? "Tableau de bord" : "Commencer"}
+      <ArrowRight />
+    </Button>
   )
 }
 
@@ -357,10 +369,7 @@ function CtaSection() {
         <Button size="lg" variant="outline" render={DEMO_LINK}>
           Voir la démo
         </Button>
-        <Button size="lg" render={START_LINK}>
-          Commencer
-          <ArrowRight />
-        </Button>
+        <StartButton size="lg" />
       </div>
     </section>
   )

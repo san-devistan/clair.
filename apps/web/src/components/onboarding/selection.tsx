@@ -4,15 +4,13 @@ import { AuthBackground } from "@/components/auth/auth-background"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { Building2, CreditCard, Loader2 } from "lucide-react"
+import { CreditCard, Loader2 } from "lucide-react"
 
 import { PlanCard, type BillingPlan, type PlanId } from "./plan-card"
 
 export type OnboardingDisplayState = {
   checkoutNotice: string | null
   loading: boolean
-  showFinalize: boolean
   showPlans: boolean
 }
 
@@ -22,7 +20,6 @@ export function OnboardingSelection({
   finalizing,
   plans,
   selectedPlanId,
-  onFinalize,
   onSelectPlan,
 }: {
   displayState: OnboardingDisplayState
@@ -30,7 +27,6 @@ export function OnboardingSelection({
   finalizing: boolean
   plans: BillingPlan[]
   selectedPlanId: PlanId | null
-  onFinalize: () => void
   onSelectPlan: (planId: PlanId) => Promise<void>
 }) {
   return (
@@ -82,20 +78,6 @@ export function OnboardingSelection({
                 onSelect={onSelectPlan}
               />
             ))}
-          </div>
-        ) : null}
-
-        {displayState.showFinalize ? (
-          <div className="flex">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={selectedPlanId !== null}
-              onClick={onFinalize}
-            >
-              <Building2 />
-              Finaliser l'entreprise
-            </Button>
           </div>
         ) : null}
       </section>

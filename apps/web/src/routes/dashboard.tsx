@@ -1,4 +1,5 @@
 import { DashboardHeader } from "@/components/fec/dashboard/header"
+import { DashboardCompanyNameDialog } from "@/components/fec/dashboard/onboarding/company-name-dialog"
 import { DashboardSidebar } from "@/components/fec/dashboard/sidebar"
 import { authClient } from "@/lib/auth/client"
 import { useFecStore } from "@/lib/fec/store"
@@ -15,6 +16,7 @@ import { useEffect, useRef } from "react"
 
 type DashboardSearch = {
   demo?: "1"
+  onboarding?: "company-name"
 }
 type DashboardAuthState = "loading" | "ready" | "redirecting"
 
@@ -25,6 +27,8 @@ function isDemoSearchValue(value: unknown) {
 function validateSearch(search: Record<string, unknown>): DashboardSearch {
   return {
     demo: isDemoSearchValue(search.demo) ? "1" : undefined,
+    onboarding:
+      search.onboarding === "company-name" ? "company-name" : undefined,
   }
 }
 
@@ -34,7 +38,7 @@ export const Route = createFileRoute("/dashboard")({
 })
 
 function DashboardLayout() {
-  const { demo } = Route.useSearch()
+  const { demo, onboarding } = Route.useSearch()
   const authState = useDashboardAuthGate(demo === "1")
 
   if (authState !== "ready") {
@@ -44,6 +48,7 @@ function DashboardLayout() {
   return (
     <SidebarProvider>
       <DashboardDemoLoader />
+      <DashboardCompanyNameDialog open={onboarding === "company-name"} />
       <DashboardSidebar />
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">

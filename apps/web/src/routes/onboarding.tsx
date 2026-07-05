@@ -10,7 +10,7 @@ import { useRouter } from "@/lib/navigation"
 import { Navigate, createFileRoute } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import { useAction, useMutation, useQuery } from "convex/react"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 type OnboardingIntent = "login" | "create-organization"
 type OnboardingSearch = {
@@ -25,6 +25,10 @@ type OnboardingResult = {
 
 const EMPTY_PLANS: BillingPlan[] = []
 const AUTH_REDIRECT_SEARCH = { redirect: "/onboarding" }
+const DASHBOARD_COMPANY_ONBOARDING_PATH = "/dashboard?onboarding=company-name"
+const DASHBOARD_COMPANY_ONBOARDING_SEARCH = {
+  onboarding: "company-name",
+} as const
 const DASHBOARD_REDIRECTS = [
   "/dashboard",
   "/dashboard/bilan",
@@ -84,7 +88,7 @@ function getErrorMessage(error: unknown) {
 
 function getCheckoutNotice(checkout: OnboardingSearch["checkout"]) {
   if (checkout === "success") {
-    return "Paiement valide. La creation de l'entreprise se finalise des que Stripe confirme l'abonnement."
+    return "Paiement valide. Preparation de votre tableau de bord..."
   }
 
   if (checkout === "cancelled") {
@@ -105,17 +109,17 @@ function getDisplayState({
   isSessionPending: boolean
   status: OnboardingResult | undefined
 }): OnboardingDisplayState {
-  const loading = isSessionPending || status === undefined
   const canCreateOrganization = status?.status === "can-create-organization"
+  const loading =
+    isSessionPending ||
+    status === undefined ||
+    canCreateOrganization ||
+    checkout === "success"
 
   return {
     checkoutNotice: getCheckoutNotice(checkout),
     loading,
     showPlans: !loading && !finalizing && !canCreateOrganization,
-    showFinalize:
-      !loading &&
-      !finalizing &&
-      (canCreateOrganization || checkout === "success"),
   }
 }
 
@@ -157,27 +161,30 @@ function OnboardingPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(null)
   const [finalizing, setFinalizing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const defaultOrganizationStarted = useRef(false)
 
   const finishWithOrganization = useCallback(
     async (result: OnboardingResult) => {
       if (result.status !== "ready" || !result.activeOrganizationId) {
-        setError("Choisissez un plan pour creer votre entreprise.")
+        setError(
+          "Le paiement est encore en cours de confirmation. Reessayez dans quelques secondes."
+        )
         return
       }
 
       await authClient.organization.setActive({
         organizationId: result.activeOrganizationId,
       })
-      replace(redirectTo)
+      replace(DASHBOARD_COMPANY_ONBOARDING_PATH)
     },
-    [redirectTo, replace]
+    [replace]
   )
 
   const createOrganizationAndRedirect = useCallback(async () => {
     setFinalizing(true)
     setError(null)
     try {
-      const result: OnboardingResult = await createDefaultOrganization()
+      const result: OnboardingResult = await createDefaultOrganization({})
       await finishWithOrganization(result)
     } catch (caughtError) {
       setError(getErrorMessage(caughtError))
@@ -218,10 +225,6 @@ function OnboardingPage() {
     [createCheckout, intent, redirectTo]
   )
 
-  const finalizeOrganization = useCallback(() => {
-    void createOrganizationAndRedirect()
-  }, [createOrganizationAndRedirect])
-
   const displayState = getDisplayState({
     checkout: search.checkout,
     finalizing,
@@ -229,11 +232,33 @@ function OnboardingPage() {
     status,
   })
 
+  useEffect(() => {
+    if (
+      defaultOrganizationStarted.current ||
+      status?.status !== "can-create-organization"
+    ) {
+      return
+    }
+
+    defaultOrganizationStarted.current = true
+    void createOrganizationAndRedirect()
+  }, [createOrganizationAndRedirect, status?.status])
+
   if (shouldRedirectToAuth({ isSessionPending, session, status })) {
     return <Navigate to="/auth" search={AUTH_REDIRECT_SEARCH} replace={true} />
   }
 
   if (status?.status === "ready") {
+    if (search.checkout === "success") {
+      return (
+        <Navigate
+          to="/dashboard"
+          search={DASHBOARD_COMPANY_ONBOARDING_SEARCH}
+          replace={true}
+        />
+      )
+    }
+
     return <Navigate to={getReadyRedirectTo(redirectTo)} replace={true} />
   }
 
@@ -244,7 +269,6 @@ function OnboardingPage() {
       finalizing={finalizing}
       plans={plans ?? EMPTY_PLANS}
       selectedPlanId={selectedPlanId}
-      onFinalize={finalizeOrganization}
       onSelectPlan={startCheckout}
     />
   )

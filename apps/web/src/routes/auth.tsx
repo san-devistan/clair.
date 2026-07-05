@@ -7,6 +7,7 @@ import { useRouter } from "@/lib/navigation"
 import { createFileRoute } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import { useConvex } from "convex/react"
+import { Loader2 } from "lucide-react"
 import {
   useCallback,
   useEffect,
@@ -307,6 +308,14 @@ function AuthPage() {
     [submitAuth]
   )
 
+  if (isPending || session) {
+    return (
+      <AuthPageLayout>
+        <AuthSessionLoading />
+      </AuthPageLayout>
+    )
+  }
+
   return (
     <AuthPageLayout>
       <AuthFormCard
@@ -327,6 +336,15 @@ function AuthPage() {
         onTogglePasswordVisibility={togglePasswordVisibility}
       />
     </AuthPageLayout>
+  )
+}
+
+function AuthSessionLoading() {
+  return (
+    <section className="flex items-center gap-2 rounded-full border bg-background/75 px-4 py-2 text-sm text-muted-foreground shadow-lg shadow-primary/10 backdrop-blur">
+      <Loader2 className="size-4 animate-spin" />
+      <span>Chargement du compte...</span>
+    </section>
   )
 }
 
