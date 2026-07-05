@@ -16,6 +16,7 @@ import { useEffect, useRef } from "react"
 type DashboardSearch = {
   demo?: "1"
 }
+type DashboardAuthState = "loading" | "ready" | "redirecting"
 
 function isDemoSearchValue(value: unknown) {
   return value === "1" || value === 1
@@ -33,7 +34,8 @@ export const Route = createFileRoute("/dashboard")({
 })
 
 function DashboardLayout() {
-  const authState = useDashboardAuthGate()
+  const { demo } = Route.useSearch()
+  const authState = useDashboardAuthGate(demo === "1")
 
   if (authState !== "ready") {
     return <DashboardAuthLoading />
@@ -59,14 +61,25 @@ function DashboardLayout() {
   )
 }
 
-function useDashboardAuthGate() {
+function useDashboardAuthGate(isDemoRequested: boolean) {
   const { replace } = useRouter()
   const { data: session, isPending: isSessionPending } = authClient.useSession()
   const { data: organizations, isPending: isOrganizationPending } =
     authClient.useListOrganizations()
+  const { hydrated, source } = useFecStore()
+  const hasDemoSource = source?.parseResult.meta.fileName === "demo-clair.txt"
+  const canUseDemoDashboard = isDemoRequested || hasDemoSource
+  const authState = getDashboardAuthState({
+    canUseDemoDashboard,
+    hydrated,
+    isOrganizationPending,
+    isSessionPending,
+    organizationCount: organizations?.length ?? 0,
+    session,
+  })
 
   useEffect(() => {
-    if (isSessionPending) {
+    if (authState !== "redirecting") {
       return
     }
 
@@ -74,27 +87,36 @@ function useDashboardAuthGate() {
       replace("/auth?redirect=/dashboard")
       return
     }
+    replace("/onboarding?redirect=/dashboard")
+  }, [authState, replace, session])
 
-    if (isOrganizationPending) {
-      return
-    }
+  return authState
+}
 
-    if ((organizations?.length ?? 0) === 0) {
-      replace("/onboarding?redirect=/dashboard")
-    }
-  }, [
-    isOrganizationPending,
-    isSessionPending,
-    organizations?.length,
-    replace,
-    session,
-  ])
+function getDashboardAuthState({
+  canUseDemoDashboard,
+  hydrated,
+  isOrganizationPending,
+  isSessionPending,
+  organizationCount,
+  session,
+}: {
+  canUseDemoDashboard: boolean
+  hydrated: boolean
+  isOrganizationPending: boolean
+  isSessionPending: boolean
+  organizationCount: number
+  session: ReturnType<typeof authClient.useSession>["data"]
+}): DashboardAuthState {
+  if (canUseDemoDashboard) {
+    return "ready"
+  }
 
-  if (isSessionPending || (session && isOrganizationPending)) {
+  if (!hydrated || isSessionPending || (session && isOrganizationPending)) {
     return "loading"
   }
 
-  if (!session || (organizations?.length ?? 0) === 0) {
+  if (!session || organizationCount === 0) {
     return "redirecting"
   }
 

@@ -23,9 +23,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
-import { Building2, Database, Settings, X, type LucideIcon } from "lucide-react"
+import {
+  Building2,
+  CreditCard,
+  Database,
+  Settings,
+  X,
+  type LucideIcon,
+} from "lucide-react"
 import { useCallback, useState } from "react"
 
+import { BillingSettingsPanel } from "./billing"
 import { DataProviderPanel } from "./data-provider"
 import { EditEnterpriseDialog } from "./edit-enterprise-dialog"
 import { EnterpriseAccessPanel } from "./enterprise"
@@ -37,7 +45,7 @@ const SETTINGS_TRIGGER_BUTTON = (
 )
 
 type SettingsTab = {
-  value: "general" | "enterprise" | "data"
+  value: "general" | "enterprise" | "billing" | "data"
   label: string
   icon: LucideIcon
 }
@@ -47,6 +55,7 @@ type SettingsTabValue = SettingsTab["value"]
 const SETTINGS_TABS: SettingsTab[] = [
   { value: "general", label: "Général", icon: Settings },
   { value: "enterprise", label: "Accès entreprise", icon: Building2 },
+  { value: "billing", label: "Facturation", icon: CreditCard },
   { value: "data", label: "Sources de données", icon: Database },
 ]
 const DEFAULT_SETTINGS_TAB = SETTINGS_TABS[0]
@@ -181,6 +190,9 @@ function SettingsTabs({
               handlers={handlers}
               state={state}
             />
+          </TabsContent>
+          <TabsContent value="billing">
+            <BillingSettingsPanel session={session} />
           </TabsContent>
           <TabsContent value="data">
             <DataProviderPanel

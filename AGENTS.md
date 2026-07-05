@@ -1,7 +1,7 @@
 # Repository Guide
 
-This is a pnpm workspace monorepo. Prefer repo-local conventions and skills
-before introducing new patterns.
+This is a pnpm workspace monorepo. The project name is `clair`; this is the value of the variable `<project-name>`.
+Prefer repo-local conventions and skills before introducing new patterns.
 
 ## Workspace Map
 
@@ -15,15 +15,26 @@ before introducing new patterns.
 
 ## Local Development
 
-Local dev servers use Portless so each app keeps the same URL every time it
-starts.
+Local dev servers keep the same URL every time they start.
 
-- Web app: `https://clair.localhost`
-- Mobile app: `https://mobile.clair.localhost`
+- Web app: `https://<project-name>.localhost`
+- Mobile app: `https://mobile.<project-name>.localhost`
 
-Do not guess or browse random localhost ports when testing local apps. Use the
-Portless URLs above, or run `corepack pnpm exec portless list` to inspect active
-routes.
+When you need to check local dev server logs, inspect the attached Zellij session whose name contains `<project-name>`.
+The server processes should be running in that project's Zellij panes.
+
+## Verification Gate
+
+Before handing off changes, verify the implemented behavior in the running app
+using the `browser:control-in-app-browser` skill against the relevant local dev
+server URL, and inspect dev server logs. If the browser check or logs show errors, warnings, broken UI, failed requests, or unexpected behavior, use the available skills and MCPs to diagnose and fix the issue before handing off.
+
+When you need to try the auth, use `l@gmail.com` for email and `Guillaume8` for password.
+When you need to try the billing, select Card payment method, then put in card informations:
+Card number: 4242424242424242
+Card dates: 04/30
+CVC: 424
+Name: Lele
 
 ## Design System Ownership
 

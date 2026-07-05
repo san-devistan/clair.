@@ -289,7 +289,6 @@ function AuthPage() {
       }
 
       await authClient.getSession()
-      await completeOnboardingAndRedirect()
     } catch (caughtError) {
       dispatch({
         type: "patch",
@@ -298,14 +297,7 @@ function AuthPage() {
     } finally {
       dispatch({ type: "patch", patch: { submitting: false } })
     }
-  }, [
-    completeOnboardingAndRedirect,
-    convex,
-    isSignUp,
-    state.email,
-    state.password,
-    state.step,
-  ])
+  }, [convex, isSignUp, state.email, state.password, state.step])
 
   const submit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {

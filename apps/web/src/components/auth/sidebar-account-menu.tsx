@@ -2,6 +2,7 @@
 
 import { CreateOrganizationDialog } from "@/components/auth/create-organization-dialog"
 import Link from "@/components/link"
+import { useFecStore } from "@/lib/fec/store"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,8 @@ import { useOrgSwitcherState } from "./use-org-switcher-state"
 
 const AUTH_LINK = <Link href="/auth?redirect=/dashboard" />
 const ACCOUNT_MENU_LABEL = "Compte et entreprise"
+const DEMO_ORGANIZATION_LABEL = "Demo Entreprise"
+const EMPTY_ORGANIZATIONS: Organization[] = []
 const ACCOUNT_TRIGGER_BUTTON = (
   <SidebarMenuButton
     aria-label={ACCOUNT_MENU_LABEL}
@@ -35,6 +38,7 @@ const ACCOUNT_TRIGGER_BUTTON = (
 )
 
 export function SidebarAccountMenu() {
+  const { source } = useFecStore()
   const {
     activeOrganization,
     handlers,
@@ -43,6 +47,25 @@ export function SidebarAccountMenu() {
     session,
     state,
   } = useOrgSwitcherState()
+  const isDemoDashboard = source?.parseResult.meta.fileName === "demo-clair.txt"
+
+  if (isDemoDashboard) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <AccountDropdown
+            activeOrganizationId={undefined}
+            canCreateOrganization={false}
+            demoOrganizationLabel={DEMO_ORGANIZATION_LABEL}
+            organizationLabel={DEMO_ORGANIZATION_LABEL}
+            organizations={EMPTY_ORGANIZATIONS}
+            onOpenCreate={handlers.openCreateDialog}
+            onSelectOrganization={handlers.selectOrganization}
+          />
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
 
   if (!session) {
     return (
@@ -66,6 +89,7 @@ export function SidebarAccountMenu() {
         <SidebarMenuItem>
           <AccountDropdown
             activeOrganizationId={activeOrganization?.id}
+            canCreateOrganization={true}
             organizationLabel={organizationLabel}
             organizations={organizations}
             onOpenCreate={handlers.openCreateDialog}
@@ -89,12 +113,16 @@ export function SidebarAccountMenu() {
 
 function AccountDropdown({
   activeOrganizationId,
+  canCreateOrganization,
+  demoOrganizationLabel,
   organizationLabel,
   organizations,
   onOpenCreate,
   onSelectOrganization,
 }: {
   activeOrganizationId: string | undefined
+  canCreateOrganization: boolean
+  demoOrganizationLabel?: string
   organizationLabel: string
   organizations: Organization[]
   onOpenCreate: () => void
@@ -116,14 +144,22 @@ function AccountDropdown({
       >
         <OrganizationSelectItems
           activeOrganizationId={activeOrganizationId}
+          demoOrganizationLabel={demoOrganizationLabel}
           organizations={organizations}
           onSelectOrganization={onSelectOrganization}
         />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-3 px-2 py-2" onClick={onOpenCreate}>
-          <Plus className="size-4" />
-          <span>Nouveau</span>
-        </DropdownMenuItem>
+        {canCreateOrganization ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="gap-3 px-2 py-2"
+              onClick={onOpenCreate}
+            >
+              <Plus className="size-4" />
+              <span>Nouveau</span>
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )

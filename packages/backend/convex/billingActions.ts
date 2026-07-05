@@ -89,6 +89,31 @@ export const createCustomerPortal = action({
   },
 })
 
+export const reactivateCurrentSubscription = action({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new ConvexError("Authentication required")
+    }
+
+    const subscriptions: unknown = await ctx.runQuery(
+      components.stripe.public.listSubscriptionsByUserId,
+      { userId: identity.subject }
+    )
+    const subscription = getReactivatableSubscription(subscriptions)
+    if (!subscription) {
+      throw new ConvexError("Aucun abonnement à renouveler.")
+    }
+
+    await stripeClient.reactivateSubscription(ctx, {
+      stripeSubscriptionId: subscription.stripeSubscriptionId,
+    })
+
+    return { status: "renewed" }
+  },
+})
+
 function getLineItems(args: {
   planId: "equipe" | "pro" | "enterprise"
   enterprise?: {
@@ -207,4 +232,39 @@ function makeSiteUrl(path: string) {
 
 function createStripe() {
   return new Stripe(env.STRIPE_SECRET_KEY)
+}
+
+function getReactivatableSubscription(value: unknown) {
+  if (!Array.isArray(value)) {
+    return null
+  }
+
+  return (
+    value.find(
+      (subscription) =>
+        isSubscriptionRecord(subscription) && subscription.cancelAtPeriodEnd
+    ) ?? null
+  )
+}
+
+function isSubscriptionRecord(value: unknown): value is {
+  cancelAtPeriodEnd: boolean
+  stripeSubscriptionId: string
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    getBooleanFromRecord(value, "cancelAtPeriodEnd") !== null &&
+    getStringFromRecord(value, "stripeSubscriptionId") !== ""
+  )
+}
+
+function getBooleanFromRecord(value: object, key: string) {
+  const field: unknown = Object.getOwnPropertyDescriptor(value, key)?.value
+  return typeof field === "boolean" ? field : null
+}
+
+function getStringFromRecord(value: object, key: string) {
+  const field: unknown = Object.getOwnPropertyDescriptor(value, key)?.value
+  return typeof field === "string" ? field : ""
 }

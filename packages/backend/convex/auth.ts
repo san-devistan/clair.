@@ -48,7 +48,7 @@ export const getEmailAuthStatus = query({
 
     const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
       model: "user",
-      where: [{ field: "email", mode: "insensitive", value: email }],
+      where: [{ field: "email", value: email }],
     })
 
     return { exists: Boolean(getUserId(user)) }
@@ -127,7 +127,6 @@ export const completeAuthOnboarding = mutation({
     }
 
     const organization = await createDefaultOrganization(
-      ctx,
       auth,
       headers,
       user._id
@@ -164,7 +163,6 @@ export const createDefaultOrganizationForCurrentUser = mutation({
 
     const { auth, headers } = await authComponent.getAuth(createAuth, ctx)
     const organization = await createDefaultOrganization(
-      ctx,
       auth,
       headers,
       user._id
@@ -207,7 +205,7 @@ export const addMemberByEmail = mutation({
 
     const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
       model: "user",
-      where: [{ field: "email", mode: "insensitive", value: email }],
+      where: [{ field: "email", value: email }],
     })
 
     const userId = getUserId(user)
@@ -269,7 +267,7 @@ async function listPendingInvitationsByEmail(
   email: string
 ) {
   return await findAuthMany(ctx, "invitation", [
-    { field: "email", mode: "insensitive", value: normalizeEmail(email) },
+    { field: "email", value: normalizeEmail(email) },
     { connector: "AND", field: "status", value: "pending" },
   ])
 }
@@ -282,53 +280,66 @@ async function listUserMemberships(
 }
 
 async function createDefaultOrganization(
-  ctx: Parameters<typeof findAuthMany>[0],
   auth: ReturnType<typeof createAuth>,
   headers: Headers,
   userId: string
 ) {
-  return await auth.api.createOrganization({
-    body: {
-      name: DEFAULT_ORGANIZATION_NAME,
-      slug: await getDefaultOrganizationSlug(ctx, userId),
-    },
+  return await createDefaultOrganizationWithSlug(
+    auth,
     headers,
-  })
+    getDefaultOrganizationSlugCandidates(userId),
+    null
+  )
 }
 
-async function getDefaultOrganizationSlug(
-  ctx: Parameters<typeof findAuthMany>[0],
-  userId: string
-) {
+async function createDefaultOrganizationWithSlug(
+  auth: ReturnType<typeof createAuth>,
+  headers: Headers,
+  slugs: string[],
+  lastCollision: unknown
+): ReturnType<ReturnType<typeof createAuth>["api"]["createOrganization"]> {
+  const [slug, ...remainingSlugs] = slugs
+  if (!slug) {
+    throw (
+      lastCollision ??
+      new ConvexError("Unable to create a unique organization slug")
+    )
+  }
+
+  try {
+    return await auth.api.createOrganization({
+      body: {
+        name: DEFAULT_ORGANIZATION_NAME,
+        slug,
+      },
+      headers,
+    })
+  } catch (error) {
+    if (!isOrganizationAlreadyExistsError(error)) {
+      throw error
+    }
+
+    return await createDefaultOrganizationWithSlug(
+      auth,
+      headers,
+      remainingSlugs,
+      error
+    )
+  }
+}
+
+function getDefaultOrganizationSlugCandidates(userId: string) {
   const userSlug = makeSlug(userId).slice(0, 24)
   const baseSlug = userSlug
     ? `${DEFAULT_ORGANIZATION_SLUG}-${userSlug}`
     : DEFAULT_ORGANIZATION_SLUG
-  const candidateSlugs = Array.from({ length: 10 }, (_, index) =>
+  return Array.from({ length: 20 }, (_, index) =>
     index === 0 ? baseSlug : `${baseSlug}-${index + 1}`
   )
+}
 
-  const availability = await Promise.all(
-    candidateSlugs.map(async (slug) => ({
-      slug,
-      exists:
-        (
-          await findAuthMany(
-            ctx,
-            "organization",
-            [{ field: "slug", value: slug }],
-            1
-          )
-        ).length > 0,
-    }))
-  )
-
-  const available = availability.find((candidate) => !candidate.exists)
-  if (available) {
-    return available.slug
-  }
-
-  throw new ConvexError("Unable to create a unique organization slug")
+function isOrganizationAlreadyExistsError(error: unknown) {
+  return getStringFromRecord(error, "message") === "Organization already exists"
 }
 
 function getActiveOrganizationId(memberships: Array<Record<string, unknown>>) {
@@ -350,6 +361,15 @@ function roleIncludes(role: string, expectedRole: string) {
 
 function getString(value: unknown) {
   return typeof value === "string" ? value : ""
+}
+
+function getStringFromRecord(value: unknown, key: string) {
+  if (typeof value !== "object" || value === null) {
+    return ""
+  }
+
+  const field: unknown = Object.getOwnPropertyDescriptor(value, key)?.value
+  return typeof field === "string" ? field : ""
 }
 
 function getUserId(user: unknown) {

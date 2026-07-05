@@ -4,15 +4,17 @@ import { Button } from "@workspace/ui/components/button"
 
 const DEMO_LINK = <Link href="/dashboard?demo=1" />
 
-export function AuthHeader() {
+export function AuthHeader({ showDemo = true }: { showDemo?: boolean }) {
   return (
     <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between p-6">
       <Link href="/" className="block">
         <ClairBrand />
       </Link>
-      <Button size="sm" variant="outline" render={DEMO_LINK}>
-        Voir la démo
-      </Button>
+      {showDemo ? (
+        <Button size="sm" variant="outline" render={DEMO_LINK}>
+          Voir la démo
+        </Button>
+      ) : null}
     </header>
   )
 }

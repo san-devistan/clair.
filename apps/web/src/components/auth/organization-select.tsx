@@ -31,13 +31,32 @@ export function OrganizationSelectTriggerContent({
 
 export function OrganizationSelectItems({
   activeOrganizationId,
+  demoOrganizationLabel,
   organizations,
   onSelectOrganization,
 }: {
   activeOrganizationId: string | undefined
+  demoOrganizationLabel?: string
   organizations: Organization[]
   onSelectOrganization: (organizationId: string) => void
 }) {
+  if (demoOrganizationLabel) {
+    return (
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>Entreprises accessibles</DropdownMenuLabel>
+        <DropdownMenuItem className="gap-3 px-2 py-2">
+          <IdentityMark label={demoOrganizationLabel} compact />
+          <div className="min-w-0 flex-1 text-left">
+            <p className="truncate text-sm font-medium">
+              {demoOrganizationLabel}
+            </p>
+          </div>
+          <Check className="size-4 text-primary" />
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
+    )
+  }
+
   if (organizations.length === 0) {
     return (
       <DropdownMenuGroup>
