@@ -4,7 +4,7 @@ import type { useOrgSwitcherState } from "@/components/auth/use-org-switcher-sta
 import { FormattedNumber } from "@/components/fec/numbers/formatted"
 import { monthEndDate, monthStartDate } from "@/lib/fec/date-ranges"
 import { formatShortDate } from "@/lib/fec/format"
-import type { useFecStore } from "@/lib/fec/store"
+import type { useFecStore } from "@/lib/fec/store-context"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { CloudUpload, Loader2, Trash2 } from "lucide-react"

@@ -4,11 +4,11 @@ import { ConvexError } from "convex/values"
 
 import { components } from "./_generated/api"
 import { env } from "./_generated/server"
-
-export const PAID_PLAN_IDS = ["equipe", "pro", "enterprise"] as const
-
-export type PaidPlanId = (typeof PAID_PLAN_IDS)[number]
-export type BillingPlanId = "free" | PaidPlanId
+import {
+  PAID_PLAN_IDS,
+  type BillingPlanId,
+  type PaidPlanId,
+} from "./billingPlans"
 
 type AuthModel = "member" | "invitation" | "organization"
 type AuthWhere = Array<{
@@ -55,49 +55,27 @@ export type BillingEntitlements = {
   } | null
 }
 
-export type PlanCatalogItem = {
-  id: PaidPlanId
-  name: string
-  amountCents: number | null
-  currency: "eur"
-  interval: "month"
-  includedOrganizations: number
-  includedMembersPerOrganization: number
-  pricingModel: "flat" | "base-plus-addons"
+export type OrganizationOwnershipUsage = {
+  entitlements: BillingEntitlements
+  ownedOrganizationCount: number
+  canCreateOrganization: boolean
 }
 
-export const PLAN_CATALOG: PlanCatalogItem[] = [
-  {
-    id: "equipe",
-    name: "Equipe",
-    amountCents: 3999,
-    currency: "eur",
-    interval: "month",
-    includedOrganizations: 1,
-    includedMembersPerOrganization: 3,
-    pricingModel: "flat",
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    amountCents: 9999,
-    currency: "eur",
-    interval: "month",
-    includedOrganizations: 3,
-    includedMembersPerOrganization: 10,
-    pricingModel: "flat",
-  },
-  {
-    id: "enterprise",
-    name: "Entreprise",
-    amountCents: null,
-    currency: "eur",
-    interval: "month",
-    includedOrganizations: 5,
-    includedMembersPerOrganization: 20,
-    pricingModel: "base-plus-addons",
-  },
-]
+export type OrganizationMemberUsage = {
+  memberLimit: number
+  memberCount: number
+  pendingInvitationCount: number
+  usedMemberSlots: number
+  canInviteMember: boolean
+}
+
+export function getBillingUserId(user: Record<string, unknown>) {
+  return getString(user._id) || getString(user.id)
+}
+
+export function getAuthModelUserIds(user: Record<string, unknown>) {
+  return uniqueStrings([getString(user.id), getString(user._id)])
+}
 
 const FREE_ENTITLEMENTS: BillingEntitlements = {
   planId: "free",
@@ -116,7 +94,7 @@ const PLAN_RANK: Record<BillingPlanId, number> = {
 }
 
 export function isPaidPlanId(value: string): value is PaidPlanId {
-  return value === "equipe" || value === "pro" || value === "enterprise"
+  return PAID_PLAN_IDS.some((planId) => planId === value)
 }
 
 export async function getBillingEntitlementsForUser(
@@ -137,16 +115,29 @@ export async function getBillingEntitlementsForUser(
   )
 }
 
+export async function getOrganizationOwnershipUsage(
+  ctx: GenericCtx<DataModel>,
+  billingUserId: string,
+  memberUserIds: string | string[] = billingUserId
+): Promise<OrganizationOwnershipUsage> {
+  const [entitlements, ownedCount] = await Promise.all([
+    getBillingEntitlementsForUser(ctx, billingUserId),
+    countOwnedOrganizations(ctx, memberUserIds),
+  ])
+
+  return {
+    entitlements,
+    ownedOrganizationCount: ownedCount,
+    canCreateOrganization: ownedCount < entitlements.organizationLimit,
+  }
+}
+
 export async function hasReachedOwnedOrganizationLimit(
   ctx: GenericCtx<DataModel>,
   userId: string
 ) {
-  const [entitlements, ownedCount] = await Promise.all([
-    getBillingEntitlementsForUser(ctx, userId),
-    countOwnedOrganizations(ctx, userId),
-  ])
-
-  return ownedCount >= entitlements.organizationLimit
+  const usage = await getOrganizationOwnershipUsage(ctx, userId)
+  return !usage.canCreateOrganization
 }
 
 export async function getOrganizationMemberLimit(
@@ -166,17 +157,56 @@ export async function getOrganizationMemberLimit(
   return entitlements.membersPerOrganization
 }
 
-export async function assertOrganizationCanAcceptAnotherMember(
+export async function getOrganizationMemberUsage(
   ctx: GenericCtx<DataModel>,
   organizationId: string
-) {
+): Promise<OrganizationMemberUsage> {
   const [limit, memberCount, pendingInvitationCount] = await Promise.all([
     getOrganizationMemberLimit(ctx, organizationId),
     countOrganizationMembers(ctx, organizationId),
     countPendingInvitations(ctx, organizationId),
   ])
+  const usedMemberSlots = memberCount + pendingInvitationCount
 
-  if (memberCount + pendingInvitationCount >= limit) {
+  return {
+    memberLimit: limit,
+    memberCount,
+    pendingInvitationCount,
+    usedMemberSlots,
+    canInviteMember: usedMemberSlots < limit,
+  }
+}
+
+export async function assertOrganizationCanAcceptAnotherMember(
+  ctx: GenericCtx<DataModel>,
+  organizationId: string
+) {
+  const usage = await getOrganizationMemberUsage(ctx, organizationId)
+
+  if (!usage.canInviteMember) {
+    throw new ConvexError(
+      "La limite de membres de cette entreprise est atteinte."
+    )
+  }
+}
+
+export async function assertOrganizationCanAcceptAnotherMemberForBillingUser(
+  ctx: GenericCtx<DataModel>,
+  organizationId: string,
+  billingUserId: string
+) {
+  const [entitlements, memberCount, pendingInvitationCount] = await Promise.all(
+    [
+      getBillingEntitlementsForUser(ctx, billingUserId),
+      countOrganizationMembers(ctx, organizationId),
+      countPendingInvitations(ctx, organizationId),
+    ]
+  )
+
+  if (
+    memberCount + pendingInvitationCount >=
+    entitlements.membersPerOrganization
+  ) {
     throw new ConvexError(
       "La limite de membres de cette entreprise est atteinte."
     )
@@ -261,17 +291,16 @@ function getPlanLimits(
   }
 }
 
-async function countOwnedOrganizations(
+export async function countOwnedOrganizations(
   ctx: GenericCtx<DataModel>,
-  userId: string
+  userIds: string | string[]
 ) {
-  const memberships = await findAuthMany(ctx, "member", [
-    { field: "userId", value: userId },
-  ])
+  const memberships = await listMembershipsByUserIds(ctx, userIds)
+  const organizationIds = uniqueStrings(
+    memberships.map((membership) => getString(membership.organizationId))
+  )
 
-  return memberships.filter((membership) =>
-    roleIncludes(getString(membership.role), "owner")
-  ).length
+  return organizationIds.length
 }
 
 async function getOrganizationOwner(
@@ -357,6 +386,20 @@ function getNonNegativeInteger(value: string | undefined) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 0
 }
 
+async function listMembershipsByUserIds(
+  ctx: GenericCtx<DataModel>,
+  userIds: string | string[]
+) {
+  const ids = uniqueStrings(Array.isArray(userIds) ? userIds : [userIds])
+  const memberships = await Promise.all(
+    ids.map((userId) =>
+      findAuthMany(ctx, "member", [{ field: "userId", value: userId }])
+    )
+  )
+
+  return dedupeAuthRecords(memberships.flat())
+}
+
 function isStripeSubscriptionRecord(
   value: unknown
 ): value is StripeSubscriptionRecord {
@@ -380,6 +423,25 @@ function roleIncludes(role: string, expectedRole: string) {
 
 function getString(value: unknown) {
   return typeof value === "string" ? value : ""
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)))
+}
+
+function dedupeAuthRecords(records: AuthRecord[]) {
+  const seen = new Set<string>()
+  return records.filter((record) => {
+    const id = getString(record.id) || getString(record._id)
+    if (!id) {
+      return true
+    }
+    if (seen.has(id)) {
+      return false
+    }
+    seen.add(id)
+    return true
+  })
 }
 
 function isRecord(value: unknown): value is AuthRecord {

@@ -2,28 +2,30 @@
 
 import { authClient } from "@/lib/auth/client"
 import { api } from "@workspace/backend/api"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import {
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
-  type Dispatch,
   type FormEvent,
 } from "react"
 
 import type {
   ActiveOrganization,
   MemberRole,
+  Organizations,
   OrgSwitcherAction,
   OrgSwitcherState,
 } from "./org-switcher.types"
+import { EMPTY_ORGANIZATIONS, hasManageMembersRole } from "./org-switcher.utils"
 import {
-  EMPTY_ORGANIZATIONS,
-  getErrorMessage,
-  hasManageMembersRole,
-  makeSlug,
-} from "./org-switcher.utils"
+  useAddMember,
+  useCreateOrganization,
+  useRemoveMember,
+  useUpdateOrganization,
+} from "./use-org-switcher-actions"
 
 const INITIAL_STATE: OrgSwitcherState = {
   createOpen: false,
@@ -36,7 +38,6 @@ const INITIAL_STATE: OrgSwitcherState = {
   orgName: "",
   pendingAction: null,
 }
-
 function orgSwitcherReducer(
   state: OrgSwitcherState,
   action: OrgSwitcherAction
@@ -60,35 +61,20 @@ function orgSwitcherReducer(
   }
 }
 
-function isOrganizationLimitError(message: string) {
-  const normalized = message.toLowerCase()
-  return (
-    normalized.includes("maximum number of organizations") ||
-    normalized.includes("maxim") ||
-    normalized.includes("reached") ||
-    normalized.includes("limite")
-  )
-}
-
 export function useOrgSwitcherState() {
   const addMemberByEmail = useMutation(api.auth.addMemberByEmail)
+  const createOrganizationForCurrentUser = useMutation(
+    api.auth.createOrganizationForCurrentUser
+  )
   const { data: session } = authClient.useSession()
   const { data: organizations, isPending: isOrgListPending } =
     authClient.useListOrganizations()
+  const accessibleOrganizations = getAccessibleOrganizations(organizations)
   const { data: activeOrganization } = authClient.useActiveOrganization()
+  const billingUsage = useBillingUsage(activeOrganization?.id)
   const [state, dispatch] = useReducer(orgSwitcherReducer, INITIAL_STATE)
-  const didSetInitialOrg = useRef(false)
 
-  useEffect(() => {
-    if (didSetInitialOrg.current || activeOrganization || !organizations?.[0]) {
-      return
-    }
-
-    didSetInitialOrg.current = true
-    void authClient.organization.setActive({
-      organizationId: organizations[0].id,
-    })
-  }, [activeOrganization, organizations])
+  useInitialActiveOrganization(activeOrganization, organizations)
 
   const setCreateOpen = useCallback((createOpen: boolean) => {
     dispatch({ type: "patch", patch: { createOpen } })
@@ -167,7 +153,24 @@ export function useOrgSwitcherState() {
     })
   }, [])
 
-  const createOrganization = useCreateOrganization(state.orgName, dispatch)
+  const { canCreateOrganization, canInviteMember, canManageMembers } =
+    getOrgSwitcherAccess({
+      activeOrganization,
+      billingUsage,
+      organizationCount: accessibleOrganizations.length,
+      sessionUserId: session?.user.id,
+    })
+  const activeOrganizationUsage = getActiveOrganizationMemberUsage({
+    activeOrganization,
+    billingUsage,
+  })
+
+  const createOrganization = useCreateOrganization(
+    billingUsage?.canCreateOrganization ?? null,
+    createOrganizationForCurrentUser,
+    state.orgName,
+    dispatch
+  )
   const updateOrganization = useUpdateOrganization(
     activeOrganization,
     state.editOrgName,
@@ -176,6 +179,7 @@ export function useOrgSwitcherState() {
   const addMember = useAddMember(
     activeOrganization,
     addMemberByEmail,
+    activeOrganizationUsage?.canInviteMember ?? null,
     state.memberEmail,
     state.memberRole,
     dispatch
@@ -206,15 +210,15 @@ export function useOrgSwitcherState() {
     [addMember]
   )
 
-  const activeMember = activeOrganization?.members.find(
-    (member) => member.userId === session?.user.id
-  )
-
   return {
     activeOrganization,
-    canManageMembers: hasManageMembersRole(activeMember?.role),
+    billingUsage,
+    activeOrganizationUsage,
+    canCreateOrganization,
+    canInviteMember,
+    canManageMembers,
     isOrgListPending,
-    organizations: organizations ?? EMPTY_ORGANIZATIONS,
+    organizations: accessibleOrganizations,
     session,
     state,
     handlers: {
@@ -240,197 +244,93 @@ export function useOrgSwitcherState() {
   }
 }
 
-function useCreateOrganization(
-  orgName: string,
-  dispatch: Dispatch<OrgSwitcherAction>
+function getAccessibleOrganizations(
+  organizations: Organizations | null | undefined
 ) {
-  return useCallback(async () => {
-    const name = orgName.trim()
-    const slug = makeSlug(name)
-    if (!name || !slug) {
-      dispatch({
-        type: "patch",
-        patch: { error: "Le nom de l'organisation est requis." },
-      })
-      return
-    }
-
-    dispatch({
-      type: "patch",
-      patch: { error: null, pendingAction: "create-org" },
-    })
-    try {
-      const result = await authClient.organization.create({ name, slug })
-      if (result.error) {
-        const message =
-          result.error.message ?? "Impossible de créer l'organisation."
-        if (isOrganizationLimitError(message)) {
-          window.location.assign(
-            "/onboarding?intent=create-organization&redirect=/dashboard"
-          )
-          return
-        }
-
-        dispatch({
-          type: "patch",
-          patch: { error: message },
-        })
-        return
-      }
-
-      dispatch({ type: "created" })
-    } catch (caughtError) {
-      dispatch({
-        type: "patch",
-        patch: { error: getErrorMessage(caughtError) },
-      })
-    } finally {
-      dispatch({ type: "patch", patch: { pendingAction: null } })
-    }
-  }, [dispatch, orgName])
+  return organizations ?? EMPTY_ORGANIZATIONS
 }
 
-function useUpdateOrganization(
-  activeOrganization: ActiveOrganization | null,
-  editOrgName: string,
-  dispatch: Dispatch<OrgSwitcherAction>
-) {
-  return useCallback(async () => {
-    if (!activeOrganization) {
-      dispatch({
-        type: "patch",
-        patch: { error: "Sélectionnez une organisation." },
-      })
-      return
-    }
-
-    const name = editOrgName.trim()
-    if (!name) {
-      dispatch({
-        type: "patch",
-        patch: { error: "Le nom de l'organisation est requis." },
-      })
-      return
-    }
-
-    dispatch({
-      type: "patch",
-      patch: { error: null, pendingAction: "update-org" },
-    })
-    try {
-      const result = await authClient.organization.update({
-        organizationId: activeOrganization.id,
-        data: { name },
-      })
-      if (result.error) {
-        dispatch({
-          type: "patch",
-          patch: {
-            error:
-              result.error.message ?? "Impossible de modifier l'organisation.",
-          },
-        })
-        return
-      }
-
-      dispatch({ type: "organization-updated" })
-    } catch (caughtError) {
-      dispatch({
-        type: "patch",
-        patch: { error: getErrorMessage(caughtError) },
-      })
-    } finally {
-      dispatch({ type: "patch", patch: { pendingAction: null } })
-    }
-  }, [activeOrganization, dispatch, editOrgName])
-}
-
-function useAddMember(
-  activeOrganization: ActiveOrganization | null,
-  addMemberByEmail: ReturnType<
-    typeof useMutation<typeof api.auth.addMemberByEmail>
-  >,
-  memberEmail: string,
-  memberRole: MemberRole,
-  dispatch: Dispatch<OrgSwitcherAction>
-) {
-  return useCallback(async () => {
-    if (!activeOrganization) {
-      dispatch({
-        type: "patch",
-        patch: { error: "Sélectionnez une organisation." },
-      })
-      return
-    }
-
-    dispatch({
-      type: "patch",
-      patch: { error: null, pendingAction: "add-member" },
-    })
-    try {
-      await addMemberByEmail({
-        email: memberEmail,
-        role: memberRole,
-        organizationId: activeOrganization.id,
-      })
-      await authClient.organization.setActive({
-        organizationId: activeOrganization.id,
-      })
-      dispatch({ type: "member-added" })
-    } catch (caughtError) {
-      dispatch({
-        type: "patch",
-        patch: { error: getErrorMessage(caughtError) },
-      })
-    } finally {
-      dispatch({ type: "patch", patch: { pendingAction: null } })
-    }
-  }, [activeOrganization, addMemberByEmail, dispatch, memberEmail, memberRole])
-}
-
-function useRemoveMember(
-  activeOrganization: ActiveOrganization | null,
-  dispatch: Dispatch<OrgSwitcherAction>
-) {
-  const removeMemberAsync = useCallback(
-    async (memberId: string) => {
-      if (!activeOrganization) {
-        return
-      }
-
-      dispatch({
-        type: "patch",
-        patch: { error: null, pendingAction: memberId },
-      })
-      try {
-        const result = await authClient.organization.removeMember({
-          memberIdOrEmail: memberId,
-          organizationId: activeOrganization.id,
-        })
-        if (result.error) {
-          dispatch({
-            type: "patch",
-            patch: {
-              error: result.error.message ?? "Impossible de retirer ce membre.",
-            },
-          })
-        }
-      } catch (caughtError) {
-        dispatch({
-          type: "patch",
-          patch: { error: getErrorMessage(caughtError) },
-        })
-      } finally {
-        dispatch({ type: "patch", patch: { pendingAction: null } })
-      }
-    },
-    [activeOrganization, dispatch]
+function useBillingUsage(activeOrganizationId: string | undefined) {
+  const billingUsageArgs = useMemo(
+    () =>
+      activeOrganizationId ? { organizationId: activeOrganizationId } : {},
+    [activeOrganizationId]
   )
 
-  return useCallback(
-    (memberId: string) => {
-      void removeMemberAsync(memberId)
-    },
-    [removeMemberAsync]
+  return useQuery(api.billing.getCurrentUsage, billingUsageArgs)
+}
+
+function useInitialActiveOrganization(
+  activeOrganization: ActiveOrganization | null,
+  organizations: Organizations | null | undefined
+) {
+  const didSetInitialOrg = useRef(false)
+
+  useEffect(() => {
+    if (didSetInitialOrg.current || activeOrganization || !organizations?.[0]) {
+      return
+    }
+
+    didSetInitialOrg.current = true
+    void authClient.organization.setActive({
+      organizationId: organizations[0].id,
+    })
+  }, [activeOrganization, organizations])
+}
+
+function getOrgSwitcherAccess({
+  activeOrganization,
+  billingUsage,
+  organizationCount,
+  sessionUserId,
+}: {
+  activeOrganization: ActiveOrganization | null
+  billingUsage: ReturnType<typeof useBillingUsage>
+  organizationCount: number
+  sessionUserId: string | undefined
+}) {
+  const activeMember = activeOrganization?.members.find(
+    (member) => member.userId === sessionUserId
   )
+  const canManageMembers = hasManageMembersRole(activeMember?.role)
+  const canCreateOrganization = Boolean(
+    sessionUserId &&
+    billingUsage &&
+    organizationCount < billingUsage.entitlements.organizationLimit
+  )
+  const memberUsage = getActiveOrganizationMemberUsage({
+    activeOrganization,
+    billingUsage,
+  })
+  const canInviteMember = Boolean(
+    activeOrganization && canManageMembers && memberUsage?.canInviteMember
+  )
+
+  return { canCreateOrganization, canInviteMember, canManageMembers }
+}
+
+function getActiveOrganizationMemberUsage({
+  activeOrganization,
+  billingUsage,
+}: {
+  activeOrganization: ActiveOrganization | null
+  billingUsage: ReturnType<typeof useBillingUsage>
+}) {
+  const memberLimit = billingUsage?.entitlements.membersPerOrganization
+  if (!activeOrganization || memberLimit === undefined) {
+    return null
+  }
+
+  const pendingInvitationCount = activeOrganization.invitations.filter(
+    (invitation) => invitation.status === "pending"
+  ).length
+  const usedMemberSlots =
+    activeOrganization.members.length + pendingInvitationCount
+
+  return {
+    canInviteMember: usedMemberSlots < memberLimit,
+    memberLimit,
+    pendingInvitationCount,
+    usedMemberSlots,
+  }
 }

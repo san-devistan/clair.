@@ -1,5 +1,6 @@
 import type { DataSource } from "./data-source"
 import { isMonthKey, type MonthRange } from "./date-ranges"
+import { DEMO_FEC_FILE_NAME } from "./demo-source"
 import type { FecEntry, FecParseResult } from "./types"
 
 const STORAGE_KEY = "clair.fec.dashboard"
@@ -96,7 +97,7 @@ export async function buildDemoFile(): Promise<File> {
   const { generateDemoFecText } = await import("./demo")
   const text = generateDemoFecText()
   const blob = new Blob([text], { type: "text/plain" })
-  return new File([blob], "demo-clair.txt", { type: "text/plain" })
+  return new File([blob], DEMO_FEC_FILE_NAME, { type: "text/plain" })
 }
 
 const EMPTY_PERSISTED_STORE: PersistedFecStore = {

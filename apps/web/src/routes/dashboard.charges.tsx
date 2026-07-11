@@ -10,7 +10,7 @@ import { FormattedCurrency } from "@/components/fec/numbers/formatted"
 import { RepartitionSection } from "@/components/fec/repartition/section"
 import { computeMonthlyAverage } from "@/lib/fec/dashboard-metrics"
 import { formatPercent } from "@/lib/fec/format"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 import { createFileRoute } from "@tanstack/react-router"
 import {
   Card,

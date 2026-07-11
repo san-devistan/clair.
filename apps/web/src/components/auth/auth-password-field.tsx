@@ -6,7 +6,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Eye, EyeOff } from "lucide-react"
-import type { ChangeEvent } from "react"
+import { useEffect, useRef, type ChangeEvent } from "react"
 
 export function AuthPasswordField({
   isSignUp,
@@ -21,16 +21,22 @@ export function AuthPasswordField({
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
   onToggleVisibility: () => void
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   const VisibilityIcon = showPassword ? EyeOff : Eye
   const visibilityLabel = showPassword
     ? "Masquer le mot de passe"
     : "Afficher le mot de passe"
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   return (
     <Field>
       <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
       <div className="relative">
         <Input
+          ref={inputRef}
           id="password"
           type={showPassword ? "text" : "password"}
           value={value}

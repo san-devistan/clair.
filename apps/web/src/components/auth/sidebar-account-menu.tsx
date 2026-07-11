@@ -2,7 +2,8 @@
 
 import { CreateOrganizationDialog } from "@/components/auth/create-organization-dialog"
 import Link from "@/components/link"
-import { useFecStore } from "@/lib/fec/store"
+import { isDemoDataSource } from "@/lib/fec/demo-source"
+import { useFecStore } from "@/lib/fec/store-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,13 +42,14 @@ export function SidebarAccountMenu() {
   const { source } = useFecStore()
   const {
     activeOrganization,
+    canCreateOrganization,
     handlers,
     isOrgListPending,
     organizations,
     session,
     state,
   } = useOrgSwitcherState()
-  const isDemoDashboard = source?.parseResult.meta.fileName === "demo-clair.txt"
+  const isDemoDashboard = !session && isDemoDataSource(source)
 
   if (isDemoDashboard) {
     return (
@@ -89,7 +91,7 @@ export function SidebarAccountMenu() {
         <SidebarMenuItem>
           <AccountDropdown
             activeOrganizationId={activeOrganization?.id}
-            canCreateOrganization={true}
+            canCreateOrganization={canCreateOrganization}
             organizationLabel={organizationLabel}
             organizations={organizations}
             onOpenCreate={handlers.openCreateDialog}

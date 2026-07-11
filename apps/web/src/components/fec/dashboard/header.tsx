@@ -5,7 +5,7 @@ import {
   monthCount,
   suggestComparisonRange,
 } from "@/lib/fec/date-ranges"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 import { usePathname } from "@/lib/navigation"
 import {
   Breadcrumb,

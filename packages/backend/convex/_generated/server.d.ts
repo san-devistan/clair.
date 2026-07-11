@@ -31,6 +31,7 @@ type Env = {
   readonly STRIPE_ENTERPRISE_EXTRA_MEMBER_PRICE_ID: string | undefined;
   readonly STRIPE_ENTERPRISE_EXTRA_ORGANIZATION_PRICE_ID: string | undefined;
   readonly STRIPE_EQUIPE_PRICE_ID: string;
+  readonly STRIPE_PRODUCT_IMAGE_URL: string | undefined;
   readonly STRIPE_PRO_PRICE_ID: string;
   readonly STRIPE_SECRET_KEY: string;
   readonly STRIPE_WEBHOOK_SECRET: string;

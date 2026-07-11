@@ -5,7 +5,7 @@ import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
 import { DashboardPage } from "@/components/fec/dashboard/page"
 import { InsightCard } from "@/components/fec/insights/card"
 import { FormattedNumber } from "@/components/fec/numbers/formatted"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 import { createFileRoute } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import {

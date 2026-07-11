@@ -13,7 +13,7 @@ import {
   computeCounterpartyVolume,
   computeCustomerPaymentDelay,
 } from "@/lib/fec/dashboard-metrics"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 import { createFileRoute } from "@tanstack/react-router"
 import { CalendarClock, CircleDollarSign, HandCoins, Users } from "lucide-react"
 import { Fragment, createElement } from "react"

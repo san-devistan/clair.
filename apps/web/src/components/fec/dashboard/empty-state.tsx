@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "@/components/link"
-import { useFecStore } from "@/lib/fec/store"
+import { authClient } from "@/lib/auth/client"
+import { useFecStore } from "@/lib/fec/store-context"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { ArrowRight, FileSpreadsheet, Loader2, Sparkles } from "lucide-react"
@@ -11,7 +12,9 @@ const START_LINK = <Link href="/auth?redirect=/dashboard" />
 
 function EmptyStateInner() {
   const { hydrated, importDemo, importState } = useFecStore()
+  const { data: session, isPending: isSessionPending } = authClient.useSession()
   const loadDemo = useCallback(() => void importDemo(), [importDemo])
+  const canLoadDemo = !isSessionPending && !session
 
   if (!hydrated) {
     return (
@@ -46,19 +49,22 @@ function EmptyStateInner() {
         Importez votre FEC pour commencer
       </h2>
       <p className="mt-3 text-base text-muted-foreground">
-        La démo reste accessible sans compte. Pour importer un FEC,
-        connectez-vous afin de rattacher la source à votre entreprise.
+        {session
+          ? "Ajoutez une source FEC pour rattacher les indicateurs à cette entreprise."
+          : "La démo reste accessible sans compte. Pour importer un FEC, connectez-vous afin de rattacher la source à votre entreprise."}
       </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Button size="lg" render={START_LINK}>
-          Commencer
-          <ArrowRight />
-        </Button>
-        <Button size="lg" variant="outline" onClick={loadDemo}>
-          <Sparkles />
-          Charger une démo
-        </Button>
-      </div>
+      {canLoadDemo ? (
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" render={START_LINK}>
+            Commencer
+            <ArrowRight />
+          </Button>
+          <Button size="lg" variant="outline" onClick={loadDemo}>
+            <Sparkles />
+            Charger une démo
+          </Button>
+        </div>
+      ) : null}
 
       <Card className="mt-12 w-full p-6 text-left">
         <p className="text-sm font-medium">Comment exporter mon FEC ?</p>

@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as billing from "../billing.js";
 import type * as billingActions from "../billingActions.js";
 import type * as billingLib from "../billingLib.js";
+import type * as billingPlans from "../billingPlans.js";
 import type * as http from "../http.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   billingActions: typeof billingActions;
   billingLib: typeof billingLib;
+  billingPlans: typeof billingPlans;
   http: typeof http;
 }>;
 

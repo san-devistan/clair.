@@ -20,16 +20,20 @@ import { SignInRequired } from "./sign-in-required"
 
 export function EnterpriseAccessPanel({
   activeOrganization,
+  canInviteMember,
   canManageMembers,
   currentUserId,
   handlers,
+  memberUsage,
   session,
   state,
 }: {
   activeOrganization: ActiveOrganization | null
+  canInviteMember: boolean
   canManageMembers: boolean
   currentUserId: string | undefined
   handlers: OrgSwitcherHandlers
+  memberUsage: MemberUsage
   session: ReturnType<typeof useOrgSwitcherState>["session"]
   state: OrgSwitcherState
 }) {
@@ -49,9 +53,13 @@ export function EnterpriseAccessPanel({
         onOpenEditOrganization={handlers.openEditDialog}
       />
       <MemberAccessList
-        canAddMember={Boolean(activeOrganization && canManageMembers)}
+        canAddMember={Boolean(
+          activeOrganization && canManageMembers && canInviteMember
+        )}
+        canShowInvite={Boolean(activeOrganization && canManageMembers)}
         canManageMembers={canManageMembers}
         currentUserId={currentUserId}
+        memberUsage={memberUsage}
         members={activeOrganization?.members ?? EMPTY_MEMBERS}
         pendingAction={state.pendingAction}
         onOpenAddMember={handlers.openMembersDialog}
@@ -60,6 +68,16 @@ export function EnterpriseAccessPanel({
     </SettingsPanel>
   )
 }
+
+export type MemberUsage =
+  | {
+      canInviteMember: boolean
+      memberLimit: number
+      pendingInvitationCount: number
+      usedMemberSlots: number
+    }
+  | null
+  | undefined
 
 function EnterpriseNameSection({
   activeOrganization,
@@ -96,16 +114,20 @@ function EnterpriseNameSection({
 
 function MemberAccessList({
   canAddMember,
+  canShowInvite,
   canManageMembers,
   currentUserId,
+  memberUsage,
   members,
   pendingAction,
   onOpenAddMember,
   onRemoveMember,
 }: {
   canAddMember: boolean
+  canShowInvite: boolean
   canManageMembers: boolean
   currentUserId: string | undefined
+  memberUsage: MemberUsage
   members: OrganizationMember[]
   pendingAction: string | null
   onOpenAddMember: () => void
@@ -116,7 +138,9 @@ function MemberAccessList({
       <section className="grid gap-2 py-4">
         <AccessListTitle
           canAddMember={canAddMember}
+          canShowInvite={canShowInvite}
           count={0}
+          memberUsage={memberUsage}
           onOpenAddMember={onOpenAddMember}
         />
         <div className="py-3 text-sm text-muted-foreground">
@@ -130,7 +154,9 @@ function MemberAccessList({
     <section className="grid gap-2 py-4">
       <AccessListTitle
         canAddMember={canAddMember}
+        canShowInvite={canShowInvite}
         count={members.length}
+        memberUsage={memberUsage}
         onOpenAddMember={onOpenAddMember}
       />
       <div className="divide-y">
@@ -150,24 +176,45 @@ function MemberAccessList({
 
 function AccessListTitle({
   canAddMember,
+  canShowInvite,
   count,
+  memberUsage,
   onOpenAddMember,
 }: {
   canAddMember: boolean
+  canShowInvite: boolean
   count: number
+  memberUsage: MemberUsage
   onOpenAddMember: () => void
 }) {
+  const limitReached = canShowInvite && memberUsage?.canInviteMember === false
+
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-baseline gap-2">
-        <p className="text-base font-semibold">Liste de membres</p>
-        <span className="text-xs text-muted-foreground">
-          {count} {count > 1 ? "membres" : "membre"}
-        </span>
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <p className="text-base font-semibold">Liste de membres</p>
+          <span className="text-xs text-muted-foreground">
+            {formatMemberUsage(count, memberUsage)}
+          </span>
+        </div>
+        {limitReached ? (
+          <p className="text-xs text-muted-foreground">
+            Limite du plan atteinte.
+          </p>
+        ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {canAddMember ? (
-          <Button type="button" size="sm" onClick={onOpenAddMember}>
+        {canShowInvite ? (
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canAddMember}
+            title={
+              canAddMember ? "Inviter un membre" : "Limite du plan atteinte"
+            }
+            onClick={onOpenAddMember}
+          >
             <UserPlus />
             Inviter
           </Button>
@@ -175,6 +222,14 @@ function AccessListTitle({
       </div>
     </div>
   )
+}
+
+function formatMemberUsage(count: number, usage: MemberUsage) {
+  if (!usage) {
+    return `${count} ${count > 1 ? "membres" : "membre"}`
+  }
+
+  return `${usage.usedMemberSlots}/${usage.memberLimit} places`
 }
 
 function MemberRow({

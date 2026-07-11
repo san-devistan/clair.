@@ -2,7 +2,8 @@ import { DashboardHeader } from "@/components/fec/dashboard/header"
 import { DashboardCompanyNameDialog } from "@/components/fec/dashboard/onboarding/company-name-dialog"
 import { DashboardSidebar } from "@/components/fec/dashboard/sidebar"
 import { authClient } from "@/lib/auth/client"
-import { useFecStore } from "@/lib/fec/store"
+import { isDemoDataSource } from "@/lib/fec/demo-source"
+import { useFecStore } from "@/lib/fec/store-context"
 import { useRouter } from "@/lib/navigation"
 import { Outlet, createFileRoute } from "@tanstack/react-router"
 import { Separator } from "@workspace/ui/components/separator"
@@ -71,17 +72,25 @@ function useDashboardAuthGate(isDemoRequested: boolean) {
   const { data: session, isPending: isSessionPending } = authClient.useSession()
   const { data: organizations, isPending: isOrganizationPending } =
     authClient.useListOrganizations()
-  const { hydrated, source } = useFecStore()
-  const hasDemoSource = source?.parseResult.meta.fileName === "demo-clair.txt"
-  const canUseDemoDashboard = isDemoRequested || hasDemoSource
+  const { hydrated, reset, source } = useFecStore()
+  const hasDemoSource = isDemoDataSource(source)
   const authState = getDashboardAuthState({
-    canUseDemoDashboard,
+    hasDemoSource,
     hydrated,
+    isDemoRequested,
     isOrganizationPending,
     isSessionPending,
     organizationCount: organizations?.length ?? 0,
     session,
   })
+
+  useEffect(() => {
+    if (!hydrated || !session || !hasDemoSource) {
+      return
+    }
+
+    reset()
+  }, [hasDemoSource, hydrated, reset, session])
 
   useEffect(() => {
     if (authState !== "redirecting") {
@@ -99,29 +108,36 @@ function useDashboardAuthGate(isDemoRequested: boolean) {
 }
 
 function getDashboardAuthState({
-  canUseDemoDashboard,
+  hasDemoSource,
   hydrated,
+  isDemoRequested,
   isOrganizationPending,
   isSessionPending,
   organizationCount,
   session,
 }: {
-  canUseDemoDashboard: boolean
+  hasDemoSource: boolean
   hydrated: boolean
+  isDemoRequested: boolean
   isOrganizationPending: boolean
   isSessionPending: boolean
   organizationCount: number
   session: ReturnType<typeof authClient.useSession>["data"]
 }): DashboardAuthState {
-  if (canUseDemoDashboard) {
-    return "ready"
-  }
-
-  if (!hydrated || isSessionPending || (session && isOrganizationPending)) {
+  if (!hydrated || isSessionPending) {
     return "loading"
   }
 
-  if (!session || organizationCount === 0) {
+  const hasSession = Boolean(session)
+  if (!hasSession && (isDemoRequested || hasDemoSource)) {
+    return "ready"
+  }
+
+  if (hasSession && (hasDemoSource || isOrganizationPending)) {
+    return "loading"
+  }
+
+  if (!hasSession || organizationCount === 0) {
     return "redirecting"
   }
 
@@ -143,17 +159,25 @@ function DashboardDemoLoader() {
   const { hydrated, importDemo } = useFecStore()
   const { demo } = Route.useSearch()
   const { replace } = useRouter()
+  const { data: session, isPending: isSessionPending } = authClient.useSession()
   const started = useRef(false)
 
   useEffect(() => {
-    if (!hydrated || demo !== "1" || started.current) return
+    if (!hydrated || isSessionPending || demo !== "1" || started.current) {
+      return
+    }
 
     started.current = true
+    if (session) {
+      replace("/dashboard")
+      return
+    }
+
     void (async () => {
       await importDemo()
       replace("/dashboard")
     })()
-  }, [demo, hydrated, importDemo, replace])
+  }, [demo, hydrated, importDemo, isSessionPending, replace, session])
 
   return null
 }

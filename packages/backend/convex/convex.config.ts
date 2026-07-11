@@ -15,6 +15,7 @@ const app = defineApp({
     STRIPE_ENTERPRISE_BASE_PRICE_ID: v.string(),
     STRIPE_ENTERPRISE_EXTRA_ORGANIZATION_PRICE_ID: v.optional(v.string()),
     STRIPE_ENTERPRISE_EXTRA_MEMBER_PRICE_ID: v.optional(v.string()),
+    STRIPE_PRODUCT_IMAGE_URL: v.optional(v.string()),
   },
 })
 

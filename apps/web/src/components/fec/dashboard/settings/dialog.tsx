@@ -2,7 +2,7 @@
 
 import type { ActiveOrganization } from "@/components/auth/org-switcher.types"
 import { useOrgSwitcherState } from "@/components/auth/use-org-switcher-state"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -36,7 +36,7 @@ import { useCallback, useState } from "react"
 import { BillingSettingsPanel } from "./billing"
 import { DataProviderPanel } from "./data-provider"
 import { EditEnterpriseDialog } from "./edit-enterprise-dialog"
-import { EnterpriseAccessPanel } from "./enterprise"
+import { EnterpriseAccessPanel, type MemberUsage } from "./enterprise"
 import { GeneralSettingsPanel } from "./general"
 import { InviteMemberDialog } from "./invite-member-dialog"
 
@@ -73,8 +73,15 @@ export function DashboardSettingsDialog() {
     DEFAULT_SETTINGS_TAB.value
   )
   const [open, setOpen] = useState(false)
-  const { activeOrganization, canManageMembers, handlers, session, state } =
-    useOrgSwitcherState()
+  const {
+    activeOrganization,
+    activeOrganizationUsage,
+    canInviteMember,
+    canManageMembers,
+    handlers,
+    session,
+    state,
+  } = useOrgSwitcherState()
   const { availableRange, importFile, importState, reset, source } =
     useFecStore()
   const changeActiveTab = useCallback((value: unknown) => {
@@ -102,9 +109,11 @@ export function DashboardSettingsDialog() {
             activeTab={activeTab}
             activeOrganization={activeOrganization}
             availableRange={availableRange}
+            canInviteMember={canInviteMember}
             canManageMembers={canManageMembers}
             importFile={importFile}
             importState={importState}
+            memberUsage={activeOrganizationUsage}
             reset={reset}
             session={session}
             source={source}
@@ -116,7 +125,13 @@ export function DashboardSettingsDialog() {
         </DialogContent>
       </Dialog>
 
-      {session ? <SettingsDialogs handlers={handlers} state={state} /> : null}
+      {session ? (
+        <SettingsDialogs
+          canInviteMember={canInviteMember}
+          handlers={handlers}
+          state={state}
+        />
+      ) : null}
     </>
   )
 }
@@ -125,9 +140,11 @@ function SettingsTabs({
   activeTab,
   activeOrganization,
   availableRange,
+  canInviteMember,
   canManageMembers,
   importFile,
   importState,
+  memberUsage,
   reset,
   session,
   source,
@@ -139,9 +156,11 @@ function SettingsTabs({
   activeTab: SettingsTabValue
   activeOrganization: ActiveOrganization | null
   availableRange: ReturnType<typeof useFecStore>["availableRange"]
+  canInviteMember: boolean
   canManageMembers: boolean
   importFile: ReturnType<typeof useFecStore>["importFile"]
   importState: ReturnType<typeof useFecStore>["importState"]
+  memberUsage: MemberUsage
   reset: ReturnType<typeof useFecStore>["reset"]
   session: ReturnType<typeof useOrgSwitcherState>["session"]
   source: ReturnType<typeof useFecStore>["source"]
@@ -184,9 +203,11 @@ function SettingsTabs({
           <TabsContent value="enterprise">
             <EnterpriseAccessPanel
               activeOrganization={activeOrganization}
+              canInviteMember={canInviteMember}
               canManageMembers={canManageMembers}
               session={session}
               currentUserId={currentUserId}
+              memberUsage={memberUsage}
               handlers={handlers}
               state={state}
             />
@@ -236,9 +257,11 @@ function isSettingsTabValue(value: unknown): value is SettingsTabValue {
 }
 
 function SettingsDialogs({
+  canInviteMember,
   handlers,
   state,
 }: {
+  canInviteMember: boolean
   handlers: ReturnType<typeof useOrgSwitcherState>["handlers"]
   state: ReturnType<typeof useOrgSwitcherState>["state"]
 }) {
@@ -259,6 +282,7 @@ function SettingsDialogs({
         onSubmit={handlers.submitUpdateOrganization}
       />
       <InviteMemberDialog
+        canInviteMember={canInviteMember}
         error={state.error}
         open={state.membersOpen}
         memberEmail={state.memberEmail}

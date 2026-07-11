@@ -6,7 +6,7 @@ import { OverviewKpiSection } from "@/components/fec/overview/kpi-section"
 import { ResultCompositionSection } from "@/components/fec/overview/result-composition-section"
 import { TreasuryOverviewSection } from "@/components/fec/treasury/overview-section"
 import { buildTreasuryProjectionPoint } from "@/lib/fec/dashboard-metrics"
-import { useFecStore } from "@/lib/fec/store"
+import { useFecStore } from "@/lib/fec/store-context"
 
 import { DashboardEmptyState } from "./empty-state"
 import { DashboardPage } from "./page"

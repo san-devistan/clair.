@@ -1,6 +1,6 @@
 # Repository Guide
 
-This is a pnpm workspace monorepo. The project name is `clair`; this is the value of the variable `<project-name>`.
+This is a pnpm workspace monorepo. The project name is `template`; this is the value of the variable `<project-name>`.
 Prefer repo-local conventions and skills before introducing new patterns.
 
 ## Workspace Map
@@ -25,16 +25,12 @@ The server processes should be running in that project's Zellij panes.
 
 ## Verification Gate
 
-Before handing off changes, verify the implemented behavior in the running app
-using the `browser:control-in-app-browser` skill against the relevant local dev
-server URL, and inspect dev server logs. If the browser check or logs show errors, warnings, broken UI, failed requests, or unexpected behavior, use the available skills and MCPs to diagnose and fix the issue before handing off.
+Before handing off changes, verify the implemented behavior in the running app using the appropriate local app verification skill:
 
-When you need to try the auth, use `l@gmail.com` for email and `Guillaume8` for password.
-When you need to try the billing, select Card payment method, then put in card informations:
-Card number: 4242424242424242
-Card dates: 04/30
-CVC: 424
-Name: Lele
+- For local web app changes, use the `browser:control-in-app-browser` skill against the relevant local dev server URL.
+- For local iOS app changes, use the `build-ios-apps:ios-simulator-browser` skill against the running iOS Simulator app.
+
+Inspect dev server logs as part of verification. If the app check or logs show errors, warnings, broken UI, failed requests, or unexpected behavior, use the available skills and MCPs to diagnose and fix the issue before handing off.
 
 ## Design System Ownership
 

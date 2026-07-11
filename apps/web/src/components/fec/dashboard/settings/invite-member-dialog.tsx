@@ -24,6 +24,7 @@ import { UserPlus } from "lucide-react"
 import { useCallback, type ChangeEvent } from "react"
 
 export function InviteMemberDialog({
+  canInviteMember,
   error,
   memberEmail,
   memberRole,
@@ -35,6 +36,7 @@ export function InviteMemberDialog({
   onRoleChange,
   onSubmit,
 }: {
+  canInviteMember: boolean
   error: string | null
   memberEmail: string
   memberRole: MemberRole
@@ -46,6 +48,10 @@ export function InviteMemberDialog({
   onRoleChange: (role: MemberRole) => void
   onSubmit: OrgSwitcherHandlers["submitAddMember"]
 }) {
+  const limitError = canInviteMember
+    ? null
+    : "La limite de membres de cette entreprise est atteinte."
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -56,13 +62,13 @@ export function InviteMemberDialog({
           <FieldGroup>
             <MemberEmailField value={memberEmail} onChange={onEmailChange} />
             <MemberRoleField value={memberRole} onChange={onRoleChange} />
-            <FieldError>{error}</FieldError>
+            <FieldError>{error ?? limitError}</FieldError>
           </FieldGroup>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || !canInviteMember}>
               <UserPlus />
               Inviter
             </Button>

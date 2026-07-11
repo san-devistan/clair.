@@ -11,6 +11,8 @@ import { isPaidPlanId } from "./billingLib"
 const stripeClient = new StripeSubscriptions(components.stripe, {
   STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
 })
+const STRIPE_PRODUCT_IMAGE_SOURCE_METADATA_KEY = "clairProductImageSource"
+const STRIPE_PRODUCT_IMAGE_URL_METADATA_KEY = "clairProductImageUrl"
 
 const checkoutPlanId = v.union(
   v.literal("equipe"),
@@ -44,11 +46,14 @@ export const createSubscriptionCheckout = action({
 
     const metadata = buildSubscriptionMetadata(args, identity.subject)
     const stripe = createStripe()
+    const lineItems = getLineItems(args)
+    await syncStripeProductImages(stripe, lineItems)
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customer.customerId,
       client_reference_id: identity.subject,
-      line_items: getLineItems(args),
+      line_items: lineItems,
       metadata,
       subscription_data: { metadata },
       success_url: makeSiteUrl(
@@ -145,6 +150,129 @@ function getLineItems(args: {
   ]
 }
 
+type CheckoutLineItem = ReturnType<typeof getLineItems>[number]
+
+async function syncStripeProductImages(
+  stripe: Stripe,
+  lineItems: CheckoutLineItem[]
+) {
+  const sourceUrl = getStripeProductImageSourceUrl()
+  if (!sourceUrl) {
+    return
+  }
+
+  await Promise.all(
+    uniqueStrings(lineItems.map((lineItem) => lineItem.price)).map((priceId) =>
+      syncStripeProductImage(stripe, priceId, sourceUrl)
+    )
+  )
+}
+
+async function syncStripeProductImage(
+  stripe: Stripe,
+  priceId: string,
+  sourceUrl: string
+) {
+  const price = await stripe.prices.retrieve(priceId, { expand: ["product"] })
+  const product = price.product
+  if (typeof product === "string" || product.deleted) {
+    return
+  }
+
+  const currentImageUrl = getStoredProductImageUrl(product, sourceUrl)
+  if (currentImageUrl) {
+    if (product.images[0] !== currentImageUrl) {
+      await stripe.products.update(product.id, { images: [currentImageUrl] })
+    }
+    return
+  }
+
+  const imageUrl = await uploadStripeProductImage(stripe, sourceUrl)
+  await stripe.products.update(product.id, {
+    images: [imageUrl],
+    metadata: {
+      [STRIPE_PRODUCT_IMAGE_SOURCE_METADATA_KEY]: sourceUrl,
+      [STRIPE_PRODUCT_IMAGE_URL_METADATA_KEY]: imageUrl,
+    },
+  })
+}
+
+function getStoredProductImageUrl(product: Stripe.Product, sourceUrl: string) {
+  if (
+    product.metadata[STRIPE_PRODUCT_IMAGE_SOURCE_METADATA_KEY] !== sourceUrl
+  ) {
+    return ""
+  }
+
+  return product.metadata[STRIPE_PRODUCT_IMAGE_URL_METADATA_KEY] ?? ""
+}
+
+async function uploadStripeProductImage(stripe: Stripe, sourceUrl: string) {
+  const image = await fetchStripeProductImage(sourceUrl)
+  const file = await stripe.files.create({
+    file: {
+      data: image.data,
+      name: image.name,
+      type: image.contentType,
+    },
+    purpose: "business_logo",
+  })
+  const fileLink = await stripe.fileLinks.create({
+    file: file.id,
+    metadata: {
+      [STRIPE_PRODUCT_IMAGE_SOURCE_METADATA_KEY]: sourceUrl,
+    },
+  })
+
+  if (!fileLink.url) {
+    throw new ConvexError("Stripe did not return a public file link URL.")
+  }
+
+  return fileLink.url
+}
+
+async function fetchStripeProductImage(sourceUrl: string) {
+  const response = await fetch(sourceUrl)
+  if (!response.ok) {
+    throw new ConvexError(`Unable to fetch Stripe product image: ${sourceUrl}`)
+  }
+
+  const contentType = getImageContentType(response)
+  const data = new Uint8Array(await response.arrayBuffer())
+  return {
+    contentType,
+    data,
+    name: contentType === "image/jpeg" ? "clair-logo.jpg" : "clair-logo.png",
+  }
+}
+
+function getImageContentType(response: Response) {
+  const contentType =
+    response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ??
+    ""
+  if (contentType !== "image/png" && contentType !== "image/jpeg") {
+    throw new ConvexError("Stripe product image must be PNG or JPEG.")
+  }
+
+  return contentType
+}
+
+function getStripeProductImageSourceUrl() {
+  const configuredUrl = env.STRIPE_PRODUCT_IMAGE_URL?.trim()
+  if (configuredUrl) {
+    return requireHttpsUrl(configuredUrl, "STRIPE_PRODUCT_IMAGE_URL")
+  }
+
+  if (isLocalSiteUrl(env.SITE_URL)) {
+    return null
+  }
+
+  return requireHttpsUrl(
+    new URL("/logo512.png", env.SITE_URL).toString(),
+    "SITE_URL"
+  )
+}
+
 function buildSubscriptionMetadata(
   args: {
     planId: "equipe" | "pro" | "enterprise"
@@ -228,6 +356,29 @@ function makeSiteUrl(path: string) {
   }
 
   return new URL(path, env.SITE_URL).toString()
+}
+
+function requireHttpsUrl(url: string, source: string) {
+  const parsed = new URL(url)
+  if (parsed.protocol !== "https:") {
+    throw new ConvexError(`${source} must resolve to an HTTPS URL.`)
+  }
+
+  return parsed.toString()
+}
+
+function isLocalSiteUrl(siteUrl: string) {
+  const { hostname } = new URL(siteUrl)
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]" ||
+    hostname.endsWith(".localhost")
+  )
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)))
 }
 
 function createStripe() {

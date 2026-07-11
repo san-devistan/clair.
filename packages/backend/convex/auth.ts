@@ -5,8 +5,12 @@ import { mutation, query } from "./_generated/server"
 import { authComponent, createAuth } from "./betterAuth/auth"
 import {
   assertOrganizationCanAcceptAnotherMember,
+  assertOrganizationCanAcceptAnotherMemberForBillingUser,
   findAuthMany,
+  getAuthModelUserIds,
+  getBillingUserId,
   getBillingEntitlementsForUser,
+  getOrganizationOwnershipUsage,
 } from "./billingLib"
 
 const assignableMemberRole = v.union(v.literal("admin"), v.literal("member"))
@@ -63,7 +67,10 @@ export const getOnboardingStatus = query({
       return { status: "unauthenticated" }
     }
 
-    const memberships = await listUserMemberships(ctx, user._id)
+    const memberships = await listUserMemberships(
+      ctx,
+      getAuthModelUserIds(user)
+    )
     const activeOrganizationId = getActiveOrganizationId(memberships)
 
     if (args.intent !== "create-organization" && activeOrganizationId) {
@@ -73,7 +80,10 @@ export const getOnboardingStatus = query({
       }
     }
 
-    const entitlements = await getBillingEntitlementsForUser(ctx, user._id)
+    const entitlements = await getBillingEntitlementsForUser(
+      ctx,
+      getBillingUserId(user)
+    )
     const ownedOrganizationCount = countOwnedMemberships(memberships)
     const canCreateOrganization =
       entitlements.organizationLimit > ownedOrganizationCount
@@ -103,7 +113,10 @@ export const completeAuthOnboarding = mutation({
       headers,
       user.email
     )
-    const memberships = await listUserMemberships(ctx, user._id)
+    const memberships = await listUserMemberships(
+      ctx,
+      getAuthModelUserIds(user)
+    )
 
     if (memberships.length > 0) {
       return {
@@ -114,7 +127,10 @@ export const completeAuthOnboarding = mutation({
       }
     }
 
-    const entitlements = await getBillingEntitlementsForUser(ctx, user._id)
+    const entitlements = await getBillingEntitlementsForUser(
+      ctx,
+      getBillingUserId(user)
+    )
     const ownedOrganizationCount = countOwnedMemberships(memberships)
 
     if (entitlements.organizationLimit <= ownedOrganizationCount) {
@@ -129,7 +145,7 @@ export const completeAuthOnboarding = mutation({
     const organization = await createDefaultOrganization(
       auth,
       headers,
-      user._id
+      getBillingUserId(user)
     )
 
     return {
@@ -149,8 +165,14 @@ export const createDefaultOrganizationForCurrentUser = mutation({
       throw new ConvexError("Authentication required")
     }
 
-    const memberships = await listUserMemberships(ctx, user._id)
-    const entitlements = await getBillingEntitlementsForUser(ctx, user._id)
+    const memberships = await listUserMemberships(
+      ctx,
+      getAuthModelUserIds(user)
+    )
+    const entitlements = await getBillingEntitlementsForUser(
+      ctx,
+      getBillingUserId(user)
+    )
     const ownedOrganizationCount = countOwnedMemberships(memberships)
 
     if (entitlements.organizationLimit <= ownedOrganizationCount) {
@@ -165,8 +187,43 @@ export const createDefaultOrganizationForCurrentUser = mutation({
     const organization = await createDefaultOrganization(
       auth,
       headers,
-      user._id
+      getBillingUserId(user)
     )
+
+    return { status: "ready", activeOrganizationId: organization.id }
+  },
+})
+
+export const createOrganizationForCurrentUser = mutation({
+  args: { name: v.string(), slug: v.string() },
+  handler: async (ctx, args) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new ConvexError("Authentication required")
+    }
+
+    const name = args.name.trim()
+    const slug = makeSlug(args.slug)
+    if (!name || !slug) {
+      throw new ConvexError("Le nom de l'organisation est requis.")
+    }
+
+    const usage = await getOrganizationOwnershipUsage(
+      ctx,
+      getBillingUserId(user),
+      getAuthModelUserIds(user)
+    )
+    if (!usage.canCreateOrganization) {
+      throw new ConvexError(
+        "La limite d'entreprises de votre plan est atteinte."
+      )
+    }
+
+    const { auth, headers } = await authComponent.getAuth(createAuth, ctx)
+    const organization = await auth.api.createOrganization({
+      body: { name, slug },
+      headers,
+    })
 
     return {
       status: "ready",
@@ -183,6 +240,11 @@ export const addMemberByEmail = mutation({
     organizationId: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new ConvexError("Authentication required")
+    }
+
     const email = normalizeEmail(args.email)
     if (!email) {
       throw new ConvexError("Email is required")
@@ -202,13 +264,18 @@ export const addMemberByEmail = mutation({
     }
 
     await assertOrganizationCanAcceptAnotherMember(ctx, args.organizationId)
+    await assertOrganizationCanAcceptAnotherMemberForBillingUser(
+      ctx,
+      args.organizationId,
+      getBillingUserId(user)
+    )
 
-    const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+    const invitee = await ctx.runQuery(components.betterAuth.adapter.findOne, {
       model: "user",
       where: [{ field: "email", value: email }],
     })
 
-    const userId = getUserId(user)
+    const userId = getUserId(invitee)
 
     if (!userId) {
       const invitation = await auth.api.createInvitation({
@@ -274,9 +341,16 @@ async function listPendingInvitationsByEmail(
 
 async function listUserMemberships(
   ctx: Parameters<typeof findAuthMany>[0],
-  userId: string
+  userIds: string | string[]
 ) {
-  return await findAuthMany(ctx, "member", [{ field: "userId", value: userId }])
+  const ids = Array.isArray(userIds) ? userIds : [userIds]
+  const memberships = await Promise.all(
+    ids.map((userId) =>
+      findAuthMany(ctx, "member", [{ field: "userId", value: userId }])
+    )
+  )
+
+  return memberships.flat()
 }
 
 async function createDefaultOrganization(

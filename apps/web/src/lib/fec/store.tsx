@@ -1,9 +1,7 @@
 "use client"
 
 import {
-  createContext,
   type ReactNode,
-  use,
   useCallback,
   useEffect,
   useMemo,
@@ -24,6 +22,11 @@ import {
 } from "./date-ranges"
 import { parseFecFile } from "./parser"
 import {
+  FecStoreContext,
+  type FecStoreValue,
+  type ImportState,
+} from "./store-context"
+import {
   buildDemoFile,
   clearLegacyStorage,
   clearStore,
@@ -31,31 +34,6 @@ import {
   type PersistedFecStore,
   saveStore,
 } from "./store-persistence"
-
-type ImportState =
-  | { status: "idle" }
-  | { status: "parsing"; fileName: string }
-  | { status: "ready" }
-  | { status: "error"; message: string }
-
-interface FecStoreValue {
-  source: DataSource | null
-  data: DashboardData | null
-  comparisonData: DashboardData | null
-  hydrated: boolean
-  importState: ImportState
-  availableRange: MonthRange | null
-  selectedRange: MonthRange | null
-  comparisonRange: MonthRange | null
-  importFile: (file: File) => Promise<void>
-  importDemo: () => Promise<void>
-  setSelectedRange: (range: MonthRange) => void
-  setComparisonRange: (range: MonthRange | null) => void
-  resetComparison: () => void
-  reset: () => void
-}
-
-const FecStoreContext = createContext<FecStoreValue | null>(null)
 
 interface FecStoreState {
   source: DataSource | null
@@ -243,14 +221,6 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
       {children}
     </FecStoreContext.Provider>
   )
-}
-
-export function useFecStore(): FecStoreValue {
-  const ctx = use(FecStoreContext)
-  if (!ctx) {
-    throw new Error("useFecStore must be used within a FecStoreProvider")
-  }
-  return ctx
 }
 
 function hydrateState(store: PersistedFecStore): FecStoreState {
