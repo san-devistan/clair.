@@ -71,7 +71,10 @@ export function useOrgSwitcherState() {
     authClient.useListOrganizations()
   const accessibleOrganizations = getAccessibleOrganizations(organizations)
   const { data: activeOrganization } = authClient.useActiveOrganization()
-  const billingUsage = useBillingUsage(activeOrganization?.id)
+  const billingUsage = useBillingUsage(
+    Boolean(session),
+    activeOrganization?.id
+  )
   const [state, dispatch] = useReducer(orgSwitcherReducer, INITIAL_STATE)
 
   useInitialActiveOrganization(activeOrganization, organizations)
@@ -250,14 +253,20 @@ function getAccessibleOrganizations(
   return organizations ?? EMPTY_ORGANIZATIONS
 }
 
-function useBillingUsage(activeOrganizationId: string | undefined) {
+function useBillingUsage(
+  hasSession: boolean,
+  activeOrganizationId: string | undefined
+) {
   const billingUsageArgs = useMemo(
     () =>
       activeOrganizationId ? { organizationId: activeOrganizationId } : {},
     [activeOrganizationId]
   )
 
-  return useQuery(api.billing.getCurrentUsage, billingUsageArgs)
+  return useQuery(
+    api.billing.getCurrentUsage,
+    hasSession ? billingUsageArgs : "skip"
+  )
 }
 
 function useInitialActiveOrganization(
