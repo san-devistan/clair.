@@ -70,17 +70,13 @@ function DashboardLayout() {
 function useDashboardAuthGate(isDemoRequested: boolean) {
   const { replace } = useRouter()
   const { data: session, isPending: isSessionPending } = authClient.useSession()
-  const { data: organizations, isPending: isOrganizationPending } =
-    authClient.useListOrganizations()
   const { hydrated, reset, source } = useFecStore()
   const hasDemoSource = isDemoDataSource(source)
   const authState = getDashboardAuthState({
     hasDemoSource,
     hydrated,
     isDemoRequested,
-    isOrganizationPending,
     isSessionPending,
-    organizationCount: organizations?.length ?? 0,
     session,
   })
 
@@ -97,12 +93,8 @@ function useDashboardAuthGate(isDemoRequested: boolean) {
       return
     }
 
-    if (!session) {
-      replace("/auth?redirect=/dashboard")
-      return
-    }
-    replace("/onboarding?redirect=/dashboard")
-  }, [authState, replace, session])
+    replace("/auth?redirect=/dashboard")
+  }, [authState, replace])
 
   return authState
 }
@@ -111,17 +103,13 @@ function getDashboardAuthState({
   hasDemoSource,
   hydrated,
   isDemoRequested,
-  isOrganizationPending,
   isSessionPending,
-  organizationCount,
   session,
 }: {
   hasDemoSource: boolean
   hydrated: boolean
   isDemoRequested: boolean
-  isOrganizationPending: boolean
   isSessionPending: boolean
-  organizationCount: number
   session: ReturnType<typeof authClient.useSession>["data"]
 }): DashboardAuthState {
   if (!hydrated || isSessionPending) {
@@ -133,11 +121,11 @@ function getDashboardAuthState({
     return "ready"
   }
 
-  if (hasSession && (hasDemoSource || isOrganizationPending)) {
+  if (hasSession && hasDemoSource) {
     return "loading"
   }
 
-  if (!hasSession || organizationCount === 0) {
+  if (!hasSession) {
     return "redirecting"
   }
 
