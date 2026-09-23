@@ -5,10 +5,11 @@ import { SignInRequired } from "@/components/fec/dashboard/settings/sign-in-requ
 import { api } from "@workspace/backend/api"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
-import { useAction, useQuery } from "convex/react"
+import { useAction } from "convex/react"
 import { ArrowUpRight, ExternalLink, Loader2, RotateCcw } from "lucide-react"
 import { useCallback, useState } from "react"
 
+import { BillingStatusInfoRow } from "./billing-status-badge"
 import { SettingsPanel } from "./panel"
 
 type BillingEntitlements = {
@@ -22,6 +23,10 @@ type BillingEntitlements = {
     stripeSubscriptionId: string
   } | null
 }
+type BillingUsage = ReturnType<typeof useOrgSwitcherState>["billingUsage"]
+type MemberUsage = ReturnType<
+  typeof useOrgSwitcherState
+>["activeOrganizationUsage"]
 type BillingAction = "portal" | "renew"
 
 const PLAN_LABELS: Record<BillingEntitlements["planId"], string> = {
@@ -48,11 +53,16 @@ const PERIOD_DATE_FORMATTER = new Intl.DateTimeFormat("fr-FR", {
 })
 
 export function BillingSettingsPanel({
+  billingUsage,
+  memberUsage,
+  organizationCount,
   session,
 }: {
+  billingUsage: BillingUsage
+  memberUsage: MemberUsage
+  organizationCount: number
   session: ReturnType<typeof useOrgSwitcherState>["session"]
 }) {
-  const entitlements = useQuery(api.billing.getCurrentEntitlements)
   const createCustomerPortal = useAction(
     api.billingActions.createCustomerPortal
   )
@@ -61,8 +71,16 @@ export function BillingSettingsPanel({
   )
   const [pendingAction, setPendingAction] = useState<BillingAction | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const billing = entitlements as BillingEntitlements | null | undefined
-  const display = getBillingDisplay(billing)
+  const billing = billingUsage?.entitlements as
+    | BillingEntitlements
+    | null
+    | undefined
+  const display = getBillingDisplay({
+    billing,
+    billingUsage,
+    memberUsage,
+    organizationCount,
+  })
 
   const openCustomerPortal = useCallback(async () => {
     setPendingAction("portal")
@@ -112,7 +130,11 @@ export function BillingSettingsPanel({
     <SettingsPanel>
       <BillingError error={error} />
       <BillingInfoRow label="Plan" value={display.plan} />
-      <BillingInfoRow label="Statut" value={display.status} />
+      <BillingStatusInfoRow
+        label="Statut"
+        value={display.status}
+        status={billing?.subscription?.status}
+      />
       <BillingInfoRow label={display.periodLabel} value={display.periodValue} />
       <BillingInfoRow label="Entreprises" value={display.organizationLimit} />
       <BillingInfoRow
@@ -260,20 +282,76 @@ function formatPeriodDate(timestamp: number) {
   return PERIOD_DATE_FORMATTER.format(new Date(milliseconds))
 }
 
-function getBillingDisplay(billing: BillingEntitlements | null | undefined) {
+function getBillingDisplay({
+  billing,
+  billingUsage,
+  memberUsage,
+  organizationCount,
+}: {
+  billing: BillingEntitlements | null | undefined
+  billingUsage: BillingUsage
+  memberUsage: MemberUsage
+  organizationCount: number
+}) {
   const subscription = billing?.subscription ?? null
   return {
     plan: billing ? PLAN_LABELS[billing.planId] : "Chargement",
     status: getStatusLabel(subscription?.status) ?? getFallbackStatus(billing),
     periodLabel: getPeriodLabel(subscription),
     periodValue: getPeriodValue(subscription, billing),
-    organizationLimit: billing
-      ? String(billing.organizationLimit)
-      : "Chargement",
-    membersPerOrganization: billing
-      ? String(billing.membersPerOrganization)
-      : "Chargement",
+    organizationLimit: getOrganizationUsageValue(billing, organizationCount),
+    membersPerOrganization: getMembersPerOrganizationValue(
+      billing,
+      billingUsage,
+      memberUsage,
+      organizationCount
+    ),
   }
+}
+
+function getOrganizationUsageValue(
+  billing: BillingEntitlements | null | undefined,
+  organizationCount: number
+) {
+  if (!billing) {
+    return "Chargement"
+  }
+
+  return formatUsageRatio(
+    organizationCount,
+    billing.organizationLimit,
+    "entreprise"
+  )
+}
+
+function getMembersPerOrganizationValue(
+  billing: BillingEntitlements | null | undefined,
+  billingUsage: BillingUsage,
+  memberUsage: MemberUsage,
+  organizationCount: number
+) {
+  if (!billing || !billingUsage) {
+    return "Chargement"
+  }
+
+  if (memberUsage) {
+    return formatUsageRatio(
+      memberUsage.usedMemberSlots,
+      memberUsage.memberLimit,
+      "membre"
+    )
+  }
+
+  if (organizationCount > 0) {
+    return "Chargement"
+  }
+
+  return formatUsageRatio(0, billing.membersPerOrganization, "membre")
+}
+
+function formatUsageRatio(used: number, limit: number, singularUnit: string) {
+  const unit = used > 1 ? `${singularUnit}s` : singularUnit
+  return `${used}/${limit} ${unit}`
 }
 
 function getFallbackStatus(billing: BillingEntitlements | null | undefined) {

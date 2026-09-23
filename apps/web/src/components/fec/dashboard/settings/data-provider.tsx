@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner"
 
 import { SettingsPanel } from "./panel"
+import { SageActiveProviderPanel } from "./sage-active-provider"
 import { SignInRequired } from "./sign-in-required"
 
 const ACCEPTED_EXTENSIONS = [".txt", ".csv", ".tsv"]
@@ -41,6 +42,7 @@ export function DataProviderPanel({
 
   return (
     <SettingsPanel>
+      <SageActiveProviderPanel session={session} />
       <CurrentDataSource
         source={source}
         availableRange={availableRange}

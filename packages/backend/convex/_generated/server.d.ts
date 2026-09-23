@@ -26,6 +26,15 @@ import type { DataModel } from "./dataModel.js";
  */
 type Env = {
   readonly BETTER_AUTH_SECRET: string;
+  readonly SAGE_ACTIVE_API_KEY: string | undefined;
+  readonly SAGE_ACTIVE_API_URL: string | undefined;
+  readonly SAGE_ACTIVE_AUTHORIZATION_URL: string | undefined;
+  readonly SAGE_ACTIVE_CLIENT_ID: string | undefined;
+  readonly SAGE_ACTIVE_CLIENT_SECRET: string | undefined;
+  readonly SAGE_ACTIVE_REDIRECT_URI: string | undefined;
+  readonly SAGE_ACTIVE_SCOPES: string | undefined;
+  readonly SAGE_ACTIVE_TOKEN_ENCRYPTION_KEY: string | undefined;
+  readonly SAGE_ACTIVE_TOKEN_URL: string | undefined;
   readonly SITE_URL: string;
   readonly STRIPE_ENTERPRISE_BASE_PRICE_ID: string;
   readonly STRIPE_ENTERPRISE_EXTRA_MEMBER_PRICE_ID: string | undefined;

@@ -38,6 +38,7 @@ function isOrganizationLimitError(message: string) {
 export function useCreateOrganization(
   canCreateOrganization: boolean | null,
   createOrganizationForCurrentUser: CreateOrganizationMutation,
+  refreshOrganizations: () => Promise<void>,
   orgName: string,
   dispatch: Dispatch<OrgSwitcherAction>
 ) {
@@ -66,6 +67,7 @@ export function useCreateOrganization(
       await authClient.organization.setActive({
         organizationId: result.activeOrganizationId,
       })
+      await refreshOrganizations()
 
       dispatch({ type: "created" })
     } catch (caughtError) {
@@ -87,6 +89,7 @@ export function useCreateOrganization(
     createOrganizationForCurrentUser,
     dispatch,
     orgName,
+    refreshOrganizations,
   ])
 }
 

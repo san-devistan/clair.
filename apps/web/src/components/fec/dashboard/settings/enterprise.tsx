@@ -78,6 +78,14 @@ export type MemberUsage =
     }
   | null
   | undefined
+type RoleBadgeTone = "admin" | "custom" | "member"
+
+const ROLE_BADGE_STYLES: Record<RoleBadgeTone, string> = {
+  admin: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  custom: "border-border bg-muted/50 text-muted-foreground",
+  member:
+    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+}
 
 function EnterpriseNameSection({
   activeOrganization,
@@ -251,7 +259,7 @@ function MemberRow({
     <div className="flex items-center justify-between gap-3 py-2.5">
       <MemberIdentity member={member} />
       <div className="flex shrink-0 items-center gap-2">
-        <Badge variant="secondary">{formatRole(member.role)}</Badge>
+        <MemberRoleBadge role={member.role} />
         <RemoveMemberButton
           canRemove={canRemove}
           pending={pending}
@@ -259,6 +267,20 @@ function MemberRow({
         />
       </div>
     </div>
+  )
+}
+
+function MemberRoleBadge({ role }: { role: string }) {
+  const label = formatRole(role)
+  const tone = getRoleBadgeTone(role, label)
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn("max-w-32 justify-start px-2.5", ROLE_BADGE_STYLES[tone])}
+    >
+      <span className="min-w-0 truncate">{label}</span>
+    </Badge>
   )
 }
 
@@ -310,6 +332,18 @@ function RemoveMemberButton({
       <span className="sr-only">Retirer</span>
     </Button>
   )
+}
+
+function getRoleBadgeTone(role: string, label: string): RoleBadgeTone {
+  if (role.includes("admin") || role.includes("owner")) {
+    return "admin"
+  }
+
+  if (label === "Membre") {
+    return "member"
+  }
+
+  return "custom"
 }
 
 function formatRole(role: string) {

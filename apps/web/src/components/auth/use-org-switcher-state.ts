@@ -67,8 +67,11 @@ export function useOrgSwitcherState() {
     api.auth.createOrganizationForCurrentUser
   )
   const { data: session } = authClient.useSession()
-  const { data: organizations, isPending: isOrgListPending } =
-    authClient.useListOrganizations()
+  const {
+    data: organizations,
+    isPending: isOrgListPending,
+    refetch: refetchOrganizations,
+  } = authClient.useListOrganizations()
   const accessibleOrganizations = getAccessibleOrganizations(organizations)
   const { data: activeOrganization } = authClient.useActiveOrganization()
   const billingUsage = useBillingUsage(activeOrganization?.id)
@@ -168,6 +171,7 @@ export function useOrgSwitcherState() {
   const createOrganization = useCreateOrganization(
     billingUsage?.canCreateOrganization ?? null,
     createOrganizationForCurrentUser,
+    refetchOrganizations,
     state.orgName,
     dispatch
   )

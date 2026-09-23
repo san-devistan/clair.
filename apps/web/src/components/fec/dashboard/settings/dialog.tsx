@@ -36,7 +36,7 @@ import { useCallback, useState } from "react"
 import { BillingSettingsPanel } from "./billing"
 import { DataProviderPanel } from "./data-provider"
 import { EditEnterpriseDialog } from "./edit-enterprise-dialog"
-import { EnterpriseAccessPanel, type MemberUsage } from "./enterprise"
+import { EnterpriseAccessPanel } from "./enterprise"
 import { GeneralSettingsPanel } from "./general"
 import { InviteMemberDialog } from "./invite-member-dialog"
 
@@ -76,9 +76,11 @@ export function DashboardSettingsDialog() {
   const {
     activeOrganization,
     activeOrganizationUsage,
+    billingUsage,
     canInviteMember,
     canManageMembers,
     handlers,
+    organizations,
     session,
     state,
   } = useOrgSwitcherState()
@@ -117,8 +119,10 @@ export function DashboardSettingsDialog() {
             reset={reset}
             session={session}
             source={source}
+            billingUsage={billingUsage}
             currentUserId={session?.user.id}
             handlers={handlers}
+            organizationCount={organizations.length}
             state={state}
             onActiveTabChange={changeActiveTab}
           />
@@ -148,8 +152,10 @@ function SettingsTabs({
   reset,
   session,
   source,
+  billingUsage,
   currentUserId,
   handlers,
+  organizationCount,
   state,
   onActiveTabChange,
 }: {
@@ -160,12 +166,14 @@ function SettingsTabs({
   canManageMembers: boolean
   importFile: ReturnType<typeof useFecStore>["importFile"]
   importState: ReturnType<typeof useFecStore>["importState"]
-  memberUsage: MemberUsage
+  memberUsage: ReturnType<typeof useOrgSwitcherState>["activeOrganizationUsage"]
   reset: ReturnType<typeof useFecStore>["reset"]
   session: ReturnType<typeof useOrgSwitcherState>["session"]
   source: ReturnType<typeof useFecStore>["source"]
+  billingUsage: ReturnType<typeof useOrgSwitcherState>["billingUsage"]
   currentUserId: string | undefined
   handlers: ReturnType<typeof useOrgSwitcherState>["handlers"]
+  organizationCount: number
   state: ReturnType<typeof useOrgSwitcherState>["state"]
   onActiveTabChange: (value: unknown) => void
 }) {
@@ -213,7 +221,12 @@ function SettingsTabs({
             />
           </TabsContent>
           <TabsContent value="billing">
-            <BillingSettingsPanel session={session} />
+            <BillingSettingsPanel
+              billingUsage={billingUsage}
+              memberUsage={memberUsage}
+              organizationCount={organizationCount}
+              session={session}
+            />
           </TabsContent>
           <TabsContent value="data">
             <DataProviderPanel

@@ -16,6 +16,15 @@ const app = defineApp({
     STRIPE_ENTERPRISE_EXTRA_ORGANIZATION_PRICE_ID: v.optional(v.string()),
     STRIPE_ENTERPRISE_EXTRA_MEMBER_PRICE_ID: v.optional(v.string()),
     STRIPE_PRODUCT_IMAGE_URL: v.optional(v.string()),
+    SAGE_ACTIVE_AUTHORIZATION_URL: v.optional(v.string()),
+    SAGE_ACTIVE_TOKEN_URL: v.optional(v.string()),
+    SAGE_ACTIVE_API_URL: v.optional(v.string()),
+    SAGE_ACTIVE_CLIENT_ID: v.optional(v.string()),
+    SAGE_ACTIVE_CLIENT_SECRET: v.optional(v.string()),
+    SAGE_ACTIVE_API_KEY: v.optional(v.string()),
+    SAGE_ACTIVE_REDIRECT_URI: v.optional(v.string()),
+    SAGE_ACTIVE_SCOPES: v.optional(v.string()),
+    SAGE_ACTIVE_TOKEN_ENCRYPTION_KEY: v.optional(v.string()),
   },
 })
 

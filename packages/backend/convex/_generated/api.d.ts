@@ -8,12 +8,17 @@
  * @module
  */
 
+import type * as accountingAccess from "../accountingAccess.js";
+import type * as accountingSources from "../accountingSources.js";
 import type * as auth from "../auth.js";
 import type * as billing from "../billing.js";
 import type * as billingActions from "../billingActions.js";
 import type * as billingLib from "../billingLib.js";
 import type * as billingPlans from "../billingPlans.js";
 import type * as http from "../http.js";
+import type * as sageActiveActions from "../sageActiveActions.js";
+import type * as sageActiveConfig from "../sageActiveConfig.js";
+import type * as sageActiveStore from "../sageActiveStore.js";
 
 import type {
   ApiFromModules,
@@ -22,12 +27,17 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accountingAccess: typeof accountingAccess;
+  accountingSources: typeof accountingSources;
   auth: typeof auth;
   billing: typeof billing;
   billingActions: typeof billingActions;
   billingLib: typeof billingLib;
   billingPlans: typeof billingPlans;
   http: typeof http;
+  sageActiveActions: typeof sageActiveActions;
+  sageActiveConfig: typeof sageActiveConfig;
+  sageActiveStore: typeof sageActiveStore;
 }>;
 
 /**
