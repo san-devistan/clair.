@@ -1,19 +1,12 @@
-import { DashboardHeader } from "@/components/fec/dashboard/header"
 import { DashboardCompanyNameDialog } from "@/components/fec/dashboard/onboarding/company-name-dialog"
-import { DashboardSidebar } from "@/components/fec/dashboard/sidebar"
+import { DashboardShell } from "@/components/fec/dashboard/shell"
 import { authClient } from "@/lib/auth/client"
 import { isDemoDataSource } from "@/lib/fec/demo-source"
 import { useFecStore } from "@/lib/fec/store-context"
 import { useRouter } from "@/lib/navigation"
 import { Outlet, createFileRoute } from "@tanstack/react-router"
-import { Separator } from "@workspace/ui/components/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@workspace/ui/components/sidebar"
 import { Loader2 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 
 type DashboardSearch = {
   demo?: "1"
@@ -47,23 +40,14 @@ function DashboardLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <DashboardDemoLoader />
-      <DashboardCompanyNameDialog open={onboarding === "company-name"} />
-      <DashboardSidebar />
-      <SidebarInset className="min-w-0">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mx-2 h-4" />
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <DashboardHeader />
-          </div>
-        </header>
-        <div className="flex-1">
-          <Outlet />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardShell
+      mode="account"
+      beforeSidebar={
+        <DashboardCompanyNameDialog open={onboarding === "company-name"} />
+      }
+    >
+      <Outlet />
+    </DashboardShell>
   )
 }
 
@@ -81,20 +65,20 @@ function useDashboardAuthGate(isDemoRequested: boolean) {
   })
 
   useEffect(() => {
-    if (!hydrated || !session || !hasDemoSource) {
+    if (!hydrated || !hasDemoSource) {
       return
     }
 
     reset()
-  }, [hasDemoSource, hydrated, reset, session])
+  }, [hasDemoSource, hydrated, reset])
 
   useEffect(() => {
     if (authState !== "redirecting") {
       return
     }
 
-    replace("/auth?redirect=/dashboard")
-  }, [authState, replace])
+    replace(isDemoRequested ? "/demo" : "/auth?redirect=/dashboard")
+  }, [authState, isDemoRequested, replace])
 
   return authState
 }
@@ -112,16 +96,16 @@ function getDashboardAuthState({
   isSessionPending: boolean
   session: ReturnType<typeof authClient.useSession>["data"]
 }): DashboardAuthState {
+  if (isDemoRequested) {
+    return "redirecting"
+  }
+
   if (!hydrated || isSessionPending) {
     return "loading"
   }
 
   const hasSession = Boolean(session)
-  if (!hasSession && (isDemoRequested || hasDemoSource)) {
-    return "ready"
-  }
-
-  if (hasSession && hasDemoSource) {
+  if (hasDemoSource) {
     return "loading"
   }
 
@@ -141,31 +125,4 @@ function DashboardAuthLoading() {
       </div>
     </main>
   )
-}
-
-function DashboardDemoLoader() {
-  const { hydrated, importDemo } = useFecStore()
-  const { demo } = Route.useSearch()
-  const { replace } = useRouter()
-  const { data: session, isPending: isSessionPending } = authClient.useSession()
-  const started = useRef(false)
-
-  useEffect(() => {
-    if (!hydrated || isSessionPending || demo !== "1" || started.current) {
-      return
-    }
-
-    started.current = true
-    if (session) {
-      replace("/dashboard")
-      return
-    }
-
-    void (async () => {
-      await importDemo()
-      replace("/dashboard")
-    })()
-  }, [demo, hydrated, importDemo, isSessionPending, replace, session])
-
-  return null
 }

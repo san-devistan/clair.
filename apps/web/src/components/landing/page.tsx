@@ -18,7 +18,7 @@ import { useMemo, type ReactNode } from "react"
 const FEATURES_LINK = <Link href="#fonctionnalites" />
 const STEPS_LINK = <Link href="#fonctionnement" />
 const PRIVACY_LINK = <Link href="#confidentialite" />
-const DEMO_LINK = <Link href="/dashboard?demo=1" />
+const DEMO_LINK = <Link href="/demo" />
 const CURRENT_YEAR = new Date().getFullYear()
 
 export function HomePage() {

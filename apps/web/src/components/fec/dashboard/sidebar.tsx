@@ -4,6 +4,7 @@ import { SidebarAccountMenu } from "@/components/auth/sidebar-account-menu"
 import { ClairBrand } from "@/components/clair-brand"
 import Link from "@/components/link"
 import { usePathname } from "@/lib/navigation"
+import { Button } from "@workspace/ui/components/button"
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +18,7 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 import {
+  ArrowRight,
   CircleDollarSign,
   ClipboardCheck,
   LayoutDashboard,
@@ -29,42 +31,47 @@ import {
 } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
+import { useDashboardHref, useDashboardMode } from "./mode"
 import { DashboardSettingsDialog } from "./settings/dialog"
 
 interface NavItem {
-  href: string
+  path: string
   label: string
   icon: LucideIcon
 }
 
 const PRIMARY_NAV: NavItem[] = [
-  { href: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+  { path: "", label: "Vue d'ensemble", icon: LayoutDashboard },
   {
-    href: "/dashboard/insights",
+    path: "/insights",
     label: "Actions à mener",
     icon: ClipboardCheck,
   },
 ]
 
 const ANALYSIS_NAV: NavItem[] = [
-  { href: "/dashboard/bilan", label: "Bilan", icon: Scale },
-  { href: "/dashboard/revenus", label: "Revenus", icon: CircleDollarSign },
-  { href: "/dashboard/charges", label: "Charges", icon: ReceiptText },
-  { href: "/dashboard/tresorerie", label: "Trésorerie", icon: Wallet },
+  { path: "/bilan", label: "Bilan", icon: Scale },
+  { path: "/revenus", label: "Revenus", icon: CircleDollarSign },
+  { path: "/charges", label: "Charges", icon: ReceiptText },
+  { path: "/tresorerie", label: "Trésorerie", icon: Wallet },
 ]
 
 const COUNTERPARTY_NAV: NavItem[] = [
-  { href: "/dashboard/clients", label: "Clients", icon: Users },
-  { href: "/dashboard/fournisseurs", label: "Fournisseurs", icon: Truck },
+  { path: "/clients", label: "Clients", icon: Users },
+  { path: "/fournisseurs", label: "Fournisseurs", icon: Truck },
 ]
+
+const START_LINK = <Link href="/auth?redirect=/dashboard" />
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const mode = useDashboardMode()
+  const rootHref = useDashboardHref()
 
   const isActive = useCallback(
     (href: string) =>
-      href === "/dashboard" ? pathname === href : pathname?.startsWith(href),
-    [pathname]
+      href === rootHref ? pathname === href : pathname?.startsWith(href),
+    [pathname, rootHref]
   )
 
   return (
@@ -85,10 +92,27 @@ export function DashboardSidebar() {
         />
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarAccountMenu />
-        <DashboardSettingsDialog />
-      </SidebarFooter>
+      {mode === "account" ? (
+        <SidebarFooter>
+          <SidebarAccountMenu />
+          <DashboardSettingsDialog />
+        </SidebarFooter>
+      ) : (
+        <SidebarFooter>
+          <div className="rounded-lg border bg-sidebar-accent/40 p-3 group-data-[collapsible=icon]:hidden">
+            <p className="text-sm font-medium">
+              Prêt à piloter votre entreprise ?
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Connectez vos données et partagez le tableau de bord.
+            </p>
+            <Button size="sm" className="mt-3 w-full" render={START_LINK}>
+              Commencer
+              <ArrowRight data-icon="inline-end" />
+            </Button>
+          </div>
+        </SidebarFooter>
+      )}
     </Sidebar>
   )
 }
@@ -108,11 +132,7 @@ function NavSection({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <NavMenuItem
-              key={item.href}
-              item={item}
-              active={isActive(item.href)}
-            />
+            <NavMenuItem key={item.path} item={item} isActive={isActive} />
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
@@ -120,13 +140,24 @@ function NavSection({
   )
 }
 
-function NavMenuItem({ item, active }: { item: NavItem; active: boolean }) {
-  const link = useMemo(() => <Link href={item.href} />, [item.href])
+function NavMenuItem({
+  item,
+  isActive,
+}: {
+  item: NavItem
+  isActive: (href: string) => boolean
+}) {
+  const href = useDashboardHref(item.path)
+  const link = useMemo(() => <Link href={href} />, [href])
   const Icon = item.icon
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton isActive={active} tooltip={item.label} render={link}>
+      <SidebarMenuButton
+        isActive={isActive(href)}
+        tooltip={item.label}
+        render={link}
+      >
         <Icon />
         <span>{item.label}</span>
       </SidebarMenuButton>

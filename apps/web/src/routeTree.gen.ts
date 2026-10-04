@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardBilanRouteImport } from './routes/dashboard.bilan'
@@ -21,6 +22,14 @@ import { Route as DashboardFournisseursRouteImport } from './routes/dashboard.fo
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardRevenusRouteImport } from './routes/dashboard.revenus'
 import { Route as DashboardTresorerieRouteImport } from './routes/dashboard.tresorerie'
+import { Route as DemoIndexRouteImport } from './routes/demo.index'
+import { Route as DemoBilanRouteImport } from './routes/demo.bilan'
+import { Route as DemoChargesRouteImport } from './routes/demo.charges'
+import { Route as DemoClientsRouteImport } from './routes/demo.clients'
+import { Route as DemoFournisseursRouteImport } from './routes/demo.fournisseurs'
+import { Route as DemoInsightsRouteImport } from './routes/demo.insights'
+import { Route as DemoRevenusRouteImport } from './routes/demo.revenus'
+import { Route as DemoTresorerieRouteImport } from './routes/demo.tresorerie'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,6 +45,11 @@ const AuthRoute = AuthRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -83,6 +97,46 @@ const DashboardTresorerieRoute = DashboardTresorerieRouteImport.update({
   path: '/tresorerie',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoBilanRoute = DemoBilanRouteImport.update({
+  id: '/bilan',
+  path: '/bilan',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoChargesRoute = DemoChargesRouteImport.update({
+  id: '/charges',
+  path: '/charges',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoClientsRoute = DemoClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoFournisseursRoute = DemoFournisseursRouteImport.update({
+  id: '/fournisseurs',
+  path: '/fournisseurs',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoInsightsRoute = DemoInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoRevenusRoute = DemoRevenusRouteImport.update({
+  id: '/revenus',
+  path: '/revenus',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoTresorerieRoute = DemoTresorerieRouteImport.update({
+  id: '/tresorerie',
+  path: '/tresorerie',
+  getParentRoute: () => DemoRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -93,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/dashboard/bilan': typeof DashboardBilanRoute
   '/dashboard/charges': typeof DashboardChargesRoute
@@ -101,7 +156,15 @@ export interface FileRoutesByFullPath {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
+  '/demo/bilan': typeof DemoBilanRoute
+  '/demo/charges': typeof DemoChargesRoute
+  '/demo/clients': typeof DemoClientsRoute
+  '/demo/fournisseurs': typeof DemoFournisseursRoute
+  '/demo/insights': typeof DemoInsightsRoute
+  '/demo/revenus': typeof DemoRevenusRoute
+  '/demo/tresorerie': typeof DemoTresorerieRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/demo/': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -115,7 +178,15 @@ export interface FileRoutesByTo {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
+  '/demo/bilan': typeof DemoBilanRoute
+  '/demo/charges': typeof DemoChargesRoute
+  '/demo/clients': typeof DemoClientsRoute
+  '/demo/fournisseurs': typeof DemoFournisseursRoute
+  '/demo/insights': typeof DemoInsightsRoute
+  '/demo/revenus': typeof DemoRevenusRoute
+  '/demo/tresorerie': typeof DemoTresorerieRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/demo': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -123,6 +194,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/dashboard/bilan': typeof DashboardBilanRoute
   '/dashboard/charges': typeof DashboardChargesRoute
@@ -131,7 +203,15 @@ export interface FileRoutesById {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/revenus': typeof DashboardRevenusRoute
   '/dashboard/tresorerie': typeof DashboardTresorerieRoute
+  '/demo/bilan': typeof DemoBilanRoute
+  '/demo/charges': typeof DemoChargesRoute
+  '/demo/clients': typeof DemoClientsRoute
+  '/demo/fournisseurs': typeof DemoFournisseursRoute
+  '/demo/insights': typeof DemoInsightsRoute
+  '/demo/revenus': typeof DemoRevenusRoute
+  '/demo/tresorerie': typeof DemoTresorerieRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/demo/': typeof DemoIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +220,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/demo'
     | '/onboarding'
     | '/dashboard/bilan'
     | '/dashboard/charges'
@@ -148,7 +229,15 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
+    | '/demo/bilan'
+    | '/demo/charges'
+    | '/demo/clients'
+    | '/demo/fournisseurs'
+    | '/demo/insights'
+    | '/demo/revenus'
+    | '/demo/tresorerie'
     | '/dashboard/'
+    | '/demo/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -162,13 +251,22 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
+    | '/demo/bilan'
+    | '/demo/charges'
+    | '/demo/clients'
+    | '/demo/fournisseurs'
+    | '/demo/insights'
+    | '/demo/revenus'
+    | '/demo/tresorerie'
     | '/dashboard'
+    | '/demo'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/demo'
     | '/onboarding'
     | '/dashboard/bilan'
     | '/dashboard/charges'
@@ -177,7 +275,15 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/revenus'
     | '/dashboard/tresorerie'
+    | '/demo/bilan'
+    | '/demo/charges'
+    | '/demo/clients'
+    | '/demo/fournisseurs'
+    | '/demo/insights'
+    | '/demo/revenus'
+    | '/demo/tresorerie'
     | '/dashboard/'
+    | '/demo/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -185,6 +291,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DemoRoute: typeof DemoRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -210,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -275,6 +389,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTresorerieRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/bilan': {
+      id: '/demo/bilan'
+      path: '/bilan'
+      fullPath: '/demo/bilan'
+      preLoaderRoute: typeof DemoBilanRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/charges': {
+      id: '/demo/charges'
+      path: '/charges'
+      fullPath: '/demo/charges'
+      preLoaderRoute: typeof DemoChargesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/clients': {
+      id: '/demo/clients'
+      path: '/clients'
+      fullPath: '/demo/clients'
+      preLoaderRoute: typeof DemoClientsRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/fournisseurs': {
+      id: '/demo/fournisseurs'
+      path: '/fournisseurs'
+      fullPath: '/demo/fournisseurs'
+      preLoaderRoute: typeof DemoFournisseursRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/insights': {
+      id: '/demo/insights'
+      path: '/insights'
+      fullPath: '/demo/insights'
+      preLoaderRoute: typeof DemoInsightsRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/revenus': {
+      id: '/demo/revenus'
+      path: '/revenus'
+      fullPath: '/demo/revenus'
+      preLoaderRoute: typeof DemoRevenusRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/tresorerie': {
+      id: '/demo/tresorerie'
+      path: '/tresorerie'
+      fullPath: '/demo/tresorerie'
+      preLoaderRoute: typeof DemoTresorerieRouteImport
+      parentRoute: typeof DemoRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -311,10 +481,35 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface DemoRouteChildren {
+  DemoBilanRoute: typeof DemoBilanRoute
+  DemoChargesRoute: typeof DemoChargesRoute
+  DemoClientsRoute: typeof DemoClientsRoute
+  DemoFournisseursRoute: typeof DemoFournisseursRoute
+  DemoInsightsRoute: typeof DemoInsightsRoute
+  DemoRevenusRoute: typeof DemoRevenusRoute
+  DemoTresorerieRoute: typeof DemoTresorerieRoute
+  DemoIndexRoute: typeof DemoIndexRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoBilanRoute: DemoBilanRoute,
+  DemoChargesRoute: DemoChargesRoute,
+  DemoClientsRoute: DemoClientsRoute,
+  DemoFournisseursRoute: DemoFournisseursRoute,
+  DemoInsightsRoute: DemoInsightsRoute,
+  DemoRevenusRoute: DemoRevenusRoute,
+  DemoTresorerieRoute: DemoTresorerieRoute,
+  DemoIndexRoute: DemoIndexRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DemoRoute: DemoRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

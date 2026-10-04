@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "@/components/link"
 import {
   comparisonStartBounds,
   monthCount,
@@ -21,19 +22,24 @@ import {
 } from "@workspace/ui/components/month-range-picker"
 import { useCallback, useMemo } from "react"
 
+import { DemoFecUploadButton } from "./demo-fec-upload-button"
+import { useDashboardHref, useDashboardMode } from "./mode"
+
 const PAGE_LABELS: Record<string, string> = {
-  "/dashboard": "Vue d'ensemble",
-  "/dashboard/insights": "Actions à mener",
-  "/dashboard/bilan": "Bilan",
-  "/dashboard/revenus": "Revenus",
-  "/dashboard/charges": "Charges",
-  "/dashboard/tresorerie": "Trésorerie",
-  "/dashboard/clients": "Clients",
-  "/dashboard/fournisseurs": "Fournisseurs",
+  "": "Vue d'ensemble",
+  "/insights": "Actions à mener",
+  "/bilan": "Bilan",
+  "/revenus": "Revenus",
+  "/charges": "Charges",
+  "/tresorerie": "Trésorerie",
+  "/clients": "Clients",
+  "/fournisseurs": "Fournisseurs",
 }
 
 export function DashboardHeader() {
-  const pathname = usePathname() ?? "/dashboard"
+  const mode = useDashboardMode()
+  const rootHref = useDashboardHref()
+  const pathname = usePathname() ?? rootHref
   const {
     availableRange,
     selectedRange,
@@ -41,8 +47,10 @@ export function DashboardHeader() {
     setSelectedRange,
     setComparisonRange,
   } = useFecStore()
-  const pageLabel = PAGE_LABELS[pathname] ?? "Tableau de bord"
-  const isOverview = pathname === "/dashboard"
+  const routePath = pathname.slice(rootHref.length)
+  const rootLink = useMemo(() => <Link href={rootHref} />, [rootHref])
+  const pageLabel = PAGE_LABELS[routePath] ?? "Tableau de bord"
+  const isOverview = routePath === ""
   const comparisonStartRange = useMemo(
     () =>
       selectedRange && availableRange
@@ -94,7 +102,9 @@ export function DashboardHeader() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem className="hidden md:block">
-            <BreadcrumbLink href="/dashboard">Tableau de bord</BreadcrumbLink>
+            <BreadcrumbLink render={rootLink}>
+              {mode === "demo" ? "Démo" : "Tableau de bord"}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           {isOverview ? null : (
             <>
@@ -112,18 +122,21 @@ export function DashboardHeader() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {selectedRange && availableRange ? (
-        <div className="max-w-header-select min-w-0 md:max-w-none">
-          <MonthRangePicker
-            value={selectedRange}
-            onValueChange={changeSelectedRange}
-            minMonth={availableRange.startMonth}
-            maxMonth={availableRange.endMonth}
-            label="Période affichée"
-            comparison={comparison}
-          />
-        </div>
-      ) : null}
+      <div className="flex min-w-0 items-center justify-end gap-2">
+        {selectedRange && availableRange ? (
+          <div className="max-w-header-select min-w-0 md:max-w-none">
+            <MonthRangePicker
+              value={selectedRange}
+              onValueChange={changeSelectedRange}
+              minMonth={availableRange.startMonth}
+              maxMonth={availableRange.endMonth}
+              label="Période affichée"
+              comparison={comparison}
+            />
+          </div>
+        ) : null}
+        {mode === "demo" ? <DemoFecUploadButton /> : null}
+      </div>
     </div>
   )
 }

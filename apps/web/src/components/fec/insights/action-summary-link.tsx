@@ -1,3 +1,4 @@
+import { useDashboardHref } from "@/components/fec/dashboard/mode"
 import Link from "@/components/link"
 import type { ActionableInsight } from "@/lib/fec/analytics"
 import { Button } from "@workspace/ui/components/button"
@@ -7,6 +8,7 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react"
+import { useMemo } from "react"
 
 type ActionCategory = ActionableInsight["category"]
 type ActionSeverity = Exclude<ActionableInsight["severity"], "positive">
@@ -31,8 +33,6 @@ const SEVERITY_STYLES = {
   { icon: LucideIcon; variant: string }
 >
 
-const INSIGHTS_LINK = <Link href="/dashboard/insights" />
-
 interface ActionSummaryLinkProps {
   insights: ActionableInsight[]
   categories: readonly ActionCategory[]
@@ -45,6 +45,11 @@ export function ActionSummaryLink({
   const counts = countActions(insights, categories)
   const label = formatActionSummary(counts)
   const dominantSeverity = getDominantSeverity(counts)
+  const insightsHref = useDashboardHref("/insights")
+  const insightsLink = useMemo(
+    () => <Link href={insightsHref} />,
+    [insightsHref]
+  )
 
   if (!label || !dominantSeverity) return null
 
@@ -56,7 +61,7 @@ export function ActionSummaryLink({
       aria-label={`Voir les actions à mener : ${label}`}
       variant={style.variant}
       size="sm"
-      render={INSIGHTS_LINK}
+      render={insightsLink}
     >
       <Icon data-icon="inline-start" />
       {label}

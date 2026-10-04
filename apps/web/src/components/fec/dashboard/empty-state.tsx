@@ -9,17 +9,18 @@ import { ArrowRight, Cable, Loader2, Sparkles, Upload } from "lucide-react"
 import { useCallback, useRef, useState, type ChangeEvent } from "react"
 import { toast } from "sonner"
 
+import { useDashboardMode } from "./mode"
 import { SageActiveSetupDialog } from "./sage-active-setup-dialog"
 
 const START_LINK = <Link href="/auth?redirect=/dashboard" />
+const DEMO_LINK = <Link href="/demo" />
 const ACCEPTED_FEC_EXTENSIONS = [".txt", ".csv", ".tsv"]
 
 function EmptyStateInner() {
-  const { hydrated, importDemo, importFile, importState } = useFecStore()
+  const { hydrated, importFile, importState } = useFecStore()
   const { data: session, isPending: isSessionPending } = authClient.useSession()
   const { data: activeOrganization } = authClient.useActiveOrganization()
   const [sageSetupOpen, setSageSetupOpen] = useState(false)
-  const loadDemo = useCallback(() => void importDemo(), [importDemo])
   const canLoadDemo = !isSessionPending && !session
   const activeMember = activeOrganization?.members.find(
     (member) => member.userId === session?.user.id
@@ -81,7 +82,7 @@ function EmptyStateInner() {
             Commencer
             <ArrowRight />
           </Button>
-          <Button size="lg" variant="outline" onClick={loadDemo}>
+          <Button size="lg" variant="outline" render={DEMO_LINK}>
             <Sparkles />
             Charger une démo
           </Button>
@@ -177,7 +178,38 @@ function AuthenticatedSourceActions({
 }
 
 export function DashboardEmptyState() {
+  const mode = useDashboardMode()
+
+  if (mode === "demo") return <DemoEmptyState />
+
   return <EmptyStateInner />
+}
+
+function DemoEmptyState() {
+  const { importDemo, importState } = useFecStore()
+  const loadDemo = useCallback(() => void importDemo(), [importDemo])
+
+  if (importState.status !== "error") {
+    return (
+      <div className="flex min-h-screen-section flex-col items-center justify-center gap-4">
+        <Loader2 className="size-10 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Préparation de la démo…</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto flex min-h-screen-hero w-full max-w-xl flex-col items-center justify-center px-6 text-center">
+      <h2 className="font-heading text-2xl font-semibold tracking-tight">
+        Impossible de charger la démo
+      </h2>
+      <p className="mt-3 text-muted-foreground">{importState.message}</p>
+      <Button className="mt-6" onClick={loadDemo}>
+        <Sparkles />
+        Recharger la démo
+      </Button>
+    </div>
+  )
 }
 
 function getEmptyStateCopy(hasSession: boolean, canManageSource: boolean) {

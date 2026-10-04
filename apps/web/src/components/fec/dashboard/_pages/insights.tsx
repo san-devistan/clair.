@@ -1,0 +1,159 @@
+"use client"
+
+import { ExplainedCardTitle } from "@/components/fec/cards/explained-title"
+import { DashboardEmptyState } from "@/components/fec/dashboard/empty-state"
+import { DashboardPage } from "@/components/fec/dashboard/page"
+import { InsightCard } from "@/components/fec/insights/card"
+import { FormattedNumber } from "@/components/fec/numbers/formatted"
+import { useFecStore } from "@/lib/fec/store-context"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
+import {
+  CheckCircle2,
+  CircleAlert,
+  Lightbulb,
+  TriangleAlert,
+} from "lucide-react"
+import { useMemo } from "react"
+
+const SEVERITY_ORDER: Record<string, number> = {
+  critical: 0,
+  warning: 1,
+  info: 2,
+  positive: 3,
+}
+
+type SeverityStatTone = "danger" | "warning" | "info" | "success"
+
+const SEVERITY_STAT_STYLES = {
+  danger: { tone: "destructive", text: "text-destructive" },
+  warning: { tone: "warning", text: "text-warning-foreground" },
+  info: { tone: "info", text: "text-info-foreground" },
+  success: { tone: "success", text: "text-success-foreground" },
+} as const satisfies Record<SeverityStatTone, { tone: string; text: string }>
+
+export function InsightsPage() {
+  const { data } = useFecStore()
+  if (!data) return <DashboardEmptyState />
+
+  const sorted = [...data.insights].toSorted(
+    (a, b) =>
+      (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4)
+  )
+
+  const counts = {
+    critical: sorted.filter((i) => i.severity === "critical").length,
+    warning: sorted.filter((i) => i.severity === "warning").length,
+    info: sorted.filter((i) => i.severity === "info").length,
+    positive: sorted.filter((i) => i.severity === "positive").length,
+  }
+
+  return (
+    <DashboardPage title="Actions à mener" maxWidthClassName="max-w-4xl">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SeverityStat
+          label="Critique"
+          count={counts.critical}
+          description="Nombre d'alertes critiques à traiter en priorité, car elles peuvent fragiliser rapidement la trésorerie ou la rentabilité."
+          icon={TriangleAlert}
+          tone="danger"
+        />
+        <SeverityStat
+          label="Attention"
+          count={counts.warning}
+          description="Nombre de points de vigilance à surveiller ou corriger avant qu'ils deviennent critiques."
+          icon={CircleAlert}
+          tone="warning"
+        />
+        <SeverityStat
+          label="Opportunité"
+          count={counts.info}
+          description="Nombre d'opportunités d'amélioration détectées dans les revenus, les charges ou les délais."
+          icon={Lightbulb}
+          tone="info"
+        />
+        <SeverityStat
+          label="Bonne nouvelle"
+          count={counts.positive}
+          description="Nombre de signaux favorables détectés sur la période, à préserver ou renforcer."
+          icon={CheckCircle2}
+          tone="success"
+        />
+      </div>
+
+      {sorted.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <ExplainedCardTitle description="Aucune alerte significative détectée sur la période analysée. Continuez sur cette lancée.">
+              Tout va bien
+            </ExplainedCardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 rounded-lg bg-success/10 p-4 text-sm text-success-foreground">
+              <CheckCircle2 className="size-5 shrink-0" />
+              <p>
+                Vos indicateurs financiers sont dans les clous : marge correcte,
+                pas de concentration excessive, trésorerie saine.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {sorted.map((insight) => (
+            <InsightCard key={insight.id} insight={insight} />
+          ))}
+        </div>
+      )}
+    </DashboardPage>
+  )
+}
+
+function SeverityStat({
+  label,
+  count,
+  description,
+  icon: Icon,
+  tone,
+}: {
+  label: string
+  count: number
+  description: string
+  icon: typeof CheckCircle2
+  tone: SeverityStatTone
+}) {
+  const trigger = useMemo(
+    () => (
+      <p
+        aria-label={`Comprendre la statistique : ${label}`}
+        className="mt-2 cursor-help font-heading text-3xl font-semibold tabular-nums"
+      >
+        <FormattedNumber value={count} />
+      </p>
+    ),
+    [count, label]
+  )
+
+  return (
+    <Card size="compact" tone={SEVERITY_STAT_STYLES[tone].tone}>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {label}
+          </p>
+          <Icon className={`size-4 ${SEVERITY_STAT_STYLES[tone].text}`} />
+        </div>
+        <Tooltip>
+          <TooltipTrigger render={trigger} />
+          <TooltipContent align="start" className="max-w-64" side="top">
+            <div className="leading-relaxed">{description}</div>
+          </TooltipContent>
+        </Tooltip>
+      </CardContent>
+    </Card>
+  )
+}

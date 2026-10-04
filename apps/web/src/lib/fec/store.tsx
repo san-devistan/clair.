@@ -85,16 +85,28 @@ function fecStoreReducer(
   return state
 }
 
-export function FecStoreProvider({ children }: { children: ReactNode }) {
+export function FecStoreProvider({
+  children,
+  persistence = "local-storage",
+}: {
+  children: ReactNode
+  persistence?: "local-storage" | "memory"
+}) {
   const [state, dispatch] = useReducer(fecStoreReducer, INITIAL_FEC_STORE_STATE)
+  const persistsLocally = persistence === "local-storage"
 
   useEffect(() => {
+    if (!persistsLocally) {
+      dispatch({ type: "hydrate", store: EMPTY_MEMORY_STORE })
+      return
+    }
+
     clearLegacyStorage()
     dispatch({ type: "hydrate", store: loadStore() })
-  }, [])
+  }, [persistsLocally])
 
   useEffect(() => {
-    if (!state.hydrated) return
+    if (!state.hydrated || !persistsLocally) return
 
     if (!state.source) {
       clearStore()
@@ -106,7 +118,13 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
       selectedRange: state.selectedRange,
       comparisonRange: state.comparisonRange,
     })
-  }, [state.comparisonRange, state.hydrated, state.selectedRange, state.source])
+  }, [
+    persistsLocally,
+    state.comparisonRange,
+    state.hydrated,
+    state.selectedRange,
+    state.source,
+  ])
 
   const availableRange = useMemo(
     () => (state.source ? sourceAvailableRange(state.source) : null),
@@ -178,8 +196,8 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => {
     dispatch({ type: "reset-all" })
-    clearStore()
-  }, [])
+    if (persistsLocally) clearStore()
+  }, [persistsLocally])
 
   const value = useMemo<FecStoreValue>(
     () => ({
@@ -221,6 +239,12 @@ export function FecStoreProvider({ children }: { children: ReactNode }) {
       {children}
     </FecStoreContext.Provider>
   )
+}
+
+const EMPTY_MEMORY_STORE: PersistedFecStore = {
+  source: null,
+  selectedRange: null,
+  comparisonRange: null,
 }
 
 function hydrateState(store: PersistedFecStore): FecStoreState {

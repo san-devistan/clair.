@@ -2,7 +2,7 @@ import { ClairBrand } from "@/components/clair-brand"
 import Link from "@/components/link"
 import { Button } from "@workspace/ui/components/button"
 
-const DEMO_LINK = <Link href="/dashboard?demo=1" />
+const DEMO_LINK = <Link href="/demo" />
 
 export function AuthHeader({ showDemo = true }: { showDemo?: boolean }) {
   return (

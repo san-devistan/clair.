@@ -2,6 +2,7 @@
 
 import { ExplainedCardTitle } from "@/components/fec/cards/explained-title"
 import { StackedSegmentBar } from "@/components/fec/charting/stacked-segment-bar"
+import { useDashboardHref } from "@/components/fec/dashboard/mode"
 import { FormattedCurrency } from "@/components/fec/numbers/formatted"
 import Link from "@/components/link"
 import type { AgedBalance, AgedBalanceBucketKey } from "@/lib/fec/analytics"
@@ -46,9 +47,7 @@ export function AgedBalanceCard({
   const partyWord = isClients ? "client" : "fournisseur"
   const Icon = isClients ? Users : ReceiptText
   const title = isClients ? "Balance âgée clients" : "Balance âgée fournisseurs"
-  const detailHref = isClients
-    ? "/dashboard/clients"
-    : "/dashboard/fournisseurs"
+  const detailHref = useDashboardHref(isClients ? "/clients" : "/fournisseurs")
   const bucketColors = isClients
     ? CUSTOMER_AGING_BUCKET_COLOR
     : SUPPLIER_AGING_BUCKET_COLOR

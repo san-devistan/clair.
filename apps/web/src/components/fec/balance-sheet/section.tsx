@@ -1,6 +1,7 @@
 "use client"
 
 import { ExplainedCardTitle } from "@/components/fec/cards/explained-title"
+import { useDashboardHref } from "@/components/fec/dashboard/mode"
 import Link from "@/components/link"
 import type {
   BalanceSheetLine,
@@ -20,7 +21,7 @@ import {
 } from "@workspace/ui/components/table"
 import { cn } from "@workspace/ui/lib/utils"
 import { ArrowRight } from "lucide-react"
-import type { ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 
 import { BalanceSheetRatioSummary } from "./ratios"
 
@@ -42,8 +43,6 @@ const LINE_COLORS: Record<BalanceSheetLineKey, string> = {
   negativeCash: "var(--destructive)",
 }
 
-const BALANCE_DETAIL_LINK = <Link href="/dashboard/bilan" />
-
 export function BalanceSheetOverviewCard({
   balanceSheet,
 }: {
@@ -51,6 +50,11 @@ export function BalanceSheetOverviewCard({
 }) {
   const highlightedRatios = balanceSheet.ratios.filter((ratio) =>
     ["currentLiquidity", "debtToEquity", "cashRunway"].includes(ratio.key)
+  )
+  const balanceHref = useDashboardHref("/bilan")
+  const balanceDetailLink = useMemo(
+    () => <Link href={balanceHref} />,
+    [balanceHref]
   )
 
   return (
@@ -60,7 +64,7 @@ export function BalanceSheetOverviewCard({
           <ExplainedCardTitle description="Vue Actif / Passif issue des comptes 1 à 5 du FEC. Elle montre ce que l'entreprise possède, ce qui la finance et les premiers signaux de solidité financière.">
             Bilan simplifié
           </ExplainedCardTitle>
-          <Button variant="ghost" size="sm" render={BALANCE_DETAIL_LINK}>
+          <Button variant="ghost" size="sm" render={balanceDetailLink}>
             Détail
             <ArrowRight />
           </Button>
