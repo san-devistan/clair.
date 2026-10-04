@@ -113,15 +113,16 @@ export function DashboardHeader() {
       </Breadcrumb>
 
       {selectedRange && availableRange ? (
-        <MonthRangePicker
-          value={selectedRange}
-          onValueChange={changeSelectedRange}
-          minMonth={availableRange.startMonth}
-          maxMonth={availableRange.endMonth}
-          label="Période affichée"
-          className="max-w-[13rem] md:max-w-none"
-          comparison={comparison}
-        />
+        <div className="max-w-header-select min-w-0 md:max-w-none">
+          <MonthRangePicker
+            value={selectedRange}
+            onValueChange={changeSelectedRange}
+            minMonth={availableRange.startMonth}
+            maxMonth={availableRange.endMonth}
+            label="Période affichée"
+            comparison={comparison}
+          />
+        </div>
       ) : null}
     </div>
   )

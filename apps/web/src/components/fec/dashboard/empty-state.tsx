@@ -31,7 +31,7 @@ function EmptyStateInner() {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-[60svh] items-center justify-center">
+      <div className="flex min-h-screen-section items-center justify-center">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     )
@@ -39,7 +39,7 @@ function EmptyStateInner() {
 
   if (importState.status === "parsing") {
     return (
-      <div className="flex min-h-[60svh] flex-col items-center justify-center gap-4">
+      <div className="flex min-h-screen-section flex-col items-center justify-center gap-4">
         <Loader2 className="size-10 animate-spin text-primary" />
         <div className="text-center">
           <p className="font-heading text-lg font-semibold">
@@ -54,7 +54,7 @@ function EmptyStateInner() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[70svh] w-full max-w-2xl flex-col items-center justify-center px-6 text-center">
+    <div className="mx-auto flex min-h-screen-hero w-full max-w-2xl flex-col items-center justify-center px-6 text-center">
       <div className="mb-6 flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Cable className="size-8" />
       </div>

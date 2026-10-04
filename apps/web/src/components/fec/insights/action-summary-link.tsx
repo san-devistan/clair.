@@ -22,26 +22,14 @@ const SEVERITY_LABELS: Record<
   info: { singular: "opportunité", plural: "opportunités" },
 }
 
-const SEVERITY_STYLES: Record<
+const SEVERITY_STYLES = {
+  critical: { icon: TriangleAlert, variant: "insight-critical" },
+  warning: { icon: CircleAlert, variant: "insight-warning" },
+  info: { icon: Lightbulb, variant: "insight-info" },
+} as const satisfies Record<
   ActionSeverity,
-  { icon: LucideIcon; className: string }
-> = {
-  critical: {
-    icon: TriangleAlert,
-    className:
-      "border-destructive/45 bg-destructive/[0.08] text-destructive hover:bg-destructive/[0.12] dark:bg-destructive/[0.14] dark:hover:bg-destructive/[0.18]",
-  },
-  warning: {
-    icon: CircleAlert,
-    className:
-      "border-amber-500/45 bg-amber-500/[0.1] text-amber-700 hover:bg-amber-500/[0.14] dark:bg-amber-500/[0.16] dark:text-amber-500 dark:hover:bg-amber-500/20",
-  },
-  info: {
-    icon: Lightbulb,
-    className:
-      "border-blue-500/40 bg-blue-500/[0.08] text-blue-700 hover:bg-blue-500/[0.12] dark:bg-blue-500/[0.14] dark:text-blue-400 dark:hover:bg-blue-500/[0.18]",
-  },
-}
+  { icon: LucideIcon; variant: string }
+>
 
 const INSIGHTS_LINK = <Link href="/dashboard/insights" />
 
@@ -66,8 +54,7 @@ export function ActionSummaryLink({
   return (
     <Button
       aria-label={`Voir les actions à mener : ${label}`}
-      className={`h-auto min-h-7 max-w-full whitespace-normal sm:whitespace-nowrap ${style.className}`}
-      variant="outline"
+      variant={style.variant}
       size="sm"
       render={INSIGHTS_LINK}
     >

@@ -1,5 +1,4 @@
 import { formatEuroCompact } from "@/lib/fec/format"
-import { useMemo } from "react"
 
 interface TooltipPayloadItem {
   value?: unknown
@@ -73,15 +72,13 @@ function tooltipLabelText(
 }
 
 function TooltipLine({ item, value }: TooltipRow) {
-  const markerStyle = useMemo(
-    () => ({ background: tooltipItemColor(item) }),
-    [item]
-  )
-
   return (
     <div className="flex w-full items-center justify-between gap-4">
       <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
-        <span className="size-2 shrink-0 rounded-[2px]" style={markerStyle} />
+        <span
+          className="size-2 shrink-0 rounded-xs bg-marker"
+          style={{ "--marker-color": tooltipItemColor(item) }}
+        />
         <span className="truncate">{tooltipItemName(item)}</span>
       </span>
       <span className="font-mono font-medium tabular-nums">

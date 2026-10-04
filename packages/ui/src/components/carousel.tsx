@@ -48,7 +48,7 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<"section"> & CarouselProps) {
-  const carouselOptions = React.useMemo(
+  const carouselOptions = React.useMemo<CarouselOptions>(
     () => ({
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",

@@ -16,7 +16,7 @@ interface DashboardPageProps {
 }
 
 export const DASHBOARD_PAGE_FALLBACK = (
-  <div className="flex min-h-[60svh] items-center justify-center text-sm text-muted-foreground">
+  <div className="flex min-h-screen-section items-center justify-center text-sm text-muted-foreground">
     Chargement…
   </div>
 )

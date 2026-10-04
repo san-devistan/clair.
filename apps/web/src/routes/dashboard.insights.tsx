@@ -34,27 +34,12 @@ const SEVERITY_ORDER: Record<string, number> = {
 
 type SeverityStatTone = "danger" | "warning" | "info" | "success"
 
-const SEVERITY_STAT_STYLES: Record<
-  SeverityStatTone,
-  { card: string; text: string }
-> = {
-  danger: {
-    card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
-    text: "text-destructive",
-  },
-  warning: {
-    card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
-    text: "text-amber-700 dark:text-amber-500",
-  },
-  info: {
-    card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
-    text: "text-blue-700 dark:text-blue-400",
-  },
-  success: {
-    card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
-    text: "text-emerald-700 dark:text-emerald-500",
-  },
-}
+const SEVERITY_STAT_STYLES = {
+  danger: { tone: "destructive", text: "text-destructive" },
+  warning: { tone: "warning", text: "text-warning-foreground" },
+  info: { tone: "info", text: "text-info-foreground" },
+  success: { tone: "success", text: "text-success-foreground" },
+} as const satisfies Record<SeverityStatTone, { tone: string; text: string }>
 
 function InsightsPage() {
   const { data } = useFecStore()
@@ -113,7 +98,7 @@ function InsightsPage() {
             </ExplainedCardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3 rounded-lg bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-500">
+            <div className="flex items-center gap-3 rounded-lg bg-success/10 p-4 text-sm text-success-foreground">
               <CheckCircle2 className="size-5 shrink-0" />
               <p>
                 Vos indicateurs financiers sont dans les clous : marge correcte,
@@ -159,7 +144,7 @@ function SeverityStat({
   )
 
   return (
-    <Card className={`gap-2 ${SEVERITY_STAT_STYLES[tone].card}`}>
+    <Card size="compact" tone={SEVERITY_STAT_STYLES[tone].tone}>
       <CardContent>
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">

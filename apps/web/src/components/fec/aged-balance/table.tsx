@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/table"
 import { cn } from "@workspace/ui/lib/utils"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { useCallback, useMemo } from "react"
+import { useCallback } from "react"
 
 import { type AgingBucketColorMap, type AgingGroup, pluralize } from "./display"
 
@@ -37,7 +37,7 @@ export function AgingTable({
 }) {
   return (
     <div className="rounded-md border">
-      <Table className="min-w-[720px] table-fixed">
+      <Table layout="fixed" minWidth="md">
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Libellé</TableHead>
@@ -83,19 +83,18 @@ function AgingGroupRows({
   const ariaLabel = selected
     ? `Masquer le détail de ${group.label}`
     : `Afficher le détail de ${group.label}`
-  const markerStyle = useMemo(() => ({ background: group.fill }), [group.fill])
 
   return (
     <>
       <TableRow>
-        <TableCell colSpan={3} className="p-0">
+        <TableCell colSpan={3} spacing="none">
           <button
             type="button"
             aria-label={ariaLabel}
             aria-expanded={selected}
             onClick={toggleBucket}
             className={cn(
-              "grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_8rem_7rem] items-center gap-2 bg-muted/30 p-2 text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+              "grid w-full cursor-pointer grid-cols-aging-row items-center gap-2 bg-muted/30 p-2 text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
               selected && "bg-primary/[0.08] hover:bg-primary/[0.1]"
             )}
           >
@@ -106,8 +105,8 @@ function AgingGroupRows({
               />
               <span
                 aria-hidden
-                className="block size-2.5 shrink-0 rounded-full"
-                style={markerStyle}
+                className="block size-2.5 shrink-0 rounded-full bg-marker"
+                style={{ "--marker-color": group.fill }}
               />
               <span className="min-w-0 truncate">{group.label}</span>
               <span className="shrink-0 text-xs font-normal text-muted-foreground">
@@ -115,7 +114,7 @@ function AgingGroupRows({
                 {pluralize(group.partyCount, partyWord)}
               </span>
               {selected ? (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" size="xs">
                   Détail
                 </Badge>
               ) : null}
@@ -163,10 +162,10 @@ function InvoiceRow({
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-right font-mono font-medium tabular-nums">
+      <TableCell variant="numeric">
         <InvoiceDue invoice={invoice} bucketColors={bucketColors} />
       </TableCell>
-      <TableCell className="text-right font-mono font-medium tabular-nums">
+      <TableCell variant="numeric">
         <FormattedCurrency value={invoice.amount} />
       </TableCell>
     </TableRow>
@@ -190,10 +189,10 @@ function InvoiceMeta({ invoice }: { invoice: AgedBalanceInvoice }) {
       {meta.length > 0 ? (
         <OverflowTooltip
           text={meta.join(" · ")}
-          wrapperClassName="max-w-[360px]"
+          wrapperClassName="max-w-tooltip"
         />
       ) : null}
-      <span className="font-mono text-[10px]">{code}</span>
+      <span className="font-mono text-2xs">{code}</span>
     </div>
   )
 }
@@ -206,18 +205,14 @@ function InvoiceDue({
   bucketColors: AgingBucketColorMap
 }) {
   const isOverdue = invoice.daysOverdue >= 0
-  const dueStyle = useMemo(
-    () => (isOverdue ? { color: bucketColors[invoice.bucketKey] } : undefined),
-    [bucketColors, invoice.bucketKey, isOverdue]
-  )
 
   return (
     <span
       className={cn(
         "font-mono font-medium tabular-nums",
-        !isOverdue && "text-muted-foreground"
+        isOverdue ? "text-marker" : "text-muted-foreground"
       )}
-      style={dueStyle}
+      style={{ "--marker-color": bucketColors[invoice.bucketKey] }}
       title={isOverdue ? "Jours échus" : "Jours avant échéance"}
     >
       {formatNumber(invoice.daysOverdue)} j

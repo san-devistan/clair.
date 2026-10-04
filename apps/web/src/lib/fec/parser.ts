@@ -254,7 +254,13 @@ function parseEntries(
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]
-    const entry = parseEntry(line, i + 1, separator, idx, errors)
+    const entry = parseEntry({
+      line,
+      lineNumber: i + 1,
+      separator,
+      idx,
+      errors,
+    })
     if (!entry) continue
 
     entries.push(entry)
@@ -265,13 +271,19 @@ function parseEntries(
   return { entries, minDate, maxDate }
 }
 
-function parseEntry(
-  line: string,
-  lineNumber: number,
-  separator: FecSeparator,
-  idx: FecColumnIndex,
+function parseEntry({
+  line,
+  lineNumber,
+  separator,
+  idx,
+  errors,
+}: {
+  line: string
+  lineNumber: number
+  separator: FecSeparator
+  idx: FecColumnIndex
   errors: FecParseError[]
-): FecEntry | null {
+}): FecEntry | null {
   const cells = splitLine(line, separator)
   const get = (col: number): string =>
     col >= 0 && col < cells.length ? cells[col].trim() : ""

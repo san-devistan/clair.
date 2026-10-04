@@ -43,14 +43,15 @@ export function AuthPasswordField({
           onChange={onChange}
           autoComplete={isSignUp ? "new-password" : "current-password"}
           minLength={8}
-          className="h-10 bg-muted/30 px-3 pr-10"
+          variant="muted"
+          trailing="icon"
           required
         />
         <Button
           type="button"
-          variant="ghost"
+          variant="muted-ghost"
           size="icon-sm"
-          className="absolute inset-y-0 right-1 my-auto text-muted-foreground active:not-aria-[haspopup]:translate-y-0"
+          className="absolute inset-y-0 right-1 my-auto"
           onClick={onToggleVisibility}
         >
           <VisibilityIcon className="size-4" />

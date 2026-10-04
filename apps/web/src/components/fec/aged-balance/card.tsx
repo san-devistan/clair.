@@ -88,31 +88,33 @@ export function AgedBalanceCard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-4">
-        <AgingSummaryTiles data={data} partyWord={partyWord} />
+      <CardContent className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col gap-4">
+          <AgingSummaryTiles data={data} partyWord={partyWord} />
 
-        {groups.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            Aucun encours sur la période.
-          </p>
-        ) : (
-          <TooltipProvider>
-            {compact ? (
-              <AgingChart
-                groups={groups}
-                partyWord={partyWord}
-                selectedBucketKey={null}
-              />
-            ) : (
-              <AgingInteractive
-                key={resetKey}
-                groups={groups}
-                partyWord={partyWord}
-                bucketColors={bucketColors}
-              />
-            )}
-          </TooltipProvider>
-        )}
+          {groups.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Aucun encours sur la période.
+            </p>
+          ) : (
+            <TooltipProvider>
+              {compact ? (
+                <AgingChart
+                  groups={groups}
+                  partyWord={partyWord}
+                  selectedBucketKey={null}
+                />
+              ) : (
+                <AgingInteractive
+                  key={resetKey}
+                  groups={groups}
+                  partyWord={partyWord}
+                  bucketColors={bucketColors}
+                />
+              )}
+            </TooltipProvider>
+          )}
+        </div>
       </CardContent>
     </Card>
   )
@@ -268,7 +270,7 @@ function AgingTooltip({
   return (
     <div className="flex flex-col gap-0.5 text-xs">
       <span className="font-semibold">{segment.label}</span>
-      <span className="text-[10px] opacity-70">
+      <span className="text-2xs opacity-70">
         {formatNumber(segment.count)} {pluralize(segment.count, "facture")} ·{" "}
         {formatNumber(segment.partyCount)}{" "}
         {pluralize(segment.partyCount, partyWord)}

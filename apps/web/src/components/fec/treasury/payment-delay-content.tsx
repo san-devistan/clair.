@@ -4,17 +4,19 @@ import { Separator } from "@workspace/ui/components/separator"
 
 function PaymentDelayContent({ dso, dpo }: { dso: number; dpo: number }) {
   return (
-    <CardContent className="space-y-4">
-      <PaymentDelayBlock
-        label="DSO · Vous payent vos clients"
-        value={dso}
-        description={dsoDescription(dso)}
-      />
-      <PaymentDelayBlock
-        label="DPO · Vous payez vos fournisseurs"
-        value={dpo}
-        description={dpoDescription(dpo)}
-      />
+    <CardContent>
+      <div className="space-y-4">
+        <PaymentDelayBlock
+          label="DSO · Vous payent vos clients"
+          value={dso}
+          description={dsoDescription(dso)}
+        />
+        <PaymentDelayBlock
+          label="DPO · Vous payez vos fournisseurs"
+          value={dpo}
+          description={dpoDescription(dpo)}
+        />
+      </div>
     </CardContent>
   )
 }

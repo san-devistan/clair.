@@ -14,11 +14,34 @@ const badgeVariants = cva(
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
+        success:
+          "border-success/30 bg-success/10 text-success-foreground [a]:hover:bg-success/15",
+        warning:
+          "border-warning/30 bg-warning/10 text-warning-foreground [a]:hover:bg-warning/15",
+        info: "border-info/30 bg-info/10 text-info-foreground [a]:hover:bg-info/15",
+        "status-danger":
+          "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/15",
+        "status-loading": "border-border bg-muted/40 text-muted-foreground",
+        "status-neutral": "border-border bg-muted/50 text-muted-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "",
+        xs: "h-4 px-1.5 text-xs",
+        pill: "h-auto rounded-full px-3 py-1",
+        round: "rounded-full",
+        status: "max-w-full justify-start px-2.5",
+        role: "max-w-32 justify-start px-2.5",
+      },
+      font: {
+        default: "",
+        mono: "font-mono",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
+      font: "default",
     },
   }
 )

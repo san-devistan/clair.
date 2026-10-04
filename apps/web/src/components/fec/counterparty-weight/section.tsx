@@ -152,18 +152,19 @@ function CounterpartyWeightChart({ rows }: { rows: CounterpartyWeightRow[] }) {
     CHART_MIN_HEIGHT,
     rows.length * CHART_ROW_HEIGHT + 64
   )
-  const chartStyle = useMemo(() => ({ height: chartHeight }), [chartHeight])
   const initialDimension = useMemo(
     () => ({ width: 640, height: chartHeight }),
     [chartHeight]
   )
 
   return (
-    <div>
+    <div
+      className="h-(--chart-height) w-full"
+      style={{ "--chart-height": `${String(chartHeight)}px` }}
+    >
       <ChartContainer
         config={CHART_CONFIG}
-        className="w-full"
-        style={chartStyle}
+        className="size-full"
         initialDimension={initialDimension}
       >
         {(components) => (
@@ -233,7 +234,7 @@ function CounterpartyWeightChartContent({
         <LabelList
           dataKey="share"
           position="right"
-          className="fill-foreground font-mono text-[10px]"
+          className="fill-foreground font-mono text-2xs"
           formatter={formatPercentLabel}
         />
       </Bar>
@@ -257,7 +258,7 @@ function chartTooltipFormatter(value: unknown, _name: unknown, item: unknown) {
     <div className="flex min-w-60 flex-col gap-1">
       <span className="font-medium">{row?.label ?? "Tiers"}</span>
       {row ? (
-        <span className="font-mono text-[10px] text-muted-foreground">
+        <span className="font-mono text-2xs text-muted-foreground">
           {row.accountNum}
         </span>
       ) : null}

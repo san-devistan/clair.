@@ -35,8 +35,8 @@ export interface KpiCardProps {
 // envelope: keeps the signal exactly where the eye reads the KPI.
 const VALUE_TONE_STYLES: Record<NonNullable<KpiCardProps["tone"]>, string> = {
   default: "",
-  success: "text-emerald-600 dark:text-emerald-500",
-  warning: "text-amber-600 dark:text-amber-500",
+  success: "text-success-foreground",
+  warning: "text-warning-foreground",
   danger: "text-destructive",
 }
 
@@ -44,7 +44,7 @@ const TREND_STYLES: Record<
   NonNullable<NonNullable<KpiCardProps["trend"]>["tone"]>,
   string
 > = {
-  positive: "text-emerald-600 dark:text-emerald-500",
+  positive: "text-success-foreground",
   negative: "text-destructive",
   neutral: "text-muted-foreground",
 }
@@ -102,52 +102,66 @@ export function KpiCard({
   footer,
 }: KpiCardProps) {
   return (
-    <Card className={cn("gap-3", className)}>
+    <Card size="sm" className={className}>
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
-            <CardTitle className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {label}
-            </CardTitle>
+            <CardTitle variant="metric">{label}</CardTitle>
           </div>
           {Icon ? (
             <Icon className="size-4 shrink-0 text-muted-foreground" />
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2.5">
-        <KpiValue
-          label={label}
-          value={value}
-          description={description}
-          tone={tone}
-        />
-        {trend ? (
-          <div className="flex items-center gap-1.5 text-xs">
-            <span
-              className={cn(
-                "inline-flex items-center gap-0.5 font-medium tabular-nums",
-                TREND_STYLES[trend.tone ?? "neutral"]
-              )}
-            >
-              {trend.direction === "up" ? (
-                <ArrowUp className="size-3" />
-              ) : trend.direction === "down" ? (
-                <ArrowDown className="size-3" />
-              ) : (
-                <ArrowRight className="size-3" />
-              )}
-              {trend.text}
-            </span>
-            {hint ? (
-              <span className="text-muted-foreground">· {hint}</span>
-            ) : null}
-          </div>
-        ) : hint ? (
-          <p className="text-xs text-muted-foreground">{hint}</p>
-        ) : null}
-        {footer}
+      <CardContent>
+        <div className="flex flex-col gap-2.5">
+          <KpiValue
+            label={label}
+            value={value}
+            description={description}
+            tone={tone}
+          />
+          <KpiTrend trend={trend} hint={hint} />
+          {footer}
+        </div>
       </CardContent>
     </Card>
   )
+}
+
+function KpiTrend({
+  trend,
+  hint,
+}: {
+  trend: KpiCardProps["trend"]
+  hint: ReactNode
+}) {
+  if (!trend) {
+    return hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 font-medium tabular-nums",
+          TREND_STYLES[trend.tone ?? "neutral"]
+        )}
+      >
+        <TrendIcon direction={trend.direction} />
+        {trend.text}
+      </span>
+      {hint ? <span className="text-muted-foreground">· {hint}</span> : null}
+    </div>
+  )
+}
+
+function TrendIcon({
+  direction,
+}: {
+  direction: NonNullable<KpiCardProps["trend"]>["direction"]
+}) {
+  if (direction === "up") return <ArrowUp className="size-3" />
+  if (direction === "down") return <ArrowDown className="size-3" />
+  return <ArrowRight className="size-3" />
 }

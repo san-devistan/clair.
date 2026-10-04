@@ -127,14 +127,16 @@ function RevenusPage() {
           ) : null}
         </CardHeader>
         <CardContent>
-          <MonthlyBarChart
-            monthly={monthly}
-            metric="revenue"
-            categories={revenueCategories}
-            comparison={comparison?.monthly}
-            comparisonCategories={comparison?.revenueCategories}
-            className="h-[320px] w-full"
-          />
+          <div className="h-chart-md w-full">
+            <MonthlyBarChart
+              monthly={monthly}
+              metric="revenue"
+              categories={revenueCategories}
+              comparison={comparison?.monthly}
+              comparisonCategories={comparison?.revenueCategories}
+              className="size-full"
+            />
+          </div>
         </CardContent>
       </Card>
     </DashboardPage>

@@ -9,28 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as DashboardTresorerieRouteImport } from './routes/dashboard.tresorerie'
-import { Route as DashboardRevenusRouteImport } from './routes/dashboard.revenus'
-import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
-import { Route as DashboardFournisseursRouteImport } from './routes/dashboard.fournisseurs'
-import { Route as DashboardClientsRouteImport } from './routes/dashboard.clients'
-import { Route as DashboardChargesRouteImport } from './routes/dashboard.charges'
 import { Route as DashboardBilanRouteImport } from './routes/dashboard.bilan'
+import { Route as DashboardChargesRouteImport } from './routes/dashboard.charges'
+import { Route as DashboardClientsRouteImport } from './routes/dashboard.clients'
+import { Route as DashboardFournisseursRouteImport } from './routes/dashboard.fournisseurs'
+import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
+import { Route as DashboardRevenusRouteImport } from './routes/dashboard.revenus'
+import { Route as DashboardTresorerieRouteImport } from './routes/dashboard.tresorerie'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -38,9 +33,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -48,29 +48,9 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardTresorerieRoute = DashboardTresorerieRouteImport.update({
-  id: '/tresorerie',
-  path: '/tresorerie',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRevenusRoute = DashboardRevenusRouteImport.update({
-  id: '/revenus',
-  path: '/revenus',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardInsightsRoute = DashboardInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardFournisseursRoute = DashboardFournisseursRouteImport.update({
-  id: '/fournisseurs',
-  path: '/fournisseurs',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardClientsRoute = DashboardClientsRouteImport.update({
-  id: '/clients',
-  path: '/clients',
+const DashboardBilanRoute = DashboardBilanRouteImport.update({
+  id: '/bilan',
+  path: '/bilan',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardChargesRoute = DashboardChargesRouteImport.update({
@@ -78,9 +58,29 @@ const DashboardChargesRoute = DashboardChargesRouteImport.update({
   path: '/charges',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardBilanRoute = DashboardBilanRouteImport.update({
-  id: '/bilan',
-  path: '/bilan',
+const DashboardClientsRoute = DashboardClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFournisseursRoute = DashboardFournisseursRouteImport.update({
+  id: '/fournisseurs',
+  path: '/fournisseurs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardInsightsRoute = DashboardInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRevenusRoute = DashboardRevenusRouteImport.update({
+  id: '/revenus',
+  path: '/revenus',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTresorerieRoute = DashboardTresorerieRouteImport.update({
+  id: '/tresorerie',
+  path: '/tresorerie',
   getParentRoute: () => DashboardRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -191,18 +191,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -212,11 +205,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -226,39 +226,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/tresorerie': {
-      id: '/dashboard/tresorerie'
-      path: '/tresorerie'
-      fullPath: '/dashboard/tresorerie'
-      preLoaderRoute: typeof DashboardTresorerieRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/revenus': {
-      id: '/dashboard/revenus'
-      path: '/revenus'
-      fullPath: '/dashboard/revenus'
-      preLoaderRoute: typeof DashboardRevenusRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/insights': {
-      id: '/dashboard/insights'
-      path: '/insights'
-      fullPath: '/dashboard/insights'
-      preLoaderRoute: typeof DashboardInsightsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/fournisseurs': {
-      id: '/dashboard/fournisseurs'
-      path: '/fournisseurs'
-      fullPath: '/dashboard/fournisseurs'
-      preLoaderRoute: typeof DashboardFournisseursRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/clients': {
-      id: '/dashboard/clients'
-      path: '/clients'
-      fullPath: '/dashboard/clients'
-      preLoaderRoute: typeof DashboardClientsRouteImport
+    '/dashboard/bilan': {
+      id: '/dashboard/bilan'
+      path: '/bilan'
+      fullPath: '/dashboard/bilan'
+      preLoaderRoute: typeof DashboardBilanRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/charges': {
@@ -268,11 +240,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardChargesRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/bilan': {
-      id: '/dashboard/bilan'
-      path: '/bilan'
-      fullPath: '/dashboard/bilan'
-      preLoaderRoute: typeof DashboardBilanRouteImport
+    '/dashboard/clients': {
+      id: '/dashboard/clients'
+      path: '/clients'
+      fullPath: '/dashboard/clients'
+      preLoaderRoute: typeof DashboardClientsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/fournisseurs': {
+      id: '/dashboard/fournisseurs'
+      path: '/fournisseurs'
+      fullPath: '/dashboard/fournisseurs'
+      preLoaderRoute: typeof DashboardFournisseursRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/insights': {
+      id: '/dashboard/insights'
+      path: '/insights'
+      fullPath: '/dashboard/insights'
+      preLoaderRoute: typeof DashboardInsightsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/revenus': {
+      id: '/dashboard/revenus'
+      path: '/revenus'
+      fullPath: '/dashboard/revenus'
+      preLoaderRoute: typeof DashboardRevenusRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/tresorerie': {
+      id: '/dashboard/tresorerie'
+      path: '/tresorerie'
+      fullPath: '/dashboard/tresorerie'
+      preLoaderRoute: typeof DashboardTresorerieRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/api/auth/$': {

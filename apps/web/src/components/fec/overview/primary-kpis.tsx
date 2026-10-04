@@ -71,10 +71,13 @@ function buildRevenueTrend(
 ): KpiCardProps["trend"] {
   if (revenueGrowth === null) return undefined
 
-  const direction: NonNullable<KpiCardProps["trend"]>["direction"] =
-    revenueGrowth > 0 ? "up" : revenueGrowth < 0 ? "down" : "neutral"
-  const tone: NonNullable<KpiCardProps["trend"]>["tone"] =
-    revenueGrowth > 0 ? "positive" : revenueGrowth < -3 ? "negative" : "neutral"
+  let direction: NonNullable<KpiCardProps["trend"]>["direction"] = "neutral"
+  if (revenueGrowth > 0) direction = "up"
+  else if (revenueGrowth < 0) direction = "down"
+
+  let tone: NonNullable<KpiCardProps["trend"]>["tone"] = "neutral"
+  if (revenueGrowth > 0) tone = "positive"
+  else if (revenueGrowth < -3) tone = "negative"
 
   return {
     direction,

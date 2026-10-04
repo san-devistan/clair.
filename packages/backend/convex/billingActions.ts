@@ -2,7 +2,7 @@
 
 import { StripeSubscriptions } from "@convex-dev/stripe"
 import { ConvexError, v } from "convex/values"
-import Stripe from "stripe"
+import { Stripe } from "stripe"
 
 import { components } from "./_generated/api"
 import { action, env } from "./_generated/server"
@@ -385,17 +385,22 @@ function createStripe() {
   return new Stripe(env.STRIPE_SECRET_KEY)
 }
 
-function getReactivatableSubscription(value: unknown) {
+function getReactivatableSubscription(value: unknown): {
+  cancelAtPeriodEnd: boolean
+  stripeSubscriptionId: string
+} | null {
   if (!Array.isArray(value)) {
     return null
   }
 
-  return (
-    value.find(
-      (subscription) =>
-        isSubscriptionRecord(subscription) && subscription.cancelAtPeriodEnd
-    ) ?? null
-  )
+  const subscriptions: unknown[] = value
+  for (const subscription of subscriptions) {
+    if (isSubscriptionRecord(subscription) && subscription.cancelAtPeriodEnd) {
+      return subscription
+    }
+  }
+
+  return null
 }
 
 function isSubscriptionRecord(value: unknown): value is {

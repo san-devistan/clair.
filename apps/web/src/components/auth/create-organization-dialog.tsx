@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Plus } from "lucide-react"
-import { useCallback, type ChangeEvent, type FormEvent } from "react"
+import { useCallback, type ChangeEvent, type SubmitEvent } from "react"
 
 export function CreateOrganizationDialog({
   error,
@@ -35,7 +35,7 @@ export function CreateOrganizationDialog({
   onClose: () => void
   onNameChange: (value: string) => void
   onOpenChange: (open: boolean) => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -35,13 +35,19 @@ function isOrganizationLimitError(message: string) {
   )
 }
 
-export function useCreateOrganization(
-  canCreateOrganization: boolean | null,
-  createOrganizationForCurrentUser: CreateOrganizationMutation,
-  refreshOrganizations: () => Promise<void>,
-  orgName: string,
+export function useCreateOrganization({
+  canCreateOrganization,
+  createOrganizationForCurrentUser,
+  refreshOrganizations,
+  orgName,
+  dispatch,
+}: {
+  canCreateOrganization: boolean | null
+  createOrganizationForCurrentUser: CreateOrganizationMutation
+  refreshOrganizations: () => Promise<void>
+  orgName: string
   dispatch: Dispatch<OrgSwitcherAction>
-) {
+}) {
   return useCallback(async () => {
     if (canCreateOrganization === false) {
       window.location.assign(CREATE_ORGANIZATION_LIMIT_PATH)
@@ -148,14 +154,21 @@ export function useUpdateOrganization(
   }, [activeOrganization, dispatch, editOrgName])
 }
 
-export function useAddMember(
-  activeOrganization: ActiveOrganization | null,
-  addMemberByEmail: AddMemberByEmailMutation,
-  canInviteMember: boolean | null,
-  memberEmail: string,
-  memberRole: MemberRole,
+export function useAddMember({
+  activeOrganization,
+  addMemberByEmail,
+  canInviteMember,
+  memberEmail,
+  memberRole,
+  dispatch,
+}: {
+  activeOrganization: ActiveOrganization | null
+  addMemberByEmail: AddMemberByEmailMutation
+  canInviteMember: boolean | null
+  memberEmail: string
+  memberRole: MemberRole
   dispatch: Dispatch<OrgSwitcherAction>
-) {
+}) {
   return useCallback(async () => {
     if (!activeOrganization) {
       dispatch({

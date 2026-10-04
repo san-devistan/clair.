@@ -20,15 +20,17 @@ export function BreakevenSection({ kpi }: BreakevenSectionProps) {
           Seuil de rentabilité
         </ExplainedCardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {kpi.breakevenPoint > 0 ? (
-          <BreakevenBody kpi={kpi} />
-        ) : (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            Seuil non calculable : marge sur coûts variables négative ou nulle (
-            {formatEuro(kpi.contributionMargin)}).
-          </p>
-        )}
+      <CardContent>
+        <div className="space-y-2">
+          {kpi.breakevenPoint > 0 ? (
+            <BreakevenBody kpi={kpi} />
+          ) : (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Seuil non calculable : marge sur coûts variables négative ou nulle
+              ({formatEuro(kpi.contributionMargin)}).
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

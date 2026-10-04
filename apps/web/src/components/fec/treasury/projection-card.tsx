@@ -13,7 +13,7 @@ interface CashProjectionCardProps {
 
 const TONE_CLASS: Record<"default" | "positive" | "negative", string> = {
   default: "text-foreground",
-  positive: "text-emerald-600 dark:text-emerald-500",
+  positive: "text-success-foreground",
   negative: "text-destructive",
 }
 
@@ -26,7 +26,7 @@ export function CashProjectionCard({
   return (
     <div
       className={cn(
-        "grid grid-cols-[minmax(0,1fr)_1ch_auto] items-baseline gap-x-2 gap-y-1.5 text-sm",
+        "grid grid-cols-operator-row items-baseline gap-x-2 gap-y-1.5 text-sm",
         className
       )}
     >
@@ -92,7 +92,9 @@ function CascadeRow({
   bold?: boolean
   tone?: "default" | "positive" | "negative"
 }) {
-  const operator = op === "add" ? "+" : op === "sub" || amount < 0 ? "−" : ""
+  let operator = ""
+  if (op === "add") operator = "+"
+  else if (op === "sub" || amount < 0) operator = "−"
   const displayAmount = Math.abs(amount)
   // A zero engagement isn't positive or negative — neutralise the colour so
   // "− 0 €" doesn't read as a danger.

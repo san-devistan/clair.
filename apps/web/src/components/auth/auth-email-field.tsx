@@ -19,12 +19,7 @@ export function AuthEmailField({
       <div className="flex items-center justify-between gap-3">
         <FieldLabel htmlFor="email">Email</FieldLabel>
         {onEdit ? (
-          <Button
-            type="button"
-            variant="link"
-            className="h-auto px-0 text-xs text-muted-foreground"
-            onClick={onEdit}
-          >
+          <Button type="button" variant="muted-link" onClick={onEdit}>
             Modifier
           </Button>
         ) : null}
@@ -36,7 +31,7 @@ export function AuthEmailField({
         onChange={onChange}
         readOnly={readOnly}
         autoComplete="email"
-        className="h-10 bg-muted/30 px-3"
+        variant="muted"
         placeholder="vous@entreprise.fr"
         required
       />

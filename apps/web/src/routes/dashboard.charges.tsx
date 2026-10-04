@@ -116,22 +116,24 @@ function ChargesPage() {
           ) : null}
         </CardHeader>
         <CardContent>
-          <MonthlyBarChart
-            monthly={monthly}
-            metric="expenses"
-            categories={expenseCategories}
-            comparison={
-              showComparison && comparisonData
-                ? comparisonData.monthly
-                : undefined
-            }
-            comparisonCategories={
-              showComparison && comparisonData
-                ? comparisonData.expenseCategories
-                : undefined
-            }
-            className="h-[320px] w-full"
-          />
+          <div className="h-chart-md w-full">
+            <MonthlyBarChart
+              monthly={monthly}
+              metric="expenses"
+              categories={expenseCategories}
+              comparison={
+                showComparison && comparisonData
+                  ? comparisonData.monthly
+                  : undefined
+              }
+              comparisonCategories={
+                showComparison && comparisonData
+                  ? comparisonData.expenseCategories
+                  : undefined
+              }
+              className="size-full"
+            />
+          </div>
         </CardContent>
       </Card>
     </DashboardPage>

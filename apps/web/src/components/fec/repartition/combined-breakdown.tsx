@@ -183,7 +183,7 @@ function RepartitionMergedTable({
 
   return (
     <div className="overflow-x-auto rounded-md border">
-      <Table className="min-w-[640px] table-fixed">
+      <Table layout="fixed" minWidth="sm">
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Libellé</TableHead>
@@ -247,23 +247,19 @@ function MergedGroupRows({
 }
 
 function SeriesHeaderRow({ series }: { series: RepartitionSeries }) {
-  const accent =
-    series.variant === "revenue"
-      ? "text-[var(--revenue)]"
-      : "text-[var(--expense)]"
+  const accent = series.variant === "revenue" ? "text-revenue" : "text-expense"
   const fill =
     series.variant === "revenue" ? "var(--revenue)" : "var(--expense)"
-  const markerStyle = useMemo(() => ({ background: fill }), [fill])
 
   return (
-    <TableRow className="bg-muted/40 hover:bg-muted/40">
-      <TableCell colSpan={3} className="py-2">
+    <TableRow variant="muted">
+      <TableCell colSpan={3} spacing="relaxed">
         <div className="flex items-center justify-between gap-2 text-xs font-semibold tracking-wide uppercase">
           <span className={cn("flex min-w-0 items-center gap-2", accent)}>
             <span
               aria-hidden
-              className="block size-2.5 shrink-0 rounded-full"
-              style={markerStyle}
+              className="block size-2.5 shrink-0 rounded-full bg-marker"
+              style={{ "--marker-color": fill }}
             />
             <span className="min-w-0 truncate">{series.label}</span>
           </span>

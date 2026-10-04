@@ -11,6 +11,7 @@
 import type * as accountingAccess from "../accountingAccess.js";
 import type * as accountingSources from "../accountingSources.js";
 import type * as auth from "../auth.js";
+import type * as authOnboarding from "../authOnboarding.js";
 import type * as billing from "../billing.js";
 import type * as billingActions from "../billingActions.js";
 import type * as billingLib from "../billingLib.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   accountingAccess: typeof accountingAccess;
   accountingSources: typeof accountingSources;
   auth: typeof auth;
+  authOnboarding: typeof authOnboarding;
   billing: typeof billing;
   billingActions: typeof billingActions;
   billingLib: typeof billingLib;

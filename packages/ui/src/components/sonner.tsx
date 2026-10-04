@@ -19,12 +19,12 @@ const toasterIcons = {
   loading: <Loader2Icon className="size-4 animate-spin" />,
 }
 
-const toasterStyle = {
+const toasterStyle: CSSProperties = {
   "--normal-bg": "var(--popover)",
   "--normal-text": "var(--popover-foreground)",
   "--normal-border": "var(--border)",
   "--border-radius": "var(--radius)",
-} as CSSProperties
+}
 
 const toastOptions = {
   classNames: {

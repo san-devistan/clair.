@@ -128,8 +128,7 @@ export function RepartitionChart({
 }) {
   const total = computePositiveGroupTotal(groups)
   const label = variant === "revenue" ? "Revenus" : "Charges"
-  const accent =
-    variant === "revenue" ? "text-[var(--revenue)]" : "text-[var(--expense)]"
+  const accent = variant === "revenue" ? "text-revenue" : "text-expense"
   const segments = buildMainSegments(groups, selectedGroupKey, total)
   const toggleSegment = useCallback(
     (segment: InteractiveSegment) => onToggleGroup(segment.groupKey),
@@ -202,7 +201,7 @@ function RepartitionTooltip({ segment }: { segment: InteractiveSegment }) {
 function SegmentTooltipMeta({ segment }: { segment: ChartSegment }) {
   if (segment.accountNum)
     return (
-      <span className="font-mono text-[10px] opacity-70">
+      <span className="font-mono text-2xs opacity-70">
         {segment.accountNum}
         {segment.auxNum ? ` · ${segment.auxNum}` : ""}
       </span>
@@ -211,7 +210,7 @@ function SegmentTooltipMeta({ segment }: { segment: ChartSegment }) {
   if (segment.detailCount === 0) return null
 
   return (
-    <span className="text-[10px] opacity-70">
+    <span className="text-2xs opacity-70">
       {String(segment.detailCount)} poste
       {segment.detailCount > 1 ? "s" : ""}
     </span>
@@ -231,7 +230,7 @@ function RepartitionTable({
 
   return (
     <div className="rounded-md border">
-      <Table className="min-w-[640px] table-fixed">
+      <Table layout="fixed" minWidth="sm">
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Libellé</TableHead>
@@ -274,19 +273,18 @@ export function GroupRows({
   const ariaLabel = selected
     ? `Masquer le détail de ${group.label}`
     : `Afficher le détail de ${group.label}`
-  const markerStyle = useMemo(() => ({ background: group.fill }), [group.fill])
 
   return (
     <>
       <TableRow>
-        <TableCell colSpan={3} className="p-0">
+        <TableCell colSpan={3} spacing="none">
           <button
             type="button"
             aria-label={ariaLabel}
             aria-expanded={selected}
             onClick={toggleGroup}
             className={cn(
-              "grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_6rem_7rem] items-center gap-2 bg-muted/30 p-2 text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+              "grid w-full cursor-pointer grid-cols-amount-row items-center gap-2 bg-muted/30 p-2 text-left transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
               selected && "bg-primary/[0.08] hover:bg-primary/[0.1]"
             )}
           >
@@ -297,12 +295,12 @@ export function GroupRows({
               />
               <span
                 aria-hidden
-                className="block size-2.5 shrink-0 rounded-full"
-                style={markerStyle}
+                className="block size-2.5 shrink-0 rounded-full bg-marker"
+                style={{ "--marker-color": group.fill }}
               />
               <span className="min-w-0 truncate">{group.label}</span>
               {selected ? (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" size="xs">
                   Détail
                 </Badge>
               ) : null}
@@ -336,7 +334,7 @@ function DetailRow({
   const isNegative = detail.amount < 0
 
   return (
-    <TableRow className={cn(isNegative && "bg-destructive/5")}>
+    <TableRow variant={isNegative ? "destructive" : "default"}>
       <TableCell className="whitespace-normal">
         <div className="flex min-w-0 gap-3 pl-5">
           <span className="mt-2 h-6 w-px shrink-0 bg-border" aria-hidden />
@@ -347,7 +345,7 @@ function DetailRow({
                 className="font-medium text-foreground"
               />
               {isNegative ? (
-                <Badge variant="destructive" className="text-[10px]">
+                <Badge variant="destructive" size="xs">
                   À vérifier
                 </Badge>
               ) : null}
@@ -357,18 +355,15 @@ function DetailRow({
         </div>
       </TableCell>
       <TableCell
-        className={cn(
-          "text-right text-xs text-muted-foreground tabular-nums",
-          isNegative && "text-destructive"
-        )}
+        variant="muted"
+        tone={isNegative ? "destructive" : "default"}
+        className="text-right"
       >
         {formatPercent(share)}
       </TableCell>
       <TableCell
-        className={cn(
-          "text-right font-mono font-medium tabular-nums",
-          isNegative && "text-destructive"
-        )}
+        variant="numeric"
+        tone={isNegative ? "destructive" : "default"}
       >
         <FormattedCurrency value={detail.amount} />
       </TableCell>
@@ -387,9 +382,9 @@ function DetailMeta({ detail }: { detail: AccountDetail }) {
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      <OverflowTooltip text={label} wrapperClassName="max-w-[320px]" />
+      <OverflowTooltip text={label} wrapperClassName="max-w-tooltip-sm" />
       {label !== code && code ? (
-        <span className="font-mono text-[10px]">{code}</span>
+        <span className="font-mono text-2xs">{code}</span>
       ) : null}
     </div>
   )

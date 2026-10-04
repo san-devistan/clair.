@@ -33,8 +33,8 @@ const ACCOUNT_TRIGGER_BUTTON = (
   <SidebarMenuButton
     aria-label={ACCOUNT_MENU_LABEL}
     size="lg"
+    variant="account"
     title={ACCOUNT_MENU_LABEL}
-    className="h-12 border border-sidebar-border bg-sidebar-accent/40 px-2 hover:bg-sidebar-accent data-popup-open:border-primary data-popup-open:bg-sidebar-accent data-popup-open:ring-2 data-popup-open:ring-primary/25"
   />
 )
 
@@ -142,7 +142,7 @@ function AccountDropdown({
         side="top"
         align="start"
         sideOffset={8}
-        className="max-w-[calc(100vw-1rem)] p-1.5"
+        size="relaxed"
       >
         <OrganizationSelectItems
           activeOrganizationId={activeOrganizationId}
@@ -153,10 +153,7 @@ function AccountDropdown({
         {canCreateOrganization ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="gap-3 px-2 py-2"
-              onClick={onOpenCreate}
-            >
+            <DropdownMenuItem size="relaxed" onClick={onOpenCreate}>
               <Plus className="size-4" />
               <span>Nouveau</span>
             </DropdownMenuItem>

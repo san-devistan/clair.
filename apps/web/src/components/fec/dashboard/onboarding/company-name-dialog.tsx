@@ -19,7 +19,12 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Loader2, Save } from "lucide-react"
-import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
+import {
+  useCallback,
+  useState,
+  type ChangeEvent,
+  type SubmitEvent,
+} from "react"
 
 type FormState = {
   error: string | null
@@ -113,7 +118,7 @@ export function DashboardCompanyNameDialog({ open }: { open: boolean }) {
   }, [activeOrganization, formState.organizationName, replace])
 
   const submit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault()
       void submitOrganizationName()
     },

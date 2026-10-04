@@ -127,9 +127,10 @@ function MemberRoleField({
       <FieldLabel htmlFor="member-role">Rôle</FieldLabel>
       <select
         id="member-role"
+        aria-label="Rôle"
         value={value}
         onChange={changeRole}
-        className="h-8 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="h-8 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <option value="member">Membre</option>
         <option value="admin">Admin</option>

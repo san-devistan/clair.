@@ -14,7 +14,7 @@ import {
   useReducer,
   useRef,
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
 } from "react"
 
 type AuthMode = "sign-in" | "sign-up"
@@ -301,7 +301,7 @@ function AuthPage() {
   }, [convex, isSignUp, state.email, state.password, state.step])
 
   const submit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault()
       void submitAuth()
     },

@@ -26,41 +26,29 @@ export function BreakevenChart({
   const breakevenLeft = (breakevenPoint / scaleMax) * 100
   const revenueWidth = (revenue / scaleMax) * 100
 
-  const revenueClass = isAbove
-    ? "bg-[var(--result)]"
-    : "bg-[var(--result-loss)]"
-  const breakevenStyle = useMemo(
-    () => ({ width: `${String(breakevenLeft)}%` }),
-    [breakevenLeft]
-  )
-  const revenueStyle = useMemo(
-    () => ({ width: `${String(revenueWidth)}%` }),
-    [revenueWidth]
-  )
-  const markerStyle = useMemo(
-    () => ({ left: `${String(breakevenLeft)}%` }),
-    [breakevenLeft]
-  )
+  const revenueClass = isAbove ? "bg-result" : "bg-result-loss"
+  const breakevenProgress = `${String(breakevenLeft)}%`
+  const revenueProgress = `${String(revenueWidth)}%`
   const breakevenTrigger = useMemo(
     () => (
       <div
-        className="absolute inset-y-0 left-0 cursor-default bg-muted-foreground/30"
-        style={breakevenStyle}
+        className="absolute inset-y-0 left-0 w-progress cursor-default bg-muted-foreground/30"
+        style={{ "--progress-width": breakevenProgress }}
       />
     ),
-    [breakevenStyle]
+    [breakevenProgress]
   )
   const revenueTrigger = useMemo(
     () => (
       <div
         className={cn(
-          "absolute top-1/2 left-0 h-5 -translate-y-1/2 cursor-default transition-all",
+          "absolute top-1/2 left-0 h-5 w-progress -translate-y-1/2 cursor-default transition-all",
           revenueClass
         )}
-        style={revenueStyle}
+        style={{ "--progress-width": revenueProgress }}
       />
     ),
-    [revenueClass, revenueStyle]
+    [revenueClass, revenueProgress]
   )
 
   return (
@@ -81,8 +69,8 @@ export function BreakevenChart({
           <BreakevenTooltipContent label="Chiffre d'affaires" value={revenue} />
         </Tooltip>
         <div
-          className="pointer-events-none absolute -inset-y-1 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
-          style={markerStyle}
+          className="pointer-events-none absolute -inset-y-1 left-progress w-0.5 -translate-x-1/2 rounded-full bg-foreground"
+          style={{ "--progress-left": breakevenProgress }}
         />
       </div>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">

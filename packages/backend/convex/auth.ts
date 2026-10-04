@@ -2,11 +2,20 @@ import { ConvexError, v } from "convex/values"
 
 import { components } from "./_generated/api"
 import { mutation, query } from "./_generated/server"
+import {
+  acceptPendingInvitationsForUser,
+  countOwnedMemberships,
+  createDefaultOrganization,
+  getActiveOrganizationId,
+  getUserId,
+  listUserMemberships,
+  makeSlug,
+  normalizeEmail,
+} from "./authOnboarding"
 import { authComponent, createAuth } from "./betterAuth/auth"
 import {
   assertOrganizationCanAcceptAnotherMember,
   assertOrganizationCanAcceptAnotherMemberForBillingUser,
-  findAuthMany,
   getAuthModelUserIds,
   getBillingUserId,
   getBillingEntitlementsForUser,
@@ -18,23 +27,6 @@ const onboardingIntent = v.union(
   v.literal("login"),
   v.literal("create-organization")
 )
-const DEFAULT_ORGANIZATION_NAME = "Mon Entreprise"
-const DEFAULT_ORGANIZATION_SLUG = "mon-entreprise"
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase()
-}
-
-function makeSlug(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
-
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
@@ -50,10 +42,13 @@ export const getEmailAuthStatus = query({
       return { exists: false }
     }
 
-    const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-      model: "user",
-      where: [{ field: "email", value: email }],
-    })
+    const user: unknown = await ctx.runQuery(
+      components.betterAuth.adapter.findOne,
+      {
+        model: "user",
+        where: [{ field: "email", value: email }],
+      }
+    )
 
     return { exists: Boolean(getUserId(user)) }
   },
@@ -270,10 +265,13 @@ export const addMemberByEmail = mutation({
       getBillingUserId(user)
     )
 
-    const invitee = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-      model: "user",
-      where: [{ field: "email", value: email }],
-    })
+    const invitee: unknown = await ctx.runQuery(
+      components.betterAuth.adapter.findOne,
+      {
+        model: "user",
+        where: [{ field: "email", value: email }],
+      }
+    )
 
     const userId = getUserId(invitee)
 
@@ -305,159 +303,3 @@ export const addMemberByEmail = mutation({
 })
 
 export const { getAuthUser } = authComponent.clientApi()
-
-async function acceptPendingInvitationsForUser(
-  ctx: Parameters<typeof listPendingInvitationsByEmail>[0],
-  auth: ReturnType<typeof createAuth>,
-  headers: Headers,
-  email: string
-) {
-  const invitations = await listPendingInvitationsByEmail(ctx, email)
-  const invitationIds = invitations
-    .map((invitation) => getString(invitation.id))
-    .filter(Boolean)
-
-  await Promise.all(
-    invitationIds.map((invitationId) =>
-      auth.api.acceptInvitation({
-        body: { invitationId },
-        headers,
-      })
-    )
-  )
-
-  return invitationIds.length
-}
-
-async function listPendingInvitationsByEmail(
-  ctx: Parameters<typeof findAuthMany>[0],
-  email: string
-) {
-  return await findAuthMany(ctx, "invitation", [
-    { field: "email", value: normalizeEmail(email) },
-    { connector: "AND", field: "status", value: "pending" },
-  ])
-}
-
-async function listUserMemberships(
-  ctx: Parameters<typeof findAuthMany>[0],
-  userIds: string | string[]
-) {
-  const ids = Array.isArray(userIds) ? userIds : [userIds]
-  const memberships = await Promise.all(
-    ids.map((userId) =>
-      findAuthMany(ctx, "member", [{ field: "userId", value: userId }])
-    )
-  )
-
-  return memberships.flat()
-}
-
-async function createDefaultOrganization(
-  auth: ReturnType<typeof createAuth>,
-  headers: Headers,
-  userId: string
-) {
-  return await createDefaultOrganizationWithSlug(
-    auth,
-    headers,
-    getDefaultOrganizationSlugCandidates(userId),
-    null
-  )
-}
-
-async function createDefaultOrganizationWithSlug(
-  auth: ReturnType<typeof createAuth>,
-  headers: Headers,
-  slugs: string[],
-  lastCollision: unknown
-): ReturnType<ReturnType<typeof createAuth>["api"]["createOrganization"]> {
-  const [slug, ...remainingSlugs] = slugs
-  if (!slug) {
-    throw (
-      lastCollision ??
-      new ConvexError("Unable to create a unique organization slug")
-    )
-  }
-
-  try {
-    return await auth.api.createOrganization({
-      body: {
-        name: DEFAULT_ORGANIZATION_NAME,
-        slug,
-      },
-      headers,
-    })
-  } catch (error) {
-    if (!isOrganizationAlreadyExistsError(error)) {
-      throw error
-    }
-
-    return await createDefaultOrganizationWithSlug(
-      auth,
-      headers,
-      remainingSlugs,
-      error
-    )
-  }
-}
-
-function getDefaultOrganizationSlugCandidates(userId: string) {
-  const userSlug = makeSlug(userId).slice(0, 24)
-  const baseSlug = userSlug
-    ? `${DEFAULT_ORGANIZATION_SLUG}-${userSlug}`
-    : DEFAULT_ORGANIZATION_SLUG
-  return Array.from({ length: 20 }, (_, index) =>
-    index === 0 ? baseSlug : `${baseSlug}-${index + 1}`
-  )
-}
-
-function isOrganizationAlreadyExistsError(error: unknown) {
-  return getStringFromRecord(error, "message") === "Organization already exists"
-}
-
-function getActiveOrganizationId(memberships: Array<Record<string, unknown>>) {
-  return getString(memberships[0]?.organizationId) || null
-}
-
-function countOwnedMemberships(memberships: Array<Record<string, unknown>>) {
-  return memberships.filter((membership) =>
-    roleIncludes(getString(membership.role), "owner")
-  ).length
-}
-
-function roleIncludes(role: string, expectedRole: string) {
-  return role
-    .split(",")
-    .map((value) => value.trim())
-    .includes(expectedRole)
-}
-
-function getString(value: unknown) {
-  return typeof value === "string" ? value : ""
-}
-
-function getStringFromRecord(value: unknown, key: string) {
-  if (typeof value !== "object" || value === null) {
-    return ""
-  }
-
-  const field: unknown = Object.getOwnPropertyDescriptor(value, key)?.value
-  return typeof field === "string" ? field : ""
-}
-
-function getUserId(user: unknown) {
-  if (typeof user !== "object" || user === null) {
-    return ""
-  }
-
-  if ("id" in user && typeof user.id === "string") {
-    return user.id
-  }
-
-  if ("_id" in user && typeof user._id === "string") {
-    return user._id
-  }
-
-  return ""
-}

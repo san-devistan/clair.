@@ -91,17 +91,23 @@ function addCustomerMonthInvoice(
     amountHt,
     ref,
   })
-  addCustomerMonthPayment(input, customer, invoiceDate, amountTtc, ref)
+  addCustomerMonthPayment({ input, customer, invoiceDate, amountTtc, ref })
   return roundMoney(amountHt * DEFAULT_VAT_RATE)
 }
 
-function addCustomerMonthPayment(
-  input: MonthInput,
-  customer: Customer,
-  invoiceDate: Date,
-  amountTtc: number,
+function addCustomerMonthPayment({
+  input,
+  customer,
+  invoiceDate,
+  amountTtc,
+  ref,
+}: {
+  input: MonthInput
+  customer: Customer
+  invoiceDate: Date
+  amountTtc: number
   ref: string
-) {
+}) {
   const paymentDelay =
     customer.paymentDays +
     Math.floor(input.random() * 10) -
@@ -153,17 +159,23 @@ function addSupplierMonthInvoice(
     amountHt,
     ref,
   })
-  addSupplierMonthPayment(input, supplier, invoiceDate, amountTtc, ref)
+  addSupplierMonthPayment({ input, supplier, invoiceDate, amountTtc, ref })
   return roundMoney(amountHt * supplier.vatRate)
 }
 
-function addSupplierMonthPayment(
-  input: MonthInput,
-  supplier: Supplier,
-  invoiceDate: Date,
-  amountTtc: number,
+function addSupplierMonthPayment({
+  input,
+  supplier,
+  invoiceDate,
+  amountTtc,
+  ref,
+}: {
+  input: MonthInput
+  supplier: Supplier
+  invoiceDate: Date
+  amountTtc: number
   ref: string
-) {
+}) {
   const paymentDelay = supplier.paymentDays + Math.floor(input.random() * 6)
   const paymentDate = addDays(invoiceDate, paymentDelay)
   if (paymentDate > input.endMonth) return

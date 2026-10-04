@@ -7,10 +7,9 @@ function AspectRatio({
   ...props
 }: React.ComponentProps<"div"> & { ratio: number }) {
   const ratioStyle = React.useMemo(
-    () =>
-      ({
-        "--ratio": ratio,
-      }) as React.CSSProperties,
+    () => ({
+      "--ratio": ratio,
+    }),
     [ratio]
   )
 

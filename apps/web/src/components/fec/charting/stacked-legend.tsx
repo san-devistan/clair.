@@ -1,7 +1,6 @@
 "use client"
 
 import { cn } from "@workspace/ui/lib/utils"
-import { useMemo } from "react"
 
 interface StackedChartLegendItem {
   key: string
@@ -41,7 +40,10 @@ export function StackedChartLegend({
 }
 
 function LegendSwatch({ fill }: { fill: string }) {
-  const style = useMemo(() => ({ backgroundColor: fill }), [fill])
-
-  return <span className="size-2 shrink-0 rounded-[2px]" style={style} />
+  return (
+    <span
+      className="size-2 shrink-0 rounded-xs bg-marker"
+      style={{ "--marker-color": fill }}
+    />
+  )
 }

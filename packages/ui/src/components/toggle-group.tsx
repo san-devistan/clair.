@@ -31,10 +31,9 @@ function ToggleGroup({
     orientation?: "horizontal" | "vertical"
   }) {
   const groupStyle = React.useMemo(
-    () =>
-      ({
-        "--gap": spacing,
-      }) as React.CSSProperties,
+    () => ({
+      "--gap": spacing,
+    }),
     [spacing]
   )
   const contextValue = React.useMemo(

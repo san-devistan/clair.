@@ -41,7 +41,7 @@ const APPEARANCE_OPTIONS: Array<{
 ]
 const DEFAULT_APPEARANCE_OPTION = APPEARANCE_OPTIONS[0]
 const APPEARANCE_TRIGGER_BUTTON = (
-  <Button type="button" variant="outline" className="gap-2 px-3" />
+  <Button type="button" variant="outline" size="roomy" />
 )
 
 export function GeneralSettingsPanel({

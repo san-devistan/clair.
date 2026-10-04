@@ -16,6 +16,18 @@ import { useCallback, useState } from "react"
 
 type SetupStepStatus = "done" | "current" | "pending"
 
+const SETUP_STEP_ICONS = {
+  done: CheckCircle2,
+  current: Loader2,
+  pending: Circle,
+} satisfies Record<SetupStepStatus, typeof Circle>
+
+const SETUP_STEP_ICON_CLASSES: Record<SetupStepStatus, string> = {
+  done: "size-4 text-success-foreground",
+  current: "size-4 animate-spin text-primary",
+  pending: "size-4 text-muted-foreground",
+}
+
 interface SageActiveSetupDialogProps {
   open: boolean
   organizationId: string | null
@@ -82,7 +94,7 @@ export function SageActiveSetupDialog({
           ))}
         </div>
 
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3 text-sm text-emerald-700 dark:text-emerald-500">
+        <div className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success-foreground">
           <div className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
             <p>
@@ -124,20 +136,11 @@ function SetupStep({
   label: string
   status: SetupStepStatus
 }) {
-  const Icon =
-    status === "done" ? CheckCircle2 : status === "current" ? Loader2 : Circle
+  const Icon = SETUP_STEP_ICONS[status]
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <Icon
-        className={
-          status === "current"
-            ? "size-4 animate-spin text-primary"
-            : status === "done"
-              ? "size-4 text-emerald-600"
-              : "size-4 text-muted-foreground"
-        }
-      />
+      <Icon className={SETUP_STEP_ICON_CLASSES[status]} />
       <span
         className={
           status === "pending" ? "text-muted-foreground" : "text-foreground"

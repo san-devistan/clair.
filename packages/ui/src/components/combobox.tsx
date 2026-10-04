@@ -16,7 +16,9 @@ const comboboxTriggerButton = <ComboboxTrigger />
 const comboboxItemIndicator = (
   <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />
 )
-const comboboxChipRemoveButton = <Button variant="ghost" size="icon-xs" />
+const comboboxChipRemoveButton = (
+  <Button variant="ghost" size="icon-xs" aria-label="Remove" />
+)
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />

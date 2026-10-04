@@ -15,10 +15,24 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        "muted-link":
+          "h-auto px-0 text-xs text-muted-foreground underline-offset-4 hover:underline",
+        "muted-ghost":
+          "text-muted-foreground hover:bg-muted hover:text-foreground active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-muted/50",
+        "danger-ghost":
+          "text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50",
+        soft: "rounded-lg bg-muted/60 hover:bg-muted",
+        "insight-critical":
+          "h-auto min-h-7 max-w-full border-destructive/45 bg-destructive/[0.08] whitespace-normal text-destructive hover:bg-destructive/[0.12] sm:whitespace-nowrap dark:bg-destructive/[0.14] dark:hover:bg-destructive/[0.18]",
+        "insight-warning":
+          "h-auto min-h-7 max-w-full border-warning/45 bg-warning/10 whitespace-normal text-warning-foreground hover:bg-warning/15 sm:whitespace-nowrap dark:bg-warning/15 dark:hover:bg-warning/20",
+        "insight-info":
+          "h-auto min-h-7 max-w-full border-info/40 bg-info/10 whitespace-normal text-info-foreground hover:bg-info/15 sm:whitespace-nowrap dark:bg-info/15 dark:hover:bg-info/20",
       },
       size: {
         default:
           "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        roomy: "h-8 gap-2 px-3",
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",

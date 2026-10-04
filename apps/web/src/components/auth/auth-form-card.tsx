@@ -3,7 +3,7 @@ import { AuthPasswordField } from "@/components/auth/auth-password-field"
 import { ClairMark } from "@/components/clair-mark"
 import { Button } from "@workspace/ui/components/button"
 import { FieldError, FieldGroup } from "@workspace/ui/components/field"
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent, SubmitEvent } from "react"
 
 type AuthFormCardProps = {
   actionLabel: string
@@ -19,7 +19,7 @@ type AuthFormCardProps = {
   onEditEmail: () => void
   onEmailChange: (event: ChangeEvent<HTMLInputElement>) => void
   onPasswordChange: (event: ChangeEvent<HTMLInputElement>) => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void
   onTogglePasswordVisibility: () => void
 }
 
@@ -43,7 +43,7 @@ export function AuthFormCard({
   const showPasswordStep = step === "password"
 
   return (
-    <section className="w-full max-w-[26rem] rounded-2xl border bg-background/75 p-2 shadow-2xl shadow-primary/15 backdrop-blur">
+    <section className="w-full max-w-auth-form rounded-2xl border bg-background/75 p-2 shadow-2xl shadow-primary/15 backdrop-blur">
       <div className="rounded-xl border border-border/70 bg-background px-5 py-6 sm:px-6">
         <div className="mb-7 flex flex-col items-center text-center">
           <ClairMark size="lg" />
@@ -54,7 +54,7 @@ export function AuthFormCard({
         </div>
 
         <form className="grid gap-4" onSubmit={onSubmit}>
-          <FieldGroup className="gap-4">
+          <FieldGroup>
             <AuthEmailField
               value={email}
               onChange={showPasswordStep ? undefined : onEmailChange}

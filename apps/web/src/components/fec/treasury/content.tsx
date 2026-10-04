@@ -61,9 +61,7 @@ function TresorerieContent({
   const netEngagementValue = createElement(
     "span",
     {
-      className: isImproving
-        ? "text-emerald-600 dark:text-emerald-500"
-        : "text-destructive",
+      className: isImproving ? "text-success-foreground" : "text-destructive",
     },
     netEngagement > 0 ? "+" : "",
     createElement(FormattedCurrency, { value: netEngagement })
@@ -120,19 +118,23 @@ function TresorerieContent({
             </CardAction>
           ) : null}
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <CashCombinedChart
-            monthly={monthly}
-            comparison={
-              showComparison && comparisonData
-                ? comparisonData.monthly
-                : undefined
-            }
-            projection={projection}
-            className="h-[360px] w-full"
-          />
-          <Separator />
-          <CashProjectionCard data={cashProjection} />
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="h-chart-lg w-full">
+              <CashCombinedChart
+                monthly={monthly}
+                comparison={
+                  showComparison && comparisonData
+                    ? comparisonData.monthly
+                    : undefined
+                }
+                projection={projection}
+                className="size-full"
+              />
+            </div>
+            <Separator />
+            <CashProjectionCard data={cashProjection} />
+          </div>
         </CardContent>
       </Card>
 

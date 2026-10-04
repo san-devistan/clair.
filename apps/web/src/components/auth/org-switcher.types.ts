@@ -1,5 +1,5 @@
 import type { authClient } from "@/lib/auth/client"
-import type { FormEvent } from "react"
+import type { SubmitEvent } from "react"
 
 export type MemberRole = "admin" | "member"
 export type Organizations = NonNullable<
@@ -44,8 +44,8 @@ export type OrgSwitcherHandlers = {
   setMembersOpen: (open: boolean) => void
   setOrgName: (value: string) => void
   signOut: () => void
-  submitAddMember: (event: FormEvent<HTMLFormElement>) => void
-  submitCreateOrganization: (event: FormEvent<HTMLFormElement>) => void
-  submitUpdateOrganization: (event: FormEvent<HTMLFormElement>) => void
+  submitAddMember: (event: SubmitEvent<HTMLFormElement>) => void
+  submitCreateOrganization: (event: SubmitEvent<HTMLFormElement>) => void
+  submitUpdateOrganization: (event: SubmitEvent<HTMLFormElement>) => void
   removeMember: (memberId: string) => void
 }

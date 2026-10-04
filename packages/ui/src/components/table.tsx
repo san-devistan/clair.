@@ -1,9 +1,87 @@
 "use client"
 
 import { cn } from "@workspace/ui/lib/utils"
+import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+const tableRowVariants = cva(
+  "border-b transition-colors has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+  {
+    variants: {
+      variant: {
+        default: "hover:bg-muted/50",
+        muted: "bg-muted/40 hover:bg-muted/40",
+        destructive: "bg-destructive/5 hover:bg-destructive/10",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  }
+)
+
+const tableVariants = cva("w-full caption-bottom text-sm", {
+  variants: {
+    layout: {
+      auto: "",
+      fixed: "table-fixed",
+    },
+    minWidth: {
+      none: "",
+      sm: "min-w-table-sm",
+      md: "min-w-table-md",
+    },
+  },
+  defaultVariants: { layout: "auto", minWidth: "none" },
+})
+
+const tableHeadVariants = cva(
+  "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+  {
+    variants: {
+      width: {
+        auto: "",
+        note: "w-table-note",
+      },
+    },
+    defaultVariants: { width: "auto" },
+  }
+)
+
+const tableCellVariants = cva(
+  "align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+  {
+    variants: {
+      variant: {
+        default: "",
+        numeric: "text-right font-mono font-medium tabular-nums",
+        "numeric-strong": "text-right font-mono font-semibold tabular-nums",
+        muted: "text-xs text-muted-foreground tabular-nums",
+        description: "text-xs leading-relaxed text-muted-foreground",
+        strong: "font-medium",
+      },
+      tone: {
+        default: "",
+        destructive: "text-destructive",
+      },
+      spacing: {
+        default: "p-2",
+        none: "p-0",
+        relaxed: "px-2 py-2",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      tone: "default",
+      spacing: "default",
+    },
+  }
+)
+
+function Table({
+  className,
+  layout,
+  minWidth,
+  ...props
+}: React.ComponentProps<"table"> & VariantProps<typeof tableVariants>) {
   return (
     <div
       data-slot="table-container"
@@ -11,7 +89,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn(tableVariants({ layout, minWidth }), className)}
         {...props}
       />
     </div>
@@ -51,40 +129,45 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+function TableRow({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"tr"> & VariantProps<typeof tableRowVariants>) {
   return (
     <tr
       data-slot="table-row"
-      className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
-        className
-      )}
+      className={cn(tableRowVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({
+  className,
+  width,
+  ...props
+}: React.ComponentProps<"th"> & VariantProps<typeof tableHeadVariants>) {
   return (
     <th
       data-slot="table-head"
-      className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
-        className
-      )}
+      className={cn(tableHeadVariants({ width }), className)}
       {...props}
     />
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({
+  className,
+  variant,
+  tone,
+  spacing,
+  ...props
+}: React.ComponentProps<"td"> & VariantProps<typeof tableCellVariants>) {
   return (
     <td
       data-slot="table-cell"
-      className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
-        className
-      )}
+      className={cn(tableCellVariants({ variant, tone, spacing }), className)}
       {...props}
     />
   )

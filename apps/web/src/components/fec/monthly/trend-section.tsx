@@ -13,7 +13,9 @@ function MonthlyTrendSection({ monthly }: Pick<DashboardData, "monthly">) {
           </ExplainedCardTitle>
         </CardHeader>
         <CardContent>
-          <MonthlyTrendChart monthly={monthly} className="h-[280px] w-full" />
+          <div className="h-chart-sm w-full">
+            <MonthlyTrendChart monthly={monthly} className="size-full" />
+          </div>
         </CardContent>
       </Card>
     </section>

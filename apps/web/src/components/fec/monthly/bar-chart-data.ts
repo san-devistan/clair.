@@ -108,13 +108,13 @@ export function buildStackedCategories({
   comparisonCategories,
   colorMode,
 }: BuildStackedCategoriesArgs): StackedCategory[] {
-  const { keys, labels } = collectStackedCategoryKeys(
+  const { keys, labels } = collectStackedCategoryKeys({
     metric,
     monthly,
     categories,
     comparison,
-    comparisonCategories
-  )
+    comparisonCategories,
+  })
   const visibleKeys = keys.filter((key) =>
     hasCategoryAmount(key, metric, monthly, comparison)
   )
@@ -151,13 +151,19 @@ export function isStackedMetric(metric: Metric): metric is StackedMetric {
   return metric === "revenue" || metric === "expenses"
 }
 
-function collectStackedCategoryKeys(
-  metric: StackedMetric,
-  monthly: MonthlyPoint[],
-  categories: CategoryBreakdown[],
-  comparison: MonthlyPoint[] | undefined,
+function collectStackedCategoryKeys({
+  metric,
+  monthly,
+  categories,
+  comparison,
+  comparisonCategories,
+}: {
+  metric: StackedMetric
+  monthly: MonthlyPoint[]
+  categories: CategoryBreakdown[]
+  comparison: MonthlyPoint[] | undefined
   comparisonCategories: CategoryBreakdown[]
-) {
+}) {
   const keys: string[] = []
   const keySet = new Set<string>()
   const labels = new Map<string, string>()

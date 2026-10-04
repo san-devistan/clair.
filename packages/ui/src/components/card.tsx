@@ -1,19 +1,59 @@
 import { cn } from "@workspace/ui/lib/utils"
+import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
+
+const cardVariants = cva(
+  "group/card flex flex-col overflow-hidden text-sm text-card-foreground ring-1 has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+  {
+    variants: {
+      size: {
+        default: "gap-4 py-4 has-data-[slot=card-footer]:pb-0",
+        sm: "gap-3 py-3 has-data-[slot=card-footer]:pb-0",
+        compact: "gap-2 py-4 has-data-[slot=card-footer]:pb-0",
+        none: "gap-0 p-0",
+        roomy: "gap-4 p-6",
+      },
+      tone: {
+        default: "rounded-xl bg-card ring-foreground/10",
+        plain: "rounded-lg bg-background/90 ring-foreground/10",
+        primary: "rounded-xl bg-card ring-primary/10",
+        warning:
+          "rounded-xl border border-warning/45 bg-warning/10 ring-transparent dark:bg-warning/15",
+        success:
+          "rounded-xl border border-success/40 bg-success/10 ring-transparent dark:bg-success/15",
+        destructive:
+          "rounded-xl border border-destructive/40 bg-destructive/[0.08] ring-transparent dark:bg-destructive/[0.14]",
+        info: "rounded-xl border border-info/40 bg-info/10 ring-transparent dark:bg-info/15",
+      },
+    },
+    defaultVariants: { size: "default", tone: "default" },
+  }
+)
+
+const cardTitleVariants = cva("font-heading", {
+  variants: {
+    variant: {
+      default:
+        "text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+      metric:
+        "truncate text-xs font-medium tracking-wide text-muted-foreground uppercase",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
 
 function Card({
   className,
   size = "default",
+  tone = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
       data-size={size}
-      className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
-        className
-      )}
+      data-tone={tone}
+      className={cn(cardVariants({ size, tone }), className)}
       {...props}
     />
   )
@@ -32,14 +72,15 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardTitleVariants>) {
   return (
     <div
       data-slot="card-title"
-      className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
-        className
-      )}
+      className={cn(cardTitleVariants({ variant }), className)}
       {...props}
     />
   )

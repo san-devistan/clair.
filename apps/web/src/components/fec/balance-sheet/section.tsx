@@ -20,7 +20,7 @@ import {
 } from "@workspace/ui/components/table"
 import { cn } from "@workspace/ui/lib/utils"
 import { ArrowRight } from "lucide-react"
-import { type ReactNode, useMemo } from "react"
+import type { ReactNode } from "react"
 
 import { BalanceSheetRatioSummary } from "./ratios"
 
@@ -66,12 +66,14 @@ export function BalanceSheetOverviewCard({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <BalanceSheetVisual balanceSheet={balanceSheet} compact />
-        <div className="grid gap-3 md:grid-cols-3">
-          {highlightedRatios.map((ratio) => (
-            <BalanceSheetRatioSummary key={ratio.key} ratio={ratio} />
-          ))}
+      <CardContent>
+        <div className="flex flex-col gap-5">
+          <BalanceSheetVisual balanceSheet={balanceSheet} compact />
+          <div className="grid gap-3 md:grid-cols-3">
+            {highlightedRatios.map((ratio) => (
+              <BalanceSheetRatioSummary key={ratio.key} ratio={ratio} />
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -84,7 +86,7 @@ export function BalanceSheetVisual({
 }: BalanceSheetVisualProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
+      <div className="grid gap-4 lg:grid-cols-balance-sheet lg:items-stretch">
         <BalanceStack
           title="Actif"
           total={balanceSheet.totalAssets}
@@ -133,12 +135,14 @@ export function BalanceSheetLineTable({
   total: number
 }) {
   return (
-    <Table className="min-w-[640px] table-fixed">
+    <Table layout="fixed" minWidth="sm">
       <TableHeader>
         <TableRow>
           <TableHead className="text-left">{title}</TableHead>
           <TableHead className="w-28 text-right">Montant</TableHead>
-          <TableHead className="w-[260px] text-left">Lecture</TableHead>
+          <TableHead width="note" className="text-left">
+            Lecture
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -151,21 +155,22 @@ export function BalanceSheetLineTable({
               </div>
             </TableCell>
             <TableCell
-              className={cn(
-                "text-right font-mono font-medium tabular-nums",
-                line.amount < 0 && "text-destructive"
-              )}
+              variant="numeric"
+              tone={line.amount < 0 ? "destructive" : "default"}
             >
               {formatEuroCompact(line.amount)}
             </TableCell>
-            <TableCell className="text-left text-xs leading-relaxed whitespace-normal text-muted-foreground">
+            <TableCell
+              variant="description"
+              className="text-left whitespace-normal"
+            >
               {line.description}
             </TableCell>
           </TableRow>
         ))}
-        <TableRow className="bg-muted/40 hover:bg-muted/40">
-          <TableCell className="font-medium">Total</TableCell>
-          <TableCell className="text-right font-mono font-semibold tabular-nums">
+        <TableRow variant="muted">
+          <TableCell variant="strong">Total</TableCell>
+          <TableCell variant="numeric-strong">
             {formatEuroCompact(total)}
           </TableCell>
           <TableCell />
@@ -274,22 +279,18 @@ function BalanceStackSegment({
 }) {
   const share = stackTotal > 0 ? Math.abs(line.amount) / stackTotal : 0
   const showInline = share >= 0.11
-  const segmentStyle = useMemo(
-    () => ({
-      flexGrow: Math.max(Math.abs(line.amount), stackTotal * 0.045),
-      background: LINE_COLORS[line.key],
-    }),
-    [line.amount, line.key, stackTotal]
-  )
 
   return (
     <div
       className={cn(
-        "flex min-h-6 min-w-0 flex-col justify-center px-3 py-1.5 text-white",
+        "flex min-h-6 min-w-0 grow-segment flex-col justify-center px-3 py-1.5 text-white bg-marker",
         withSeparator && "border-t-2 border-background/70",
         line.amount < 0 && "text-destructive-foreground"
       )}
-      style={segmentStyle}
+      style={{
+        "--marker-color": LINE_COLORS[line.key],
+        "--segment-grow": Math.max(Math.abs(line.amount), stackTotal * 0.045),
+      }}
       title={`${line.label} : ${formatEuroCompact(line.amount)}`}
     >
       {showInline ? (
@@ -305,12 +306,12 @@ function BalanceStackSegment({
 }
 
 function BalanceLineMarker({ lineKey }: { lineKey: BalanceSheetLineKey }) {
-  const markerStyle = useMemo(
-    () => ({ background: LINE_COLORS[lineKey] }),
-    [lineKey]
+  return (
+    <span
+      className="size-2.5 shrink-0 rounded-full bg-marker"
+      style={{ "--marker-color": LINE_COLORS[lineKey] }}
+    />
   )
-
-  return <span className="size-2.5 shrink-0 rounded-full" style={markerStyle} />
 }
 
 function BalanceIndicator({

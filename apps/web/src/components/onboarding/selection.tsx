@@ -33,7 +33,7 @@ export function OnboardingSelection({
     <main className="relative min-h-svh overflow-hidden bg-background">
       <AuthBackground />
       <AuthHeader showDemo={false} />
-      <section className="relative mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col justify-center gap-7 px-5 py-8 sm:px-6 lg:py-12">
+      <section className="relative mx-auto flex min-h-screen-auth w-full max-w-6xl flex-col justify-center gap-7 px-5 py-8 sm:px-6 lg:py-12">
         <div className="max-w-2xl">
           <Badge variant="secondary" className="mb-4">
             Abonnement

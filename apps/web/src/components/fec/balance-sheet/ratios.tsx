@@ -9,7 +9,13 @@ import { formatAccurateNumber, formatPercent } from "@/lib/fec/format"
 import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { cn } from "@workspace/ui/lib/utils"
+
+const STATUS_BADGE_VARIANTS = {
+  good: "success",
+  watch: "secondary",
+  risk: "destructive",
+  info: "secondary",
+} as const satisfies Record<BalanceSheetRatioStatus, string>
 
 const STATUS_LABELS: Record<BalanceSheetRatioStatus, string> = {
   good: "Sain",
@@ -40,10 +46,12 @@ export function BalanceSheetRatioGrid({
               <StatusBadge status={ratio.status} />
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <p className="text-xs text-muted-foreground">{ratio.formula}</p>
-            <Separator />
-            <RatioExplanation ratio={ratio} balanceSheet={balanceSheet} />
+          <CardContent>
+            <div className="flex flex-col gap-3">
+              <p className="text-xs text-muted-foreground">{ratio.formula}</p>
+              <Separator />
+              <RatioExplanation ratio={ratio} balanceSheet={balanceSheet} />
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -73,10 +81,7 @@ export function BalanceSheetRatioSummary({
 
 function StatusBadge({ status }: { status: BalanceSheetRatioStatus }) {
   return (
-    <Badge
-      variant={status === "risk" ? "destructive" : "secondary"}
-      className={cn(status === "good" && "text-emerald-700")}
-    >
+    <Badge variant={STATUS_BADGE_VARIANTS[status]}>
       {STATUS_LABELS[status]}
     </Badge>
   )

@@ -43,7 +43,7 @@ function PageBackground() {
   return (
     <>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-      <div className="pointer-events-none absolute -top-32 left-1/2 size-[600px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 left-1/2 size-landing-glow -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
     </>
   )
 }
@@ -90,12 +90,12 @@ function StartButton({ size }: { size: "sm" | "lg" }) {
 
 function HeroSection() {
   return (
-    <section className="grid gap-10 pt-12 pb-20 md:grid-cols-[1.2fr_1fr] md:items-center md:pt-20">
+    <section className="grid gap-10 pt-12 pb-20 md:grid-cols-landing-hero md:items-center md:pt-20">
       <div>
-        <Badge variant="secondary" className="mb-6 rounded-full px-3 py-1">
+        <Badge variant="secondary" size="pill" className="mb-6">
           Pour dirigeants, pas pour comptables
         </Badge>
-        <h1 className="font-heading text-4xl leading-[1.05] font-semibold tracking-tight md:text-6xl">
+        <h1 className="font-heading text-4xl leading-display font-semibold tracking-tight md:text-6xl">
           La santé de votre entreprise,
           <br />
           <span className="text-primary">en clair.</span>
@@ -123,7 +123,7 @@ function HeroSection() {
 function DashboardPreview() {
   return (
     <div className="relative">
-      <Card className="relative overflow-hidden p-0">
+      <Card size="none" className="relative overflow-hidden">
         <PreviewChrome />
         <div className="space-y-4 p-6">
           <PreviewKpis />
@@ -139,8 +139,8 @@ function PreviewChrome() {
   return (
     <div className="flex items-center gap-1.5 border-b bg-muted/40 px-4 py-2.5">
       <div className="size-2.5 rounded-full bg-destructive/40" />
-      <div className="size-2.5 rounded-full bg-amber-500/40" />
-      <div className="size-2.5 rounded-full bg-emerald-500/40" />
+      <div className="size-2.5 rounded-full bg-warning/40" />
+      <div className="size-2.5 rounded-full bg-success/40" />
       <span className="ml-2 text-xs text-muted-foreground">
         clair.app/dashboard
       </span>
@@ -156,12 +156,12 @@ function PreviewKpis() {
         <p className="font-heading text-2xl font-semibold">
           <FormattedCurrency value={812_000} />
         </p>
-        <p className="mt-0.5 text-xs text-emerald-600">+18% vs N-1</p>
+        <p className="mt-0.5 text-xs text-success-foreground">+18% vs N-1</p>
       </div>
       <div className="rounded-lg border bg-card p-3 text-card-foreground">
         <p className="text-xs text-muted-foreground">Marge nette</p>
         <p className="font-heading text-2xl font-semibold">12,4%</p>
-        <p className="mt-0.5 text-xs text-amber-600">En recul</p>
+        <p className="mt-0.5 text-xs text-warning-foreground">En recul</p>
       </div>
     </div>
   )
@@ -188,9 +188,9 @@ function PreviewChart() {
 
 function PreviewWarning() {
   return (
-    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+    <div className="rounded-lg border border-warning/30 bg-warning/10 p-3">
       <div className="flex items-start gap-2">
-        <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
+        <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning-foreground" />
         <div>
           <p className="text-sm font-semibold">
             3 clients représentent 64% du CA
@@ -229,7 +229,7 @@ function FeaturesSection() {
 function SectionTitle({ badge, title }: { badge: string; title: ReactNode }) {
   return (
     <div className="mb-12 max-w-2xl">
-      <Badge variant="outline" className="mb-4 rounded-full">
+      <Badge variant="outline" size="round" className="mb-4">
         {badge}
       </Badge>
       <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
@@ -243,7 +243,7 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
   const Icon = feature.icon
 
   return (
-    <Card className="p-6">
+    <Card size="roomy">
       <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-5" />
       </div>
@@ -277,7 +277,7 @@ function QuestionCard({ question }: { question: (typeof QUESTIONS)[number] }) {
   const Icon = question.icon
 
   return (
-    <Card className="border-primary/10 p-6">
+    <Card size="roomy" tone="primary">
       <Icon className="mb-4 size-5 text-primary" />
       <p className="font-heading text-base leading-snug font-semibold">
         {question.q}
@@ -324,7 +324,7 @@ function PrivacySection() {
       id="confidentialite"
       className="mt-20 rounded-3xl border bg-gradient-to-br from-primary/10 via-transparent to-transparent p-10 md:p-16"
     >
-      <div className="grid gap-8 md:grid-cols-[2fr_3fr] md:items-center">
+      <div className="grid gap-8 md:grid-cols-landing-split md:items-center">
         <div>
           <ShieldCheck className="mb-4 size-10 text-primary" />
           <h2 className="font-heading text-2xl font-semibold tracking-tight md:text-3xl">

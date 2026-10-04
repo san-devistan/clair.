@@ -9,7 +9,7 @@ import {
   useMemo,
   useReducer,
   useRef,
-  type FormEvent,
+  type SubmitEvent,
 } from "react"
 
 import type {
@@ -79,21 +79,30 @@ export function useOrgSwitcherState() {
 
   useInitialActiveOrganization(activeOrganization, organizations)
 
-  const setCreateOpen = useCallback((createOpen: boolean) => {
-    dispatch({ type: "patch", patch: { createOpen } })
-  }, [])
+  const setCreateOpen = useCallback(
+    (createOpen: boolean) => {
+      dispatch({ type: "patch", patch: { createOpen } })
+    },
+    [dispatch]
+  )
 
-  const setEditOpen = useCallback((editOpen: boolean) => {
-    dispatch({ type: "patch", patch: { editOpen } })
-  }, [])
+  const setEditOpen = useCallback(
+    (editOpen: boolean) => {
+      dispatch({ type: "patch", patch: { editOpen } })
+    },
+    [dispatch]
+  )
 
-  const setMembersOpen = useCallback((membersOpen: boolean) => {
-    dispatch({ type: "patch", patch: { membersOpen } })
-  }, [])
+  const setMembersOpen = useCallback(
+    (membersOpen: boolean) => {
+      dispatch({ type: "patch", patch: { membersOpen } })
+    },
+    [dispatch]
+  )
 
   const openCreateDialog = useCallback(() => {
     dispatch({ type: "patch", patch: { createOpen: true, error: null } })
-  }, [])
+  }, [dispatch])
 
   const openEditDialog = useCallback(() => {
     dispatch({
@@ -104,7 +113,7 @@ export function useOrgSwitcherState() {
         error: null,
       },
     })
-  }, [activeOrganization?.name])
+  }, [activeOrganization?.name, dispatch])
 
   const openMembersDialog = useCallback(() => {
     dispatch({
@@ -116,31 +125,43 @@ export function useOrgSwitcherState() {
         membersOpen: true,
       },
     })
-  }, [])
+  }, [dispatch])
 
   const closeCreateDialog = useCallback(() => {
     dispatch({ type: "patch", patch: { createOpen: false } })
-  }, [])
+  }, [dispatch])
 
   const closeEditDialog = useCallback(() => {
     dispatch({ type: "patch", patch: { editOpen: false } })
-  }, [])
+  }, [dispatch])
 
-  const setOrgName = useCallback((orgName: string) => {
-    dispatch({ type: "patch", patch: { orgName } })
-  }, [])
+  const setOrgName = useCallback(
+    (orgName: string) => {
+      dispatch({ type: "patch", patch: { orgName } })
+    },
+    [dispatch]
+  )
 
-  const setEditOrgName = useCallback((editOrgName: string) => {
-    dispatch({ type: "patch", patch: { editOrgName } })
-  }, [])
+  const setEditOrgName = useCallback(
+    (editOrgName: string) => {
+      dispatch({ type: "patch", patch: { editOrgName } })
+    },
+    [dispatch]
+  )
 
-  const setMemberEmail = useCallback((memberEmail: string) => {
-    dispatch({ type: "patch", patch: { memberEmail } })
-  }, [])
+  const setMemberEmail = useCallback(
+    (memberEmail: string) => {
+      dispatch({ type: "patch", patch: { memberEmail } })
+    },
+    [dispatch]
+  )
 
-  const setMemberRole = useCallback((memberRole: MemberRole) => {
-    dispatch({ type: "patch", patch: { memberRole } })
-  }, [])
+  const setMemberRole = useCallback(
+    (memberRole: MemberRole) => {
+      dispatch({ type: "patch", patch: { memberRole } })
+    },
+    [dispatch]
+  )
 
   const selectOrganization = useCallback((organizationId: string) => {
     void authClient.organization.setActive({ organizationId })
@@ -168,30 +189,30 @@ export function useOrgSwitcherState() {
     billingUsage,
   })
 
-  const createOrganization = useCreateOrganization(
-    billingUsage?.canCreateOrganization ?? null,
+  const createOrganization = useCreateOrganization({
+    canCreateOrganization: billingUsage?.canCreateOrganization ?? null,
     createOrganizationForCurrentUser,
-    refetchOrganizations,
-    state.orgName,
-    dispatch
-  )
+    refreshOrganizations: refetchOrganizations,
+    orgName: state.orgName,
+    dispatch,
+  })
   const updateOrganization = useUpdateOrganization(
     activeOrganization,
     state.editOrgName,
     dispatch
   )
-  const addMember = useAddMember(
+  const addMember = useAddMember({
     activeOrganization,
     addMemberByEmail,
-    activeOrganizationUsage?.canInviteMember ?? null,
-    state.memberEmail,
-    state.memberRole,
-    dispatch
-  )
+    canInviteMember: activeOrganizationUsage?.canInviteMember ?? null,
+    memberEmail: state.memberEmail,
+    memberRole: state.memberRole,
+    dispatch,
+  })
   const removeMember = useRemoveMember(activeOrganization, dispatch)
 
   const submitCreateOrganization = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault()
       void createOrganization()
     },
@@ -199,7 +220,7 @@ export function useOrgSwitcherState() {
   )
 
   const submitUpdateOrganization = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault()
       void updateOrganization()
     },
@@ -207,7 +228,7 @@ export function useOrgSwitcherState() {
   )
 
   const submitAddMember = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SubmitEvent<HTMLFormElement>) => {
       event.preventDefault()
       void addMember()
     },

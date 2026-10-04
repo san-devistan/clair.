@@ -32,11 +32,13 @@ function TreasuryOverviewSection({
           </div>
         </CardHeader>
         <CardContent>
-          <CashCombinedChart
-            monthly={monthly}
-            projection={projection}
-            className="h-[360px] w-full"
-          />
+          <div className="h-chart-lg w-full">
+            <CashCombinedChart
+              monthly={monthly}
+              projection={projection}
+              className="size-full"
+            />
+          </div>
         </CardContent>
       </Card>
     </section>

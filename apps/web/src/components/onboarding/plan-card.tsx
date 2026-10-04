@@ -76,7 +76,7 @@ export function PlanCard({
   }, [onSelect, plan.id])
 
   return (
-    <Card className="rounded-lg bg-background/90">
+    <Card tone="plain">
       <CardHeader>
         <div className="mb-1 flex items-center justify-between gap-3">
           <CardTitle>{plan.name}</CardTitle>
@@ -89,18 +89,20 @@ export function PlanCard({
           <div className="mt-1 text-xs text-muted-foreground">par mois</div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <p className="min-h-10 text-sm leading-5 text-muted-foreground">
-          {details.tone}
-        </p>
-        <ul className="grid gap-2 text-sm">
-          {details.features.map((feature) => (
-            <li key={feature} className="flex items-center gap-2">
-              <Check className="size-4 text-primary" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
+      <CardContent>
+        <div className="grid gap-4">
+          <p className="min-h-10 text-sm leading-5 text-muted-foreground">
+            {details.tone}
+          </p>
+          <ul className="grid gap-2 text-sm">
+            {details.features.map((feature) => (
+              <li key={feature} className="flex items-center gap-2">
+                <Check className="size-4 text-primary" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
       <CardFooter>
         <Button

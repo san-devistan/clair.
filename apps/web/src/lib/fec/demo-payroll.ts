@@ -26,14 +26,20 @@ export function addPayroll({
   const retirementPayable = roundMoney(retirement + benefits)
   const ref = `PAIE-${monthKey(monthDate)}`
 
-  addPayrollAccrual(entries, nextNum(), payrollDate, ref, {
-    grossWithBonus,
-    urssaf,
-    retirement,
-    benefits,
-    netSalary,
-    urssafPayable,
-    retirementPayable,
+  addPayrollAccrual({
+    entries,
+    ecritureNum: nextNum(),
+    payrollDate,
+    ref,
+    amounts: {
+      grossWithBonus,
+      urssaf,
+      retirement,
+      benefits,
+      netSalary,
+      urssafPayable,
+      retirementPayable,
+    },
   })
   payPayrollLiabilities({
     entries,
@@ -48,11 +54,17 @@ export function addPayroll({
   })
 }
 
-function addPayrollAccrual(
-  entries: DemoEntry[],
-  ecritureNum: string,
-  payrollDate: Date,
-  ref: string,
+function addPayrollAccrual({
+  entries,
+  ecritureNum,
+  payrollDate,
+  ref,
+  amounts,
+}: {
+  entries: DemoEntry[]
+  ecritureNum: string
+  payrollDate: Date
+  ref: string
   amounts: {
     grossWithBonus: number
     urssaf: number
@@ -62,7 +74,7 @@ function addPayrollAccrual(
     urssafPayable: number
     retirementPayable: number
   }
-) {
+}) {
   addLines(
     entries,
     {

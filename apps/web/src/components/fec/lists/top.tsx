@@ -2,7 +2,6 @@
 
 import { FormattedCurrency } from "@/components/fec/numbers/formatted"
 import type { TopCounterparty } from "@/lib/fec/analytics"
-import { useMemo } from "react"
 
 interface TopListProps {
   items: TopCounterparty[]
@@ -43,14 +42,13 @@ function TopListItem({
   unit?: string
 }) {
   const percent = max > 0 ? (item.amount / max) * 100 : 0
-  const barStyle = useMemo(() => ({ width: `${String(percent)}%` }), [percent])
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3 text-sm">
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{item.label}</p>
-          <p className="font-mono text-[10px] text-muted-foreground">
+          <p className="font-mono text-2xs text-muted-foreground">
             {item.accountNum}
           </p>
         </div>
@@ -59,14 +57,14 @@ function TopListItem({
             <FormattedCurrency value={item.amount} />
           </p>
           {unit ? (
-            <p className="text-[10px] text-muted-foreground">{unit}</p>
+            <p className="text-2xs text-muted-foreground">{unit}</p>
           ) : null}
         </div>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={barStyle}
+          className="h-full w-progress rounded-full bg-primary transition-width"
+          style={{ "--progress-width": `${String(percent)}%` }}
         />
       </div>
     </div>

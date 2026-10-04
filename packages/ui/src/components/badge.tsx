@@ -7,6 +7,8 @@ import type { VariantProps } from "class-variance-authority"
 function Badge({
   className,
   variant = "default",
+  size = "default",
+  font = "default",
   render,
   ...props
 }: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
@@ -14,7 +16,7 @@ function Badge({
     defaultTagName: "span",
     props: mergeProps<"span">(
       {
-        className: cn(badgeVariants({ variant }), className),
+        className: cn(badgeVariants({ variant, size, font }), className),
       },
       props
     ),
@@ -22,6 +24,7 @@ function Badge({
     state: {
       slot: "badge",
       variant,
+      size,
     },
   })
 }

@@ -2,17 +2,10 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
+    "web#build": {
       "env": ["VITE_CONVEX_URL", "VITE_CONVEX_SITE_URL"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".output/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "format": {
-      "dependsOn": ["^format"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]

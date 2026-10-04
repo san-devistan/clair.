@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/space-grotesk";
+@import "./globals.css";
+
+@custom-variant dark (&:is(.dark *));
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../../../components/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility grid-cols-amount-row {
+  grid-template-columns: minmax(0, 1fr) 6rem 7rem;
+}
+
+@utility grid-cols-aging-row {
+  grid-template-columns: minmax(0, 1fr) 8rem 7rem;
+}
+
+@utility grid-cols-operator-row {
+  grid-template-columns: minmax(0, 1fr) 1ch auto;
+}
+
+@utility grid-cols-balance-sheet {
+  grid-template-columns: 1fr auto 1fr;
+}
+
+@utility grid-cols-landing-hero {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+@utility grid-cols-landing-split {
+  grid-template-columns: 2fr 3fr;
+}
+
+@utility bg-auth-glow {
+  background-image:
+    radial-gradient(
+      ellipse at center,
+      color-mix(in oklch, var(--primary) 30%, transparent) 0%,
+      transparent 58%
+    ),
+    linear-gradient(to bottom, var(--background), var(--background));
+}
+
+@utility bg-auth-grid {
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--primary) 24%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@utility bg-marker {
+  background: var(--marker-color);
+}
+
+@utility text-marker {
+  color: var(--marker-color);
+}
+
+@utility w-progress {
+  width: var(--progress-width);
+}
+
+@utility transition-width {
+  transition-property: width;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility left-progress {
+  left: var(--progress-left);
+}
+
+@utility grow-segment {
+  flex-grow: var(--segment-grow);
+}

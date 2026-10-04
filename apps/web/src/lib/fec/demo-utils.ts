@@ -1,6 +1,11 @@
 import { DAY_MS } from "./demo-constants"
 import type { Customer, RevenueLine, Supplier } from "./demo-types"
 
+const SUMMER_REVENUE_MULTIPLIERS = new Map([
+  [6, 0.9],
+  [7, 0.84],
+])
+
 export function dateStr(date: Date): string {
   const year = String(date.getUTCFullYear())
   const month = String(date.getUTCMonth() + 1).padStart(2, "0")
@@ -75,7 +80,7 @@ export function computeMonthlyRevenueTarget(
   const base = 88_000
   const growth = Math.pow(1.045, monthIndex)
   const month = monthDate.getUTCMonth()
-  const summer = month === 6 ? 0.9 : month === 7 ? 0.84 : 1
+  const summer = SUMMER_REVENUE_MULTIPLIERS.get(month) ?? 1
   const december = month === 11 ? 1.12 : 1
   const launch = launchMultiplier(monthIndex)
   return roundMoney(base * growth * summer * december * launch)

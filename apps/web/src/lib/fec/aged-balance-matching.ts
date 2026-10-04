@@ -79,7 +79,13 @@ function netOneParty(
   for (const [index, e] of partyEntries.entries()) {
     const value = signMultiplier === 1 ? e.debit - e.credit : e.credit - e.debit
     if (value > AMOUNT_TOLERANCE) {
-      creditPool = addInvoiceToQueue(queue, e, index, value, creditPool)
+      creditPool = addInvoiceToQueue({
+        queue,
+        entry: e,
+        index,
+        value,
+        creditPool,
+      })
     } else if (value < -AMOUNT_TOLERANCE) {
       const residue = applyPaymentFIFO(queue, -value)
       if (residue > AMOUNT_TOLERANCE) creditPool += residue
@@ -89,13 +95,19 @@ function netOneParty(
   return queue
 }
 
-function addInvoiceToQueue(
-  queue: QueuedInvoice[],
-  entry: FecEntry,
-  index: number,
-  value: number,
+function addInvoiceToQueue({
+  queue,
+  entry,
+  index,
+  value,
+  creditPool,
+}: {
+  queue: QueuedInvoice[]
+  entry: FecEntry
+  index: number
+  value: number
   creditPool: number
-): number {
+}): number {
   const applied = Math.min(value, creditPool)
   const remainingCredit = creditPool - applied
   const remainingInvoice = value - applied

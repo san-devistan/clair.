@@ -11,7 +11,6 @@ import {
 import type { useOrgSwitcherState } from "@/components/auth/use-org-switcher-state"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
 import { Pencil, UserMinus, UserPlus } from "lucide-react"
 import { useCallback } from "react"
 
@@ -80,12 +79,11 @@ export type MemberUsage =
   | undefined
 type RoleBadgeTone = "admin" | "custom" | "member"
 
-const ROLE_BADGE_STYLES: Record<RoleBadgeTone, string> = {
-  admin: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
-  custom: "border-border bg-muted/50 text-muted-foreground",
-  member:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-}
+const ROLE_BADGE_VARIANTS = {
+  admin: "info",
+  custom: "status-neutral",
+  member: "success",
+} as const satisfies Record<RoleBadgeTone, string>
 
 function EnterpriseNameSection({
   activeOrganization,
@@ -275,10 +273,7 @@ function MemberRoleBadge({ role }: { role: string }) {
   const tone = getRoleBadgeTone(role, label)
 
   return (
-    <Badge
-      variant="outline"
-      className={cn("max-w-32 justify-start px-2.5", ROLE_BADGE_STYLES[tone])}
-    >
+    <Badge variant={ROLE_BADGE_VARIANTS[tone]} size="role">
       <span className="min-w-0 truncate">{label}</span>
     </Badge>
   )
@@ -319,12 +314,8 @@ function RemoveMemberButton({
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="danger-ghost"
       size="icon-sm"
-      className={cn(
-        "text-muted-foreground hover:text-destructive",
-        pending && "opacity-50"
-      )}
       disabled={pending}
       onClick={onClick}
     >

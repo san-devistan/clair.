@@ -13,26 +13,18 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-const SEVERITY_STYLES: Record<
-  ActionableInsight["severity"],
-  { card: string; icon: string }
-> = {
-  critical: {
-    card: "border-destructive/45 bg-destructive/[0.08] dark:bg-destructive/[0.14]",
-    icon: "text-destructive bg-destructive/15 dark:bg-destructive/20",
-  },
-  warning: {
-    card: "border-amber-500/45 bg-amber-500/[0.1] dark:bg-amber-500/[0.16]",
-    icon: "bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-500",
-  },
-  info: {
-    card: "border-blue-500/40 bg-blue-500/[0.08] dark:bg-blue-500/[0.14]",
-    icon: "bg-blue-500/15 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-  },
-  positive: {
-    card: "border-emerald-500/40 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14]",
-    icon: "bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-500",
-  },
+const SEVERITY_CARD_TONES = {
+  critical: "destructive",
+  warning: "warning",
+  info: "info",
+  positive: "success",
+} as const satisfies Record<ActionableInsight["severity"], string>
+
+const SEVERITY_ICON_CLASSES: Record<ActionableInsight["severity"], string> = {
+  critical: "bg-destructive/15 text-destructive dark:bg-destructive/20",
+  warning: "bg-warning/15 text-warning-foreground dark:bg-warning/20",
+  info: "bg-info/15 text-info-foreground dark:bg-info/20",
+  positive: "bg-success/15 text-success-foreground dark:bg-success/20",
 }
 
 const CATEGORY_LABELS: Record<ActionableInsight["category"], string> = {
@@ -53,13 +45,15 @@ const SEVERITY_ICONS: Record<ActionableInsight["severity"], LucideIcon> = {
 
 export function InsightCard({ insight }: { insight: ActionableInsight }) {
   const Icon = SEVERITY_ICONS[insight.severity]
-  const styles = SEVERITY_STYLES[insight.severity]
 
   return (
-    <Card className={cn("gap-3", styles.card)}>
+    <Card size="sm" tone={SEVERITY_CARD_TONES[insight.severity]}>
       <CardContent>
         <div className="flex items-start gap-3">
-          <InsightIcon Icon={Icon} className={styles.icon} />
+          <InsightIcon
+            Icon={Icon}
+            className={SEVERITY_ICON_CLASSES[insight.severity]}
+          />
           <div className="min-w-0 flex-1 space-y-3">
             <InsightSummary insight={insight} />
             <InsightAction action={insight.action} />
@@ -94,11 +88,11 @@ function InsightSummary({ insight }: { insight: ActionableInsight }) {
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center gap-2">
         <p className="font-heading text-sm font-semibold">{insight.title}</p>
-        <Badge variant="outline" className="text-[10px]">
+        <Badge variant="outline" size="xs">
           {CATEGORY_LABELS[insight.category]}
         </Badge>
         {insight.metric ? (
-          <Badge variant="secondary" className="font-mono text-[10px]">
+          <Badge variant="secondary" size="xs" font="mono">
             {insight.metric}
           </Badge>
         ) : null}
@@ -113,7 +107,7 @@ function InsightSummary({ insight }: { insight: ActionableInsight }) {
 function InsightAction({ action }: { action: string }) {
   return (
     <div className="rounded-md border border-border/50 bg-background/60 p-3">
-      <p className="mb-1 flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+      <p className="mb-1 flex items-center gap-1.5 text-xs-plus font-medium tracking-wide text-muted-foreground uppercase">
         <ArrowRight className="size-3" />
         Action recommandée
       </p>

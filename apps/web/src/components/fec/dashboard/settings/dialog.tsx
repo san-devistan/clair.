@@ -60,12 +60,7 @@ const SETTINGS_TABS: SettingsTab[] = [
 ]
 const DEFAULT_SETTINGS_TAB = SETTINGS_TABS[0]
 const SETTINGS_CLOSE_BUTTON = (
-  <Button
-    type="button"
-    variant="ghost"
-    size="icon"
-    className="rounded-lg bg-muted/60 hover:bg-muted"
-  />
+  <Button type="button" variant="soft" size="icon" aria-label="Fermer" />
 )
 
 export function DashboardSettingsDialog() {
@@ -103,10 +98,7 @@ export function DashboardSettingsDialog() {
             </DialogTrigger>
           </SidebarMenuItem>
         </SidebarMenu>
-        <DialogContent
-          showCloseButton={false}
-          className="max-h-[calc(100svh-2rem)] gap-0 overflow-hidden p-0 sm:max-w-3xl"
-        >
+        <DialogContent showCloseButton={false} size="settings">
           <SettingsTabs
             activeTab={activeTab}
             activeOrganization={activeOrganization}
@@ -186,14 +178,19 @@ function SettingsTabs({
       value={activeTab}
       onValueChange={onActiveTabChange}
       orientation="vertical"
-      className="min-h-0 flex-col gap-0 md:flex-row"
+      spacing="none"
+      className="min-h-0 flex-col md:flex-row"
     >
       <div className="shrink-0 border-b p-3 md:w-56 md:border-r md:border-b-0">
         <DialogClose render={SETTINGS_CLOSE_BUTTON}>
           <X />
           <span className="sr-only">Fermer</span>
         </DialogClose>
-        <TabsList variant="line" className="mt-5 w-full items-stretch p-0">
+        <TabsList
+          variant="line"
+          spacing="none"
+          className="mt-5 w-full items-stretch"
+        >
           {SETTINGS_TABS.map((tab) => (
             <SettingsTabTrigger key={tab.value} tab={tab} />
           ))}
@@ -246,10 +243,8 @@ function SettingsTabs({
 
 function SettingsContentHeader({ title }: { title: string }) {
   return (
-    <DialogHeader className="border-b px-6 py-5 pr-12">
-      <DialogTitle className="text-xl leading-tight font-semibold">
-        {title}
-      </DialogTitle>
+    <DialogHeader variant="panel">
+      <DialogTitle variant="panel">{title}</DialogTitle>
     </DialogHeader>
   )
 }
@@ -258,7 +253,7 @@ function SettingsTabTrigger({ tab }: { tab: SettingsTab }) {
   const Icon = tab.icon
 
   return (
-    <TabsTrigger value={tab.value} className="h-9 px-2 md:justify-start">
+    <TabsTrigger value={tab.value} size="nav">
       <Icon />
       {tab.label}
     </TabsTrigger>
